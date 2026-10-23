@@ -2,6 +2,8 @@
 
 [Ansamblul proiectului](../README.md) · [Conexiuni și comunicare](NETWORK.md)
 
+Contracte detaliate cu siteurile: [Superbet](contracts/SUPERBET.md) · [Betano](contracts/BETANO.md). Acestea explică payloadurile, indicatorii și codurile de schimbări aplicate în store-uri.
+
 Un provider este integrarea completă a unui site: știe unde găsește meciurile, cum se abonează la ele, cum interpretează mesajele și când starea cotelor poate fi folosită. Superbet și Betano folosesc aceeași infrastructură de networking, dar protocoale și modele de date diferite.
 
 ## Piesele unui provider

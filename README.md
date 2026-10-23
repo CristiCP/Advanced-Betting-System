@@ -6,6 +6,7 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 
 - [Network](docs/NETWORK.md): conexiuni, transporturi, comunicare între workeri și controlul fluxului de date.
 - [Providers](docs/PROVIDERS.md): descoperirea meciurilor, protocoalele fiecărui site și sincronizarea cotelor.
+- Contractele [Superbet](docs/contracts/SUPERBET.md) și [Betano](docs/contracts/BETANO.md): endpointuri, mesaje, câmpuri și regulile de aplicare a actualizărilor.
 
 ## Arhitectura actuală
 
