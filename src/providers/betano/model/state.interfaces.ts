@@ -5,12 +5,19 @@ export interface BetanoRecord {
   [key: string]: unknown;
 }
 
+export interface BetanoParticipant extends BetanoRecord {
+  name: string;
+  isHome?: boolean;
+  teamId?: number;
+}
+
 export interface BetanoEvent extends BetanoRecord {
   id: number;
   sportId: BetanoSport;
   isLive?: boolean;
   isEnded?: boolean;
   isSuspended?: boolean;
+  participants?: BetanoParticipant[];
   marketIdList: number[];
 }
 
