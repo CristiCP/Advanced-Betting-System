@@ -1,4 +1,6 @@
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
+import { BetanoFootballProjection } from "./football-projection.js";
+import type { BetanoFootballSnapshot } from "../model/football-projection.interfaces.js";
 import type {
   NetworkWorkerMessage,
   NetworkStreamMessage,
@@ -26,6 +28,7 @@ import type {
 
 export class BetanoFeed {
   readonly store: BetanoStore;
+  private readonly football: BetanoFootballProjection;
   private readonly sockets = new Map<string, BetanoSocketState>();
   private readonly membership = new Map<number, BetanoSocketState>();
   private readonly revisions = new Map<number, number>();
@@ -55,17 +58,34 @@ export class BetanoFeed {
     private readonly options: BetanoOptions,
     private readonly handlers: BetanoFeedHandlers,
   ) {
+    this.football = new BetanoFootballProjection({
+      ...(handlers.onFootballSnapshot
+        ? { onSnapshot: handlers.onFootballSnapshot }
+        : {}),
+      ...(handlers.onFootballUpdate
+        ? { onUpdate: handlers.onFootballUpdate }
+        : {}),
+    });
     this.store = new BetanoStore(options.maxBufferedDiffs, {
-      onSnapshot: (snapshot) => handlers.onSnapshot(snapshot),
+      onSnapshot: (snapshot) => {
+        this.football.install(snapshot);
+        handlers.onSnapshot(snapshot);
+      },
       onUpdate: (diff) => {
         this.counters.appliedDiffs++;
+        const snapshot = this.store.getSnapshot(diff.eventId);
+        if (snapshot) this.football.update(snapshot, diff);
         handlers.onUpdate(diff);
       },
       onStale: (eventId, reason) => {
+        this.football.remove(eventId);
         this.counters.resynchronizations++;
         handlers.onStatus({ kind: "event-stale", eventId, reason });
       },
-      onRemove: (id) => this.detach(id),
+      onRemove: (id) => {
+        this.football.remove(id);
+        this.detach(id);
+      },
     });
   }
 
@@ -88,6 +108,12 @@ export class BetanoFeed {
     return [...this.store.events.values()].map(
       (state) => state.snapshot?.event ?? state.event,
     );
+  }
+
+  getFootballSnapshot(eventId: number): BetanoFootballSnapshot | null {
+    return !this.stopping && this.store.getSnapshot(eventId)
+      ? this.football.getSnapshot(eventId)
+      : null;
   }
 
   getStats(): BetanoStats {
@@ -189,6 +215,7 @@ export class BetanoFeed {
   async stop(): Promise<void> {
     if (this.stopping) return;
     this.stopping = true;
+    this.football.clear();
     if (this.discoveryTimer !== null) clearInterval(this.discoveryTimer);
     if (this.discoveryRetry !== null) clearTimeout(this.discoveryRetry);
     if (this.statsTimer !== null) clearInterval(this.statsTimer);

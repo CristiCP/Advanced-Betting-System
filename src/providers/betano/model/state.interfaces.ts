@@ -18,17 +18,29 @@ export interface BetanoEvent extends BetanoRecord {
   isEnded?: boolean;
   isSuspended?: boolean;
   participants?: BetanoParticipant[];
+  startTime?: number;
+  leagueId?: number;
+  zoneId?: number;
   marketIdList: number[];
 }
 
 export interface BetanoMarket extends BetanoRecord {
   id: number;
+  typeId?: number;
+  type?: string;
+  name?: string;
+  handicap?: number;
   selectionIdList: number[];
   isSuspended?: boolean;
 }
 
 export interface BetanoSelection extends BetanoRecord {
   id: number;
+  typeId?: number;
+  name?: string;
+  fullName?: string;
+  handicap?: number;
+  teamId?: number;
   price?: number;
   isSuspended?: boolean;
 }

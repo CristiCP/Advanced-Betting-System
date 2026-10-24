@@ -27,6 +27,17 @@ const feed = new BetanoFeed(client, data.options, {
   onUpdate: (diff) => {
     if (data.publishUpdates) post({ type: "update", diff });
   },
+  ...(data.publishFootballSnapshots
+    ? {
+        onFootballSnapshot: (snapshot) =>
+          post({ type: "football-snapshot", snapshot }),
+      }
+    : {}),
+  ...(data.publishFootballUpdates
+    ? {
+        onFootballUpdate: (change) => post({ type: "football-update", change }),
+      }
+    : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
   onStatus: (status) => post({ type: "status", status }),
   onError: (error, eventId) =>
@@ -69,6 +80,9 @@ async function handle(command: BetanoWorkerCommand): Promise<void> {
         break;
       case "snapshot":
         value = feed.store.getSnapshot(command.eventId!);
+        break;
+      case "football-snapshot":
+        value = feed.getFootballSnapshot(command.eventId!);
         break;
       case "stats":
         value = feed.getStats();

@@ -9,6 +9,7 @@ import type {
 } from "./model/controller.interfaces.js";
 import type { BetanoStats } from "./model/feed.interfaces.js";
 import type { BetanoEvent, BetanoSnapshot } from "./model/state.interfaces.js";
+import type { BetanoFootballSnapshot } from "./model/football-projection.interfaces.js";
 import type {
   BetanoQueryCommand,
   BetanoWorkerCommand,
@@ -67,6 +68,9 @@ export class BetanoController implements BetanoProvider {
         networkPort: channel.port1,
         publishSnapshots: this.handlers.onSnapshot !== undefined,
         publishUpdates: this.handlers.onUpdate !== undefined,
+        publishFootballSnapshots:
+          this.handlers.onFootballSnapshot !== undefined,
+        publishFootballUpdates: this.handlers.onFootballUpdate !== undefined,
       } satisfies BetanoWorkerData,
       transferList: [channel.port1],
     });
@@ -168,6 +172,12 @@ export class BetanoController implements BetanoProvider {
       case "update":
         this.handlers.onUpdate?.(message.diff);
         break;
+      case "football-snapshot":
+        this.handlers.onFootballSnapshot?.(message.snapshot);
+        break;
+      case "football-update":
+        this.handlers.onFootballUpdate?.(message.change);
+        break;
       case "removed":
         this.handlers.onRemove?.(message.eventId);
         break;
@@ -198,6 +208,14 @@ export class BetanoController implements BetanoProvider {
   }
   getStats(): Promise<BetanoStats> {
     return this.query("stats") as Promise<BetanoStats>;
+  }
+  getFootballSnapshot(eventId: number): Promise<BetanoFootballSnapshot | null> {
+    if (!Number.isSafeInteger(eventId) || eventId <= 0)
+      return Promise.reject(new Error("Invalid Betano event ID."));
+    return this.query(
+      "football-snapshot",
+      eventId,
+    ) as Promise<BetanoFootballSnapshot | null>;
   }
   async reconnect(): Promise<void> {
     await this.query("reconnect");

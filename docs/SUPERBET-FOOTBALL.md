@@ -1,5 +1,7 @@
 # Superbet fotbal — catalog și model filtrat
 
+[Betano fotbal](BETANO-FOOTBALL.md) · [Corespondențe Superbet–Betano](FOOTBALL-MARKET-MAPPING.md)
+
 [Ansamblu](../README.md) · [Provideri](PROVIDERS.md) · [Contract Superbet](contracts/SUPERBET.md)
 
 Procesarea Superbet păstrează o vedere structurată a piețelor de fotbal recunoscute. **Fiecare linie publicată are exact două selecții distincte**, cu roluri verificate. Catalogul nu face matching între site-uri.

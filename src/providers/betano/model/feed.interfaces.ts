@@ -1,6 +1,10 @@
 import type { BetanoOptions } from "./config.interfaces.js";
 import type { SignalRSession } from "../protocol/signalr.js";
 import type {
+  BetanoFootballChange,
+  BetanoFootballSnapshot,
+} from "./football-projection.interfaces.js";
+import type {
   BetanoDiff,
   BetanoEvent,
   BetanoSnapshot,
@@ -30,6 +34,8 @@ export interface BetanoFeedHandlers {
   onEvents(events: BetanoEvent[]): void;
   onSnapshot(snapshot: BetanoSnapshot): void;
   onUpdate(diff: BetanoDiff): void;
+  onFootballSnapshot?(snapshot: BetanoFootballSnapshot): void;
+  onFootballUpdate?(change: BetanoFootballChange): void;
   onRemove(eventId: number): void;
   onStatus(status: BetanoStatus): void;
   onError(error: string, eventId?: number): void;
@@ -48,4 +54,6 @@ export interface BetanoFeedConfiguration {
   options: BetanoOptions;
   publishSnapshots: boolean;
   publishUpdates: boolean;
+  publishFootballSnapshots: boolean;
+  publishFootballUpdates: boolean;
 }

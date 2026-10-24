@@ -2,6 +2,8 @@
 
 [Ansamblu](../../README.md) · [Arhitectura providerilor](../PROVIDERS.md) · [Contract Superbet](SUPERBET.md)
 
+[Betano fotbal](../BETANO-FOOTBALL.md) descrie filtrarea ulterioară a piețelor; [corespondențele cu Superbet](../FOOTBALL-MARKET-MAPPING.md) sunt documentate separat.
+
 Acest document descrie contractul tehnic folosit de implementarea noastră: ce trimitem către Betano, ce primim și cum transformăm mesajele în stare locală. API-ul este nedocumentat public; regulile de mai jos descriu comportamentul implementat, fără a reprezenta o specificație oficială Betano.
 
 Exemplele JSON sunt minime, cu ID-uri și valori fictive. Numele câmpurilor și structurile relevante corespund codului.
@@ -80,6 +82,10 @@ Discovery citește `events` din răspuns și folosește și `zones` pentru exclu
 | `selections`         | Dicționar după ID; păstrează prețul, suspendarea și celelalte câmpuri vendor. |
 
 Cheile dicționarelor JSON sunt stringuri, chiar când ID-urile din obiecte sunt numere. Relația este **meci → piețe → selecții**; o selecție este rezultatul pe care se găsește cota.
+
+Pentru fotbal, `market.typeId` împreună cu `market.type` identifică tipul reutilizabil. `market.id` identifică instanța concretă și nu este potrivit pentru un catalog comun tuturor meciurilor. `selection.typeId` identifică rolul rezultatului când este prezent; `selection.id` rămâne identitatea concretă folosită de diff-uri.
+
+Pragul Peste/Sub se găsește în `handicap`, egal pe ambele selecții. La handicapul cu două rezultate, valorile selecțiilor sunt semnate pentru fiecare echipă și opuse; valoarea pieței este orientată spre gazde. Numele pieței și `participants` permit validarea echipelor, iar `liveData` furnizează contextul scorului/ceasului.
 
 Un răspuns HTTP 200 fără structura necesară, inclusiv un răspuns de indisponibilitate cu `result` și fără `event`, nu devine snapshot valid.
 
@@ -245,3 +251,11 @@ Join-ul se face înaintea cererii snapshotului: diff-urile sosite în timpul RES
 - [Teste de stare](../../test/betano-state.test.mjs) și [de protocol](../../test/betano-protocol.test.mjs): exemple executabile ale regulilor implementate.
 
 HTTP 429/503 aplică `Retry-After` pentru cererile REST ale providerului. Configurarea limitelor, threadurilor și controlului de bytes este explicată în [Providers](../PROVIDERS.md#configurări-care-contează) și [Network](../NETWORK.md).
+
+## 8. Proiecția filtrată și diferența față de prematch
+
+După acceptarea snapshotului sau a unui diff continuu, feed-ul actualizează modelul filtrat de fotbal. Store-ul brut rămâne complet. `getFootballSnapshot`, `onFootballSnapshot` și `onFootballUpdate` expun numai catalogul fix și liniile cu exact două selecții; invalidarea brută șterge și proiecția.
+
+Această ieșire nu schimbă regulile patch-urilor: defaulturile `100`, `105` sau `6` se aplică înaintea filtrării. Un preț brut `0` devine `null` în proiecție, iar suspendările se păstrează la toate cele trei niveluri.
+
+Oferta prematch cercetată se află în `initial_state.data.event` din pagina publică `/cote/<slug>/<id>/?bt=13`, fila Toate. Este o structură HTML/SSR diferită de REST-ul live: ID-uri string, selecții încorporate, mai multe praguri per piață, copii repetate între secțiuni și fără versiune live sau ID-uri de rezultat. Adaptorul pur pentru acest format nu pornește colectare prematch. Exemplele de cercetare și limitele validării sunt în [Betano fotbal](../BETANO-FOOTBALL.md).
