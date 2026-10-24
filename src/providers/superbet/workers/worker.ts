@@ -1,5 +1,6 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
+import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
 import { SuperbetFeed } from "../processing/feed.js";
 import type {
   SuperbetWorkerCommand,
@@ -17,6 +18,13 @@ const port = parentPort;
 const data: SuperbetWorkerData = workerData;
 const post = (message: SuperbetWorkerMessage): void =>
   port.postMessage(message);
+// Projection adapters will feed the outbox; without a port the provider runs unchanged.
+const aggregation = data.aggregationPort
+  ? new AggregationOutbox(data.aggregationPort, "superbet", {
+      onError: (error) =>
+        post({ type: "error", error: `Aggregation: ${error}` }),
+    })
+  : null;
 const client = new NetworkPortClient(data.networkPort, (message) =>
   feed.handle(message),
 );
@@ -59,6 +67,7 @@ async function handle(command: SuperbetWorkerCommand): Promise<void> {
     try {
       await feed.stop();
     } finally {
+      aggregation?.close();
       client.close();
       port.close();
     }
@@ -109,6 +118,7 @@ port.on("message", (command: SuperbetWorkerCommand) => {
     try {
       await feed.stop();
     } finally {
+      aggregation?.close();
       client.close();
       port.close();
     }

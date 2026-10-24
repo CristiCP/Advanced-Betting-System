@@ -15,6 +15,7 @@ import type {
 
 export interface SuperbetWorkerData extends SuperbetFeedConfiguration {
   networkPort: MessagePort;
+  aggregationPort?: MessagePort;
 }
 
 export interface SuperbetQueryCommand {

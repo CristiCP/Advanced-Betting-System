@@ -10,7 +10,7 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 - [Betano fotbal](docs/BETANO-FOOTBALL.md): catalogul echivalent, parametrii liniilor și actualizările filtrate.
 - [Corespondențe fotbal](docs/FOOTBALL-MARKET-MAPPING.md): tipurile comparabile între siteuri și condițiile de asociere.
 - Contractele [Superbet](docs/contracts/SUPERBET.md) și [Betano](docs/contracts/BETANO.md): endpointuri, mesaje, câmpuri și regulile de aplicare a actualizărilor.
-- [Aggregation](docs/AGGREGATOR.md) (în proiectare): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
+- [Aggregation](docs/AGGREGATOR.md) (etapa 1 din 5: transportul): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
 
 ## Arhitectura actuală
 
@@ -88,9 +88,10 @@ Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot
 
 | Locație                                           | Ce găsești acolo                                                                      |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [src/index.ts](src/index.ts)                      | Pornirea în paralel și oprirea ambilor provideri.                                     |
+| [src/index.ts](src/index.ts)                      | Pornirea agregatorului și a providerilor; oprirea providerilor, apoi a agregatorului. |
 | [src/network](src/network)                        | Infrastructura comună de networking: transporturi, streaming, polling și worker.      |
 | [src/providers](src/providers)                    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
+| [src/aggregation](src/aggregation)                | Workerul de agregare: protocolul binar, outboxul din provideri și sesiunile.          |
 | `model/` în fiecare modul                         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
 | `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite de piețe de fotbal pentru ambii provideri. |
 | [test](test)                                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |

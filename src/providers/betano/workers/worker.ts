@@ -1,5 +1,6 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
+import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
 import { BetanoFeed } from "../processing/feed.js";
 import type {
   BetanoWorkerCommand,
@@ -16,6 +17,13 @@ if (isMainThread || parentPort === null)
 const port = parentPort;
 const data: BetanoWorkerData = workerData;
 const post = (message: BetanoWorkerMessage): void => port.postMessage(message);
+// Projection adapters will feed the outbox; without a port the provider runs unchanged.
+const aggregation = data.aggregationPort
+  ? new AggregationOutbox(data.aggregationPort, "betano", {
+      onError: (error) =>
+        post({ type: "error", error: `Aggregation: ${error}` }),
+    })
+  : null;
 const client = new NetworkPortClient(data.networkPort, (message) =>
   feed.handle(message),
 );
@@ -58,6 +66,7 @@ async function handle(command: BetanoWorkerCommand): Promise<void> {
     try {
       await feed.stop();
     } finally {
+      aggregation?.close();
       client.close();
       port.close();
     }
@@ -108,6 +117,7 @@ port.on("message", (command: BetanoWorkerCommand) => {
     try {
       await feed.stop();
     } finally {
+      aggregation?.close();
       client.close();
       port.close();
     }

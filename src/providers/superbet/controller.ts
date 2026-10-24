@@ -1,4 +1,5 @@
 import { MessageChannel, Worker } from "node:worker_threads";
+import type { MessagePort } from "node:worker_threads";
 import { NetworkWorkerController } from "../../network/controller.js";
 import { superbetConfig } from "./config.js";
 import type { SuperbetOptions } from "./model/config.interfaces.js";
@@ -38,6 +39,8 @@ export class SuperbetController implements SuperbetProvider {
   constructor(
     options: Partial<SuperbetOptions> = {},
     private readonly handlers: SuperbetHandlers = {},
+    // Optional direct port to the aggregation worker; transferred to processing at start.
+    private readonly aggregationPort: MessagePort | null = null,
   ) {
     this.options = { ...superbetConfig, ...options };
     if (
@@ -67,13 +70,19 @@ export class SuperbetController implements SuperbetProvider {
       workerData: {
         options: this.options,
         networkPort: channel.port1,
+        ...(this.aggregationPort === null
+          ? {}
+          : { aggregationPort: this.aggregationPort }),
         publishSnapshots: this.handlers.onSnapshot !== undefined,
         publishUpdates: this.handlers.onUpdate !== undefined,
         publishFootballSnapshots:
           this.handlers.onFootballSnapshot !== undefined,
         publishFootballUpdates: this.handlers.onFootballUpdate !== undefined,
       } satisfies SuperbetWorkerData,
-      transferList: [channel.port1],
+      transferList:
+        this.aggregationPort === null
+          ? [channel.port1]
+          : [channel.port1, this.aggregationPort],
     });
     this.worker = worker;
     this.exit = new Promise((resolve) =>

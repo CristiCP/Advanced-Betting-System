@@ -15,6 +15,7 @@ import type {
 
 export interface BetanoWorkerData extends BetanoFeedConfiguration {
   networkPort: MessagePort;
+  aggregationPort?: MessagePort;
 }
 
 export interface BetanoQueryCommand {
