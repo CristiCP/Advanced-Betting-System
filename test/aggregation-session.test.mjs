@@ -19,6 +19,7 @@ const options = {
   maxEvents: 4,
   maxLines: 8,
   maxBatchBytes: 2 * fullStateBytes(4, 8),
+  enabledConditions: ["D", "T"],
 };
 
 function open() {
@@ -36,7 +37,7 @@ async function send(provider, sequence, write) {
   const writer = new BatchWriter();
   write(writer);
   const buffer = writer.finish("superbet", 1, sequence, Date.now());
-  const reply = once(provider, "message");
+  const reply = once(provider, "message", { signal: AbortSignal.timeout(2_000) });
   provider.postMessage({ type: "batch", generation: 1, sequence, buffer }, [
     buffer,
   ]);
@@ -54,7 +55,7 @@ const valid = (writer) => {
 test("the session attaches with the configured limits and acknowledges valid batches", async (t) => {
   const { session, provider } = open();
   t.after(() => session.close());
-  const [attach] = await once(provider, "message");
+  const [attach] = await once(provider, "message", { signal: AbortSignal.timeout(2_000) });
   assert.deepEqual(attach, { type: "attach", generation: 1, options });
   const reply = await send(provider, 1, valid);
   assert.equal(reply.type, "ack");
@@ -70,7 +71,7 @@ test("the session attaches with the configured limits and acknowledges valid bat
 test("a sequence gap discards state and requires a reset", async (t) => {
   const { session, provider, errors } = open();
   t.after(() => session.close());
-  await once(provider, "message");
+  await once(provider, "message", { signal: AbortSignal.timeout(2_000) });
   await send(provider, 1, valid);
   const gap = await send(provider, 3, (writer) => writer.value(0, 2, 2, 3));
   assert.deepEqual(gap, { type: "resync", generation: 1, sequence: 3 });
@@ -88,7 +89,7 @@ test("a sequence gap discards state and requires a reset", async (t) => {
 test("handle lifecycle violations reject the whole batch", async (t) => {
   const { session, provider } = open();
   t.after(() => session.close());
-  await once(provider, "message");
+  await once(provider, "message", { signal: AbortSignal.timeout(2_000) });
   let sequence = 0;
   const violations = {
     "line for an undefined event": (w) => w.lineDefine(0, 2, key),
@@ -113,8 +114,8 @@ test("handle lifecycle violations reject the whole batch", async (t) => {
 
 test("a malformed envelope closes the link", async () => {
   const { session, provider, errors } = open();
-  await once(provider, "message");
-  const closed = once(provider, "close");
+  await once(provider, "message", { signal: AbortSignal.timeout(2_000) });
+  const closed = once(provider, "close", { signal: AbortSignal.timeout(2_000) });
   provider.postMessage({ type: "batch", generation: 1, sequence: 1 });
   await closed;
   assert.deepEqual(errors, ["Invalid aggregation batch message."]);
@@ -136,6 +137,7 @@ test("an outbox and a session keep the same state across releases", async (t) =>
           homeScore: 0,
           awayScore: 0,
           clockSeconds: 60,
+          clockRunning: true,
         });
         outbox.setLine(id, key, 1.9, 1.9, true, true);
         outbox.setLine(id, lineKey(2, 0), 1.5, 2.5, true, false);
@@ -185,8 +187,8 @@ test("the controller runs the worker and reports provider links", async () => {
   });
   await controller.start();
   try {
-    await until(async () => (await controller.getStats()).superbet?.lines === 1);
-    const stats = (await controller.getStats()).superbet;
+    await until(async () => (await controller.getStats()).sessions.superbet?.lines === 1);
+    const stats = (await controller.getStats()).sessions.superbet;
     assert.equal(stats.connected, true);
     assert.equal(stats.events, 1);
     assert.ok(stats.batches >= 1);

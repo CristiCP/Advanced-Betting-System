@@ -7,6 +7,8 @@ export interface BetanoFootballTeam {
 
 export interface BetanoFootballEvent {
   id: number;
+  // Shared match ID used to pair events across books; null when absent or malformed.
+  betradarId: number | null;
   home: BetanoFootballTeam;
   away: BetanoFootballTeam;
   competitionId: number | null;

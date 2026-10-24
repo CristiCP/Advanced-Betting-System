@@ -1,6 +1,12 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
 import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
+import { FootballAggregationAdapter } from "../../../aggregation/adapter/football.js";
+import { betanoFootballCodec } from "../processing/aggregation.js";
+import type {
+  BetanoFootballEvent,
+  BetanoFootballLine,
+} from "../model/football-projection.interfaces.js";
 import { BetanoFeed } from "../processing/feed.js";
 import type {
   BetanoWorkerCommand,
@@ -17,13 +23,37 @@ if (isMainThread || parentPort === null)
 const port = parentPort;
 const data: BetanoWorkerData = workerData;
 const post = (message: BetanoWorkerMessage): void => port.postMessage(message);
-// Projection adapters will feed the outbox; without a port the provider runs unchanged.
+// The adapter turns football projections into canonical lines; without a port the provider runs unchanged.
+let adapter: FootballAggregationAdapter<
+  BetanoFootballEvent,
+  BetanoFootballLine
+> | null = null;
 const aggregation = data.aggregationPort
   ? new AggregationOutbox(data.aggregationPort, "betano", {
+      onResync: () => aggregate((target) => target.resync()),
       onError: (error) =>
         post({ type: "error", error: `Aggregation: ${error}` }),
     })
   : null;
+
+// An adapter failure must never break odds processing: report it and drop only the aggregation link.
+function aggregate(
+  action: (
+    target: FootballAggregationAdapter<BetanoFootballEvent, BetanoFootballLine>,
+  ) => void,
+): void {
+  if (adapter === null) return;
+  try {
+    action(adapter);
+  } catch (error) {
+    post({
+      type: "error",
+      error: `Aggregation adapter failed: ${String(error)}`,
+    });
+    adapter = null;
+    aggregation?.close();
+  }
+}
 const client = new NetworkPortClient(data.networkPort, (message) =>
   feed.handle(message),
 );
@@ -35,15 +65,22 @@ const feed = new BetanoFeed(client, data.options, {
   onUpdate: (diff) => {
     if (data.publishUpdates) post({ type: "update", diff });
   },
-  ...(data.publishFootballSnapshots
+  ...(data.publishFootballSnapshots || aggregation
     ? {
-        onFootballSnapshot: (snapshot) =>
-          post({ type: "football-snapshot", snapshot }),
+        onFootballSnapshot: (snapshot) => {
+          aggregate((target) => target.install(snapshot));
+          if (data.publishFootballSnapshots)
+            post({ type: "football-snapshot", snapshot });
+        },
       }
     : {}),
-  ...(data.publishFootballUpdates
+  ...(data.publishFootballUpdates || aggregation
     ? {
-        onFootballUpdate: (change) => post({ type: "football-update", change }),
+        onFootballUpdate: (change) => {
+          aggregate((target) => target.update(change));
+          if (data.publishFootballUpdates)
+            post({ type: "football-update", change });
+        },
       }
     : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
@@ -55,6 +92,16 @@ const feed = new BetanoFeed(client, data.options, {
       ...(eventId === undefined ? {} : { eventId }),
     }),
 });
+if (aggregation !== null)
+  adapter = new FootballAggregationAdapter(
+    aggregation,
+    betanoFootballCodec,
+    () =>
+      feed.getEvents().flatMap((event) => {
+        const snapshot = feed.getFootballSnapshot(event.id);
+        return snapshot ? [snapshot] : [];
+      }),
+  );
 let started = false;
 let stopping = false;
 

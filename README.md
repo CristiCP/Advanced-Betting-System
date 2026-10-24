@@ -10,7 +10,7 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 - [Betano fotbal](docs/BETANO-FOOTBALL.md): catalogul echivalent, parametrii liniilor și actualizările filtrate.
 - [Corespondențe fotbal](docs/FOOTBALL-MARKET-MAPPING.md): tipurile comparabile între siteuri și condițiile de asociere.
 - Contractele [Superbet](docs/contracts/SUPERBET.md) și [Betano](docs/contracts/BETANO.md): endpointuri, mesaje, câmpuri și regulile de aplicare a actualizărilor.
-- [Aggregation](docs/AGGREGATOR.md) (etapa 1 din 5: transportul): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
+- [Aggregation](docs/AGGREGATOR.md) (fotbal live, marcajele D și T): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
 
 ## Arhitectura actuală
 
@@ -82,7 +82,7 @@ La Betano, un socket suplimentar pentru overview poate declanșa descoperirea un
 
 Prețurile și indicatorii de suspendare păstrează semantica siteului. Providerii au aceeași formă de API, dar structurile meciurilor, piețelor și actualizărilor sunt încă specifice fiecărui site.
 
-Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`: bază filtrată, schimbări de linii și invalidări ale evenimentului. Fluxul brut rămâne disponibil separat. [Corespondențele dintre cataloage](docs/FOOTBALL-MARKET-MAPPING.md) sunt documentate; matching-ul și canalul direct către un viitor matching worker sunt etape ulterioare.
+Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`: bază filtrată, schimbări de linii și invalidări ale evenimentului. Fluxul brut rămâne disponibil separat. [Corespondențele dintre cataloage](docs/FOOTBALL-MARKET-MAPPING.md) alimentează [agregatorul](docs/AGGREGATOR.md), care primește liniile pe un canal direct, asociază meciurile și raportează oportunitățile.
 
 ## Organizarea codului
 
@@ -91,7 +91,7 @@ Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot
 | [src/index.ts](src/index.ts)                      | Pornirea agregatorului și a providerilor; oprirea providerilor, apoi a agregatorului. |
 | [src/network](src/network)                        | Infrastructura comună de networking: transporturi, streaming, polling și worker.      |
 | [src/providers](src/providers)                    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
-| [src/aggregation](src/aggregation)                | Workerul de agregare: protocolul binar, outboxul din provideri și sesiunile.          |
+| [src/aggregation](src/aggregation)                | Agregarea: protocolul binar, outboxul și adaptorul, asocierea meciurilor, detectorul. |
 | `model/` în fiecare modul                         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
 | `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite de piețe de fotbal pentru ambii provideri. |
 | [test](test)                                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |

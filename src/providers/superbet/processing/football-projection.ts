@@ -22,6 +22,7 @@ import {
 
 const eventFields = [
   "id",
+  "betradarId",
   "competitionId",
   "categoryId",
   "startsAt",

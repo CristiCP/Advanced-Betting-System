@@ -1,3 +1,5 @@
+import type { AggregationMappingCondition } from "./mapping.interfaces.js";
+
 export type AggregationProvider = "superbet" | "betano";
 
 // Limits are chosen by the aggregator and sent with attach, so both sides validate the same bounds.
@@ -6,6 +8,8 @@ export interface AggregationOutboxOptions {
   maxEvents: number;
   maxLines: number;
   maxBatchBytes: number;
+  // Mapping rows are sent only when every one of their conditions is enabled.
+  enabledConditions: AggregationMappingCondition[];
 }
 
 export interface AggregationEventIdentity {
@@ -27,6 +31,7 @@ export interface AggregationEventLive {
   homeScore: number | null;
   awayScore: number | null;
   clockSeconds: number | null;
+  clockRunning: boolean;
 }
 
 export interface AggregationBatchHeader {

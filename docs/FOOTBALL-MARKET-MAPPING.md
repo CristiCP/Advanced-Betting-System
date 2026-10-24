@@ -37,7 +37,7 @@ flowchart TB
     class SKIP reject
 ```
 
-Diagrama descrie verificările necesare viitoarei etape. Matching workerul și cheia comună nu sunt implementate în acest pas.
+Diagrama descrie verificările aplicate de [agregator](AGGREGATOR.md). Tabelul din secțiunea 3 este sursa fișierului `src/aggregation/mapping.config.ts`, validat la pornire față de ambele cataloage.
 
 ## 2. Condițiile de asociere
 

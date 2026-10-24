@@ -74,7 +74,7 @@ Prețurile finite mai mari decât 1 sunt păstrate, restul devin `null`. Suspend
 | Nivel     | Date păstrate                                                                                                         |
 | --------- | --------------------------------------------------------------------------------------------------------------------- |
 | Snapshot  | `provider`, contextul evenimentului, `sourceVersion`, `projectedAt`, `lines`.                                         |
-| Eveniment | ID, echipe și ID-uri, competiție/zonă, ora de început, fază, suspendare, scor și ceasul primit.                       |
+| Eveniment | ID, ID Betradar, echipe și ID-uri, competiție/zonă, ora de început, fază, suspendare, scor și ceasul primit.          |
 | Linie     | Cheie, ID de instanță și tip, total/handicap, interval, scorul din numele pieței, suspendare și perechea de selecții. |
 | Selecție  | ID de instanță, ID de rezultat disponibil, rol, preț, suspendare și handicap semnat.                                  |
 | Schimbare | `kind`, ID meci, versiune/timp, context numai dacă s-a schimbat, `upserts` și `removed`.                              |
@@ -115,7 +115,7 @@ Defaulturile Betano se aplică întâi în store: de exemplu `100` poate pune `p
 
 Controllerul expune `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`, în același stil ca Superbet. Query-ul întoarce `null` când meciul lipsește, nu este fotbal, este stale sau providerul se oprește; un meci valid fără linii eligibile are `lines: []`.
 
-Notificările filtrate sunt trimise către main numai dacă handlerii respectivi sunt înregistrați. Nu există încă matching worker, canal direct către acesta sau ACK/coalescing pentru ieșirea filtrată.
+Notificările filtrate sunt trimise către main numai dacă handlerii respectivi sunt înregistrați. Cu un port de agregare, aceleași notificări alimentează și [adaptorul de agregare](AGGREGATOR.md), pe un canal direct cu ACK și coalescență, independent de handlerii aplicației.
 
 ## 5. Catalog verificat
 

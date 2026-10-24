@@ -4,6 +4,7 @@ import type {
   AggregationOutboxOptions,
   AggregationProvider,
 } from "../model/wire.interfaces.js";
+import { isCondition } from "../mapping.js";
 import { fullStateBytes } from "./wire.js";
 
 /**
@@ -37,7 +38,10 @@ export function isOutboxOptions(
     isBounded(value.maxLines, 1 << 22) &&
     isBounded(value.maxBatchBytes, 1 << 30) &&
     value.maxBatchBytes >=
-      2 * fullStateBytes(value.maxEvents, value.maxLines)
+      2 * fullStateBytes(value.maxEvents, value.maxLines) &&
+    Array.isArray(value.enabledConditions) &&
+    value.enabledConditions.every(isCondition) &&
+    new Set(value.enabledConditions).size === value.enabledConditions.length
   );
 }
 

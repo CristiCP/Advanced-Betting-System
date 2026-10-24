@@ -17,6 +17,10 @@ import type {
   AggregationWorkerPort,
 } from "./model/worker.interfaces.js";
 import { isOutboxOptions, isProvider } from "./protocol/validation.js";
+import { isCondition, validateMapping } from "./mapping.js";
+import { footballMarketMapping } from "./mapping.config.js";
+import { superbetFootballMarkets } from "../providers/superbet/football-markets.config.js";
+import { betanoFootballMarkets } from "../providers/betano/football-markets.config.js";
 
 /**
  * @file Owns the aggregation worker and the direct ports handed to provider processing workers.
@@ -38,14 +42,33 @@ export class AggregationController implements AggregationApi {
     private readonly handlers: AggregationHandlers = {},
   ) {
     this.options = { ...aggregationConfig, ...options };
-    for (const [key, value] of Object.entries(this.options)) {
+    const { enabledConditions, fallbackMode, recordPath, learningPath, ...numbers } =
+      this.options;
+    for (const [key, value] of Object.entries(numbers)) {
       if (!Number.isSafeInteger(value) || value <= 0 || value > 2_147_483_647)
         throw new Error(`Invalid aggregation option: ${key}`);
     }
+    if (!Array.isArray(enabledConditions) || !enabledConditions.every(isCondition))
+      throw new Error("Invalid aggregation option: enabledConditions");
+    if (fallbackMode !== "off" && fallbackMode !== "observe")
+      throw new Error("Invalid aggregation option: fallbackMode");
+    for (const [key, value] of Object.entries({ recordPath, learningPath }))
+      if (value !== null && (typeof value !== "string" || value.trim() === ""))
+        throw new Error(`Invalid aggregation option: ${key}`);
+    if (this.options.minMarginBps >= this.options.suspiciousMarginBps)
+      throw new Error("minMarginBps must be below suspiciousMarginBps.");
     if (!isOutboxOptions(this.options))
       throw new Error(
         "Aggregation limits are inconsistent: the batch limit must hold twice the full state.",
       );
+    // Refuse to start when the mapping contradicts either provider catalog.
+    const errors = validateMapping(
+      footballMarketMapping,
+      new Map(superbetFootballMarkets.map((market) => [market.id, market])),
+      new Map(betanoFootballMarkets.map((market) => [market.typeId, market])),
+    );
+    if (errors.length)
+      throw new Error(`Invalid football market mapping:\n${errors.join("\n")}`);
   }
 
   // Ports are created before start, so each provider can transfer its end to its own worker.
@@ -136,6 +159,16 @@ export class AggregationController implements AggregationApi {
     switch (message.type) {
       case "status":
         this.handlers.onStatus?.(message.status);
+        break;
+      case "reports":
+        for (const report of message.reports) {
+          if (report.kind === "pair") this.handlers.onPair?.(report);
+          else if (report.kind === "observed") this.handlers.onObserved?.(report);
+          else {
+            const { type: _type, ...opportunity } = report;
+            this.handlers.onOpportunity?.(opportunity);
+          }
+        }
         break;
       case "error":
         this.handlers.onError?.(message.error, message.provider);

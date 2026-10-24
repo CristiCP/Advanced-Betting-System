@@ -1,7 +1,17 @@
-import type { AggregationProvider } from "./wire.interfaces.js";
+import type {
+  AggregationBatchSink,
+  AggregationProvider,
+} from "./wire.interfaces.js";
 
 export interface AggregationSessionHandlers {
   onError(provider: AggregationProvider, error: string): void;
+}
+
+// Receives operations only after the session validated them; clear() discards the provider entirely.
+export interface AggregationProviderSink extends AggregationBatchSink {
+  begin(now: number): void;
+  commit(sentAt: number): void;
+  clear(): void;
 }
 
 export interface AggregationSessionStats {

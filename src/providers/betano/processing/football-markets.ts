@@ -77,6 +77,7 @@ export function footballEvent(
       : null;
   return {
     id: source.id,
+    betradarId: identifier(source.betradarMatchId),
     home: { id: identifier(home.teamId)?.toString() ?? null, name: home.name },
     away: { id: identifier(away.teamId)?.toString() ?? null, name: away.name },
     competitionId: identifier(source.leagueId),

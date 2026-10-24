@@ -1,4 +1,5 @@
 import type { MessagePort } from "node:worker_threads";
+import type { AggregationMappingCondition } from "../model/mapping.interfaces.js";
 import type {
   AggregationOutboxEvent,
   AggregationOutboxHandlers,
@@ -108,6 +109,10 @@ export class AggregationOutbox {
     return this.options !== null && !this.closed;
   }
 
+  get conditions(): readonly AggregationMappingCondition[] {
+    return this.options?.enabledConditions ?? [];
+  }
+
   setEvent(identity: AggregationEventIdentity): boolean {
     if (!this.active) return false;
     if (!isIdentity(identity)) return this.reject();
@@ -153,7 +158,8 @@ export class AggregationOutbox {
       (live.live ? liveFlags.live : 0) |
       (live.suspended ? liveFlags.suspended : 0) |
       (score ? liveFlags.score : 0) |
-      (clock ? liveFlags.clock : 0);
+      (clock ? liveFlags.clock : 0) |
+      (clock && live.clockRunning ? liveFlags.running : 0);
     const home = score ? live.homeScore! : 0;
     const away = score ? live.awayScore! : 0;
     const seconds = clock ? live.clockSeconds! : 0;

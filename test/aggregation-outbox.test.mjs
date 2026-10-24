@@ -13,6 +13,7 @@ const options = (extra = {}) => ({
   maxEvents: 4,
   maxLines: 8,
   maxBatchBytes: 2 * fullStateBytes(4, 8),
+  enabledConditions: ["D", "T"],
   ...extra,
 });
 const live = (extra = {}) => ({
@@ -21,6 +22,7 @@ const live = (extra = {}) => ({
   homeScore: 0,
   awayScore: 0,
   clockSeconds: 600,
+  clockRunning: true,
   ...extra,
 });
 
@@ -40,7 +42,7 @@ function connect(onResync = () => {}, errors = []) {
 }
 
 async function batch(port) {
-  const [message] = await once(port, "message");
+  const [message] = await once(port, "message", { signal: AbortSignal.timeout(2_000) });
   return { message, ...decode(message.buffer) };
 }
 
@@ -57,10 +59,15 @@ const ack = (port, message) =>
 
 // Resolves with null when no message arrives within the delay.
 async function quiet(port, ms = 30) {
-  return Promise.race([
-    once(port, "message").then(([message]) => message),
-    tick(ms).then(() => null),
-  ]);
+  try {
+    const [message] = await once(port, "message", {
+      signal: AbortSignal.timeout(ms),
+    });
+    return message;
+  } catch (error) {
+    if (error.name === "AbortError") return null;
+    throw error;
+  }
 }
 
 const seed = (outbox) => {
@@ -117,7 +124,7 @@ test("a score change separates older prices from newer ones", async (t) => {
   assert.equal(header.segments, 2);
   assert.deepEqual(calls, [
     ["value", 0, 1.7, 2.2, 3],
-    ["live", 0, 5 | 8, 1, 0, 600],
+    ["live", 0, 5 | 8 | 16, 1, 0, 600],
     ["value", 0, 2.6, 1.5, 3],
   ]);
 });
@@ -134,7 +141,7 @@ test("clock-only changes do not split the coalescing window", async (t) => {
   const { header, calls } = await batch(aggregator);
   assert.equal(header.segments, 1);
   assert.deepEqual(calls, [
-    ["live", 0, 13, 0, 0, 601],
+    ["live", 0, 13 | 16, 0, 0, 601],
     ["value", 0, 1.75, 2.15, 3],
   ]);
 });

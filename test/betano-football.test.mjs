@@ -462,3 +462,14 @@ test("unsupported sports, ended matches and shutdown expose no usable football s
   assert.equal(feed.getFootballSnapshot(11), null);
   assert.equal(changes.at(-1).kind, "invalidate");
 });
+
+test("the Betradar match ID is kept only when it is a positive safe integer", () => {
+  const read = (betradarMatchId) => {
+    const source = snapshot();
+    if (betradarMatchId !== undefined) source.event.betradarMatchId = betradarMatchId;
+    return project(source).event.betradarId;
+  };
+  assert.equal(read(73_038_624), 73_038_624);
+  for (const invalid of [undefined, 0, -5, 1.5, "73038624", 2 ** 60])
+    assert.equal(read(invalid), null, String(invalid));
+});

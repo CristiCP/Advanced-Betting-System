@@ -32,7 +32,14 @@ export const operations = {
   lineRelease: 5,
 } as const;
 
-export const liveFlags = { live: 1, suspended: 2, score: 4, clock: 8 } as const;
+// A running clock advances from the moment it was received; a stopped one stays at its value.
+export const liveFlags = {
+  live: 1,
+  suspended: 2,
+  score: 4,
+  clock: 8,
+  running: 16,
+} as const;
 export const valueFlags = { usableA: 1, usableB: 2 } as const;
 
 const providerCodes: Record<AggregationProvider, number> = {
@@ -400,9 +407,9 @@ export function readBatch(
           const clock = view.getUint32(offset + 10, true);
           offset += liveBytes;
           if (
-            flags & 0xf0 ||
+            flags & 0xe0 ||
             (!(flags & liveFlags.score) && (home || away)) ||
-            (!(flags & liveFlags.clock) && clock)
+            (!(flags & liveFlags.clock) && (clock || flags & liveFlags.running))
           )
             throw new WireError("Invalid live state.");
           sink.eventLive(event, flags, home, away, clock);

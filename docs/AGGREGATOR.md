@@ -2,7 +2,7 @@
 
 [Ansamblul proiectului](../README.md) · [Network](NETWORK.md) · [Providers](PROVIDERS.md) · [Corespondențe fotbal](FOOTBALL-MARKET-MAPPING.md)
 
-> **Stare: etapa 1 implementată.** Transportul (formatul binar, coada coalescentă, sesiunea, workerul, controllerul, ACK, resincronizarea) există și rulează cu ambii provideri. Adaptoarele, asocierea și detectorul urmează; ordinea de lucru este în [Etape](#13-etape).
+> **Stare: implementat.** Toate cele cinci etape rulează cu ambii provideri: transportul, adaptoarele, asocierea meciurilor, detectorul și fallback-ul observat. Marcajele P, A, H și I rămân dezactivate până la confirmarea regulilor de decontare; perechile fără ID Betradar sunt doar raportate. Rezultatele rulărilor live sunt în [Observații live](#15-observații-live).
 
 Agregatorul primește de la Superbet și Betano liniile de fotbal deja filtrate de proiecțiile existente, recunoaște același meci la ambele case, asociază liniile echivalente și calculează oportunitățile de arbitraj. Nu plasează pariuri: oportunitățile sunt raportate și înregistrate, iar decizia rămâne manuală.
 
@@ -12,8 +12,8 @@ Responsabilitățile rămân separate:
 | --------------------------- | --------------------------------------------------------------------------- | ------ |
 | Store vendor                | Versiuni, patch-uri, recuperare, `stale`.                                   | Da     |
 | Proiecția de fotbal         | Catalog fix, linii cu exact două selecții, roluri, handicap orientat.       | Da     |
-| Adaptorul de agregare       | Traducerea în chei canonice, internarea liniilor, coada coalescentă.        | Nu     |
-| Agregatorul                 | Asocierea meciurilor, asocierea liniilor, detectorul, înregistrarea.        | Nu     |
+| Adaptorul de agregare       | Traducerea în chei canonice, internarea liniilor, coada coalescentă.        | Da     |
+| Agregatorul                 | Asocierea meciurilor, asocierea liniilor, detectorul, înregistrarea.        | Da     |
 
 ## 1. Domeniu
 
@@ -68,26 +68,30 @@ Adaptorul rulează în processing workerul existent, după proiecție. Pe canal 
 ```
 src/aggregation/
   config.ts  controller.ts  logging.ts
-  model/                  config / controller / worker / wire / canonical / matching / opportunity .interfaces.ts
-  workers/worker.ts       leagă porturile, ACK, comenzi de la main
-  protocol/wire.ts        layoutul binar al batch-urilor (offseturi, coduri) — comun ambelor părți
+  mapping.config.ts       cele 80 de corespondențe, generate din FOOTBALL-MARKET-MAPPING.md
+  mapping.ts              validarea încrucișată cu ambele cataloage și indexul rândurilor active
+  model/                  adapter / config / controller / mapping / matching / opportunity / outbox / session / wire / worker
+  adapter/outbox.ts       coada coalescentă, în processing workerul fiecărui provider
+  adapter/football.ts     adaptorul generic: proiecție → identitate, stare live, chei canonice
+  protocol/wire.ts        formatul binar al batch-urilor, comun ambelor părți
   protocol/validation.ts  gărzile mesajelor de control și ale limitelor
+  workers/worker.ts       sesiunile, timerele (sweep, rapoarte, statistici), oprirea ordonată
   processing/session.ts   AggregationSession: generație, secvență, ciclul de viață al handle-urilor, ACK
-  processing/events.ts    EventRegistry: meciuri per provider, sloturi, starea live
-  processing/quotes.ts    QuoteBook: sloturi de linie, prețuri, flaguri
-  matching/names.ts       normalizarea numelor și marcajele
-  matching/matcher.ts     EventMatcher: mașina de stări a perechilor
-  matching/lines.ts       LineLinker: legăturile dintre liniile perechilor confirmate
+  processing/engine.ts    AggregationEngine: leagă starea validată de asociere, linkare și detecție
+  processing/events.ts    EventRegistry: meciuri per provider, nume normalizate, starea live
+  processing/quotes.ts    QuoteBook: liniile unui provider în tablouri tipizate
   processing/detector.ts  calculul incremental și ciclul de viață al oportunităților
-  processing/recorder.ts  JSONL cu buffer și backpressure
-src/aggregation/mapping.config.ts          corespondențele Betano typeId ↔ Superbet id → cod canonic
-src/providers/superbet/processing/aggregation.ts   adaptorul Superbet
-src/providers/betano/processing/aggregation.ts     adaptorul Betano
-src/aggregation/adapter/outbox.ts                  coada coalescentă, comună ambilor provideri
-test/aggregation-*.test.mjs
+  processing/recorder.ts  JSONL cu coadă limitată
+  matching/names.ts       normalizarea numelor, marcajele, similaritatea
+  matching/matcher.ts     EventMatcher: perechi după Betradar și verificările continue
+  matching/lines.ts       LineLinker: legăturile dintre liniile perechilor confirmate
+  matching/learning.ts    aliasuri și competiții învățate, salvate atomic
+src/providers/superbet/processing/aggregation.ts   codecul Superbet: status, ceas, roluri, chei
+src/providers/betano/processing/aggregation.ts     codecul Betano: suspendări, ceas, roluri, chei
+test/aggregation-*.test.mjs, test/helpers/aggregation.mjs
 ```
 
-`protocol/wire.ts`, `mapping.config.ts` și `adapter/outbox.ts` sunt importate de ambele părți; nu există altă dependență a providerilor de agregator.
+Providerii importă din agregare doar outboxul, adaptorul generic, maparea și formatul binar. Codecul fiecărui provider este singurul loc care cunoaște semantica siteului: statusuri, suspendări, ceas.
 
 ### Ciclul de viață
 
@@ -101,16 +105,16 @@ Dacă agregatorul cade, adaptorul vede portul închis, își eliberează coada �
 
 ## 4. Identitatea canonică a meciului
 
-Proiecțiile păstrează deja aproape tot ce trebuie. Lipsește ID-ul Betradar, care trebuie adăugat în `SuperbetFootballEvent` și `BetanoFootballEvent`.
+Proiecțiile păstrează tot ce trebuie, inclusiv ID-ul Betradar (`betradarId`), adăugat în `SuperbetFootballEvent` și `BetanoFootballEvent` pentru agregare.
 
 | Câmp            | Superbet                                         | Betano                                      | Regulă                                                                                  |
 | --------------- | ------------------------------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------- |
-| ID Betradar     | `fixture.betradar_id` (**string**)               | `event.betradarMatchId` (**number**)        | **De adăugat în proiecție.** Șir `/^[1-9]\d{0,15}$/`, convertit la număr sigur; altfel `null`. |
+| ID Betradar     | `fixture.betradar_id` (**string**)               | `event.betradarMatchId` (**number**)        | Superbet: șir `/^[1-9]\d{0,15}$/`, convertit la număr sigur. Betano: întreg sigur pozitiv. Altfel `null`. |
 | Gazde / oaspeți | `home.name`, `away.name` din `event_name`        | `home.name`, `away.name` din `participants` | Deja validate de proiecții: exact două, nume nevide și diferite.                        |
-| Start           | `startsAt` din `utc_date`                        | `startsAt` din `startTime`                  | Convertit o singură dată în milisecunde epoch. La Superbet se verifică și `unix_date_millis`. |
+| Start           | `startsAt` din `utc_date`                        | `startsAt` din `startTime`                  | Milisecunde epoch. La Superbet, dacă `unix_date_millis` contrazice `utc_date`, startul devine necunoscut. |
 | Scor            | `homeScore` / `awayScore` (string)               | `homeScore` / `awayScore` (string)          | `/^\d+$/` → întreg; altfel necunoscut.                                                  |
-| Ceas            | `minute`, `stoppageTime`, `period`               | `clockSeconds`, `clockStopped`              | Convertit la secunde de joc, unde se poate.                                             |
-| Suspendare      | `offerStatus`                                    | `isSuspended`                               | Flag canonic `suspended`.                                                               |
+| Ceas            | `minute` în `1H`/`2H` (curge), `HT` (oprit la 45:00) | `clockSeconds`; `clockStopped` lipsă = curge | Secunde de joc plus bitul `running`; vezi [Ceasul](#ceasul).                   |
+| Suspendare      | `offerStatus` ≠ 1                                | `isSuspended`                               | Flag canonic `suspended`.                                                               |
 | Competiție      | `competitionId`, `categoryId`                    | `competitionId`, `categoryId`               | Spații de ID diferite; folosite doar prin corespondențe învățate.                       |
 
 ID-urile echipelor și ale competițiilor nu se compară între case: sunt spații diferite.
@@ -124,26 +128,28 @@ Adaptorul trimite identitatea doar când se schimbă (proiecțiile publică deja
 [mapping.config.ts](../src/aggregation/mapping.config.ts) transformă tabelul de [corespondențe](FOOTBALL-MARKET-MAPPING.md#3-perechile-identificate) în date:
 
 ```ts
-{ code: 1, superbet: 200734, betano: 13, condition: "D", transform: "same" }
-{ code: 17, superbet: 233942, betano: 51, condition: "T", threshold: 0.5, transform: "yes-no-to-over-under" }
+{ code: 1, betano: 13, superbet: 200734, conditions: ["D"], concept: "Total goluri" }
+{ code: 14, betano: 51, superbet: 233942, conditions: ["T"], threshold: 0.5, concept: "Total cartonașe roșii <HOME_TEAM>" }
 ```
 
-- `code` este un întreg mic și stabil (< 4096). Este cheia canonică a tipului de piață.
-- Fiecare adaptor construiește la pornire un `Map<vendorId, MappingRow[]>` (Superbet `231045` are două rânduri, pentru pragurile 0,5 și 1,5).
-- La încărcare se validează: coduri unice, ID-uri vendor existente în cataloagele providerilor, roluri compatibile, prag prezent exact la `T`.
+- Fișierul este **generat** din tabelul documentului de corespondențe, ca cele două să nu poată diverge. Codurile se adaugă, nu se renumerotează.
+- `code` este un întreg mic și stabil (1–4095). Este cheia canonică a tipului de piață.
+- Fiecare adaptor construiește un `Map<vendorId, rânduri[]>` din rândurile active (Superbet `231045` are două rânduri, pentru pragurile 0,5 și 1,5).
+- `AggregationController` refuză să pornească dacă un rând contrazice cataloagele. [validateMapping](../src/aggregation/mapping.ts) verifică: coduri și perechi unice, tipuri existente în ambele cataloage, aceeași statistică, perioadă, subiect și durată de interval, câte un rol A și unul B, tipuri compatibile, parametrii Superbet potriviți tipului, prag prezent exact la `T`.
+- La `T`, Superbet poate fi un total sau un Da/Nu cu parametru `total` (`231045`); validarea a găsit acest caz la prima rulare.
 
 ### Ce marcaje sunt active
 
 | Marcaj | Activ în prima versiune | Motiv                                                                                  |
 | ------ | ----------------------- | -------------------------------------------------------------------------------------- |
 | D      | Da                      | Același concept, fără conversie.                                                       |
-| T(x)   | Da                      | Conversie exactă Da→Peste, Nu→Sub, numai la pragul declarat.                           |
+| T(x)   | Da                      | Conversie exactă Da→Peste, Nu→Sub, numai la pragul declarat. `T` cu `P` rămâne oprit. |
 | P      | Nu                      | Regulile de numărare (cartonașe, cornere, șuturi) nu sunt confirmate.                  |
 | A      | Nu                      | Regulile de push pe sferturi de linie nu sunt confirmate.                              |
 | H      | Nu                      | Betano include scorul curent în handicapul asiatic; baza de decontare nu e confirmată. |
 | I      | Nu                      | Limitele intervalelor diferă (`:59` față de `45:00`/`90:00`).                          |
 
-Activarea se face per marcaj în configurație (`enabledConditions`), iar un rând poate fi forțat individual după confirmarea regulilor. Un marcaj dezactivat înseamnă că adaptorul **nu trimite** acele linii.
+Activarea se face per marcaj în configurație (`enabledConditions`, implicit `["D", "T"]`): 27 din cele 80 de rânduri. Un rând este activ doar dacă **toate** marcajele lui sunt active. Lista ajunge la provideri în `attach`, deci adaptorul **nu trimite** liniile rândurilor oprite.
 
 ### Cheia canonică a unei linii
 
@@ -154,12 +160,14 @@ lineKey = code × 2^20 + (param + 2^15) × 2^4 + variant
 
 code     : 12 biți    codul canonic al pieței
 param    : 16 biți    pragul sau handicapul în sferturi de unitate (2.5 → 10, −0.75 → −3), deplasat cu 2^15
-variant  : 4 biți     rezervat (interval, după activarea marcajului I)
+variant  : 4 biți     slotul intervalului (început / durată), folosit doar de rândurile I
 ```
 
 - Sferturile de unitate elimină erorile de virgulă mobilă: `2.5`, `2.50` și `2.4999999` din parsare nu pot produce chei diferite, iar o valoare care nu este multiplu exact de 0,25 este respinsă.
 - Handicapul este deja **orientat spre gazde** în ambele proiecții, deci aceeași valoare înseamnă aceeași linie.
-- La `T(x)`, linia Betano Da/Nu primește `param = x` și rolurile convertite înainte de calculul cheii.
+- La `T(x)`, linia Betano Da/Nu primește `param = x`; linia Superbet intră doar dacă pragul ei este exact `x`.
+- Codecul Betano exclude liniile cu `scoreContext` (handicap pe scorul curent) și intervalele terminate la `45:00`/`90:00`; codecul Superbet exclude liniile „primele X minute”.
+- Două linii vendor care produc aceeași cheie în același meci sunt **amândouă** retrase până la următoarea bază: compararea oricăreia ar fi o presupunere.
 - O cheie numerică face căutările `Map<number, …>` mai ieftine decât cheile string și nu alocă.
 
 ### Rolurile
@@ -178,10 +186,10 @@ Asocierea se face prin rol, niciodată prin poziția în array (Superbet public�
 
 | Provider | Condiții                                                                                                         |
 | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| Superbet | `price` finit > 1, `display: true`, `status` în valorile active confirmate (**de verificat**: `1` observat activ), `offerStatus` nesuspendat. |
-| Betano   | `price` finit > 1 (proiecția pune `null` altfel), selecție, linie și eveniment nesuspendate.                    |
+| Superbet | `price` finit > 1, `display: true`, `status === 1`. În 44 de snapshoturi live, `1` domină, iar `2` apare pe selecții blocate; orice altă valoare este indisponibilă. |
+| Betano   | `price` finit > 1 (proiecția pune `null` altfel), selecție și linie nesuspendate.                               |
 
-Adaptorul reduce aceste condiții la un singur bit `usable` per selecție. Agregatorul nu cunoaște semantica vendorului.
+Codecul reduce aceste condiții la un bit `usable` per selecție; prețul este trimis oricum, pentru referință. Suspendarea **meciului** circulă în starea live și blochează perechea, fără retrimiterea liniilor. Agregatorul nu cunoaște semantica vendorului.
 
 ## 6. Protocolul pe canal
 
@@ -263,123 +271,156 @@ Decodorul și sesiunea verifică:
 - starea live: numai flagurile cunoscute; scorul și ceasul sunt zero când flagul lor lipsește;
 - valorile: prețuri `NaN` sau finite în `(1, 10 000]`, preț valid obligatoriu pentru bitul `usable`, numai flagurile cunoscute;
 - handle-urile: în limite, meci definit înaintea liniilor, linie nedefinită de două ori, meci eliberat numai fără linii;
-- `lineKey` cu codul de piață ≥ 1 (codul existent în `mapping.config.ts` se verifică din etapa 2).
+- `lineKey` cu codul de piață ≥ 1; o cheie repetată în același meci este eroare de protocol.
 
-Sesiunea aplică batch-ul pe măsură ce îl decodează, fără o a doua trecere. O eroare oriunde șterge **toată** starea providerului și cere `resync`, deci o aplicare parțială nu supraviețuiește. Consumatorii din etapele următoare (detectorul) lucrează doar la sfârșitul unui batch acceptat.
+Sesiunea aplică batch-ul pe măsură ce îl decodează, fără o a doua trecere. O eroare oriunde șterge **toată** starea providerului și cere `resync`, deci o aplicare parțială nu supraviețuiește. Motorul primește operațiile numai după validare, iar detectorul lucrează doar la sfârșitul unui batch acceptat.
 
 Outboxul aplică aceleași reguli înainte de scriere: o identitate invalidă, un meci necunoscut sau o cheie invalidă sunt numărate în `rejected` și nu ajung pe canal; un preț inutilizabil devine `NaN`.
 
 ## 7. Structurile de date din agregator
 
-Toate structurile fierbinți sunt **struct-of-arrays** indexate după handle: valori contigue în memorie, fără obiecte per linie și fără presiune pe garbage collector.
+Structurile fierbinți sunt **struct-of-arrays** indexate după handle: valori contigue în memorie, fără obiecte per linie și fără presiune pe garbage collector. Toate tablourile sunt alocate o singură dată, la dimensiunea din `attach`.
 
 ### QuoteBook
 
-Un set de array-uri per provider, crescute prin dublare la nevoie:
+[processing/quotes.ts](../src/aggregation/processing/quotes.ts), câte unul per provider:
 
-| Array                | Tip            | Conținut                                    |
-| -------------------- | -------------- | ------------------------------------------- |
-| `lineEvent`          | `Int32Array`   | slotul meciului                             |
-| `lineKey`            | `Float64Array` | cheia canonică                              |
-| `priceA`, `priceB`   | `Float64Array` | ultima valoare                              |
-| `flags`              | `Uint8Array`   | `usableA`, `usableB`, `defined`             |
-| `updatedAt`          | `Float64Array` | `projectedAt` al batch-ului care a schimbat linia |
-| `peer`               | `Int32Array`   | linkul către linia echivalentă la cealaltă casă, sau −1 |
+| Array                | Tip            | Conținut                                                |
+| -------------------- | -------------- | ------------------------------------------------------- |
+| `lineEvent`          | `Int32Array`   | handle-ul meciului, sau −1 pentru o linie liberă        |
+| `lineKey`            | `Uint32Array`  | cheia canonică                                          |
+| `priceA`, `priceB`   | `Float64Array` | ultima valoare                                          |
+| `flags`              | `Uint8Array`   | `usableA`, `usableB`                                    |
+| `updatedAt`          | `Float64Array` | momentul aplicării ultimei schimbări de preț            |
+| `peer`               | `Int32Array`   | linia echivalentă la cealaltă casă, sau −1              |
 
 ### EventRegistry
 
-Per provider, un array de obiecte meci indexat după `eventHandle`. Evenimentele sunt puține (zeci–sute) și se schimbă rar, deci aici obiectele sunt acceptabile. Fiecare meci păstrează:
+[processing/events.ts](../src/aggregation/processing/events.ts): per provider, un array de obiecte meci indexat după handle. Meciurile sunt puține (zeci–sute) și se schimbă rar, deci aici obiectele sunt acceptabile. Fiecare meci păstrează:
 
-- identitatea canonică și numele normalizate (calculate o dată);
-- starea live: scor, ceas, `suspended`, momentul ultimei schimbări de scor;
-- `lines: Map<lineKey, lineHandle>` — necesar pentru asocierea liniilor la confirmarea unei perechi;
-- `pair`: referința la perechea curentă sau `null`.
+- identitatea canonică și numele normalizate, recalculate doar când numele se schimbă;
+- starea live: scor, ceas (valoare, `running`, momentul ultimei schimbări), `suspended`, momentul ultimei schimbări de scor;
+- `lines: Map<lineKey, lineHandle>`, folosit la linkarea liniilor; o cheie duplicată în același meci este eroare de protocol;
+- `pair` și `conflict`.
 
 ### Indexurile de asociere
 
-| Index                     | Structură                                    | Folosire                                               |
-| ------------------------- | -------------------------------------------- | ------------------------------------------------------ |
-| După Betradar             | `Map<number, EventRef[]>` per provider       | Candidat exact în O(1); lista detectează duplicatele.  |
-| După timp (fallback)      | `Map<bucket, EventRef[]>`, bucket de 15 min  | Candidați fără ID: se caută în bucketul propriu și în vecini. |
-| Aliasuri învățate         | `Map<string, string>`                        | Nume normalizat → formă canonică.                      |
-| Competiții învățate       | `Map<number, number>`                        | `competitionId` Superbet ↔ Betano.                     |
+| Index                     | Structură                                         | Folosire                                                      |
+| ------------------------- | ------------------------------------------------- | ------------------------------------------------------------- |
+| După Betradar             | `Map<number, AggregationEvent[]>` per provider    | Candidatul exact în O(1); lista detectează duplicatele.       |
+| După timp (fallback)      | `Map<bucket, AggregationEvent[]>`, 15 min, refăcut la fiecare scanare | Candidați fără ID: bucketul propriu și vecinii din toleranță. |
+| Aliasuri învățate         | `Map<string, Set<string>>`, în ambele sensuri     | Nume normalizat → nume normalizate echivalente.               |
+| Competiții învățate       | `Map<number, number>`                             | `competitionId` Superbet → Betano; o contradicție o elimină.  |
 
-Cheile absente nu sunt introduse niciodată într-un index.
+Cheile absente (ID `0`, start necunoscut) nu sunt introduse niciodată într-un index.
 
 ### LineLinker
 
-Când o pereche devine `confirmat`, linkerul parcurge `lines` al meciului mai mic și caută cheia în `Map`-ul celuilalt: O(min(n, m)). Pentru fiecare potrivire scrie `peer` în ambele sensuri. La `line-define` pe un meci deja asociat, linkerul face o singură căutare. La `line-release`, retrogradare sau `event-invalidate`, linkurile sunt șterse în ambele sensuri.
+[matching/lines.ts](../src/aggregation/matching/lines.ts): când o pereche devine `confirmat`, linkerul parcurge `lines` al meciului cu mai puține linii și caută cheia în celălalt: O(min(n, m)). Pentru fiecare potrivire scrie `peer` în ambele cărți. La `line-define` într-un meci deja confirmat face o singură căutare. La `line-release`, retrogradare sau eliberarea meciului, linkurile sunt șterse în ambele sensuri, iar oportunitatea liniei se închide.
 
 ### Coada de lucru a detectorului
 
 ```
-pending      Uint8Array indexat după slotul global al liniei
+pending      Uint8Array, indexat după linia Superbet a unui link
 pendingList  Uint32Array
 ```
 
-Aplicarea unui batch doar marchează liniile atinse. La sfârșitul batch-ului, detectorul parcurge `pendingList` o singură dată. Zece schimbări ale aceleiași linii în același batch produc un singur calcul.
+Aplicarea unui batch doar marchează liniile atinse. La sfârșitul batch-ului acceptat, detectorul parcurge `pendingList` o singură dată. Zece schimbări ale aceleiași linii în același batch produc un singur calcul.
 
 ## 8. Asocierea meciurilor
 
-Fiecare pereche trece printr-o mașină de stări:
+[matching/matcher.ts](../src/aggregation/matching/matcher.ts) formează o pereche numai când un ID Betradar apare la **exact un** meci din fiecare casă. Mai multe meciuri cu același ID, la oricare casă, marchează ID-ul ca **conflict**: niciunul nu este asociat până când duplicatul dispare.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> candidat: același ID Betradar\nsau fallback
-    candidat --> confirmat: toate verificările trec
-    candidat --> suspect: o verificare eșuează
-    candidat --> conflict: mai mulți candidați
-    confirmat --> suspect: contradicție nouă
-    suspect --> confirmat: contradicția dispare
-    confirmat --> [*]: invalidate / eliminare
-    suspect --> [*]: invalidate / eliminare
-    conflict --> [*]: invalidate / eliminare
+    [*] --> suspect: ID unic la ambele case
+    suspect --> confirmat: toate verificările trec
+    confirmat --> suspect: o verificare eșuează
+    confirmat --> [*]: meci eliberat, ID schimbat sau duplicat
+    suspect --> [*]: meci eliberat, ID schimbat sau duplicat
 ```
 
-| Stare       | Folosită de detector | Semnificație                                                           |
-| ----------- | -------------------- | ---------------------------------------------------------------------- |
-| `confirmat` | Da                   | ID Betradar identic **și** toate verificările încrucișate trec.        |
-| `suspect`   | Nu                   | O verificare eșuează; motivul este numărat și logat.                   |
-| `conflict`  | Nu                   | Ambiguitate (ID duplicat, mai mulți candidați). Nimic nu se folosește. |
+| Stare       | Folosită de detector | Semnificație                                                       |
+| ----------- | -------------------- | ------------------------------------------------------------------ |
+| `confirmat` | Da                   | ID Betradar identic **și** nicio verificare nu eșuează.            |
+| `suspect`   | Nu                   | Cel puțin un motiv, raportat la fiecare schimbare.                 |
 
-Verificările se refac la `event-identity` și `event-live`, deci o pereche confirmată poate fi retrogradată oricând. Perechea este legată de `(provider, eventHandle)` din generația curentă.
+Verificările se refac la fiecare `event-identity`, `event-live` și sweep, deci o pereche confirmată poate fi retrogradată oricând și revine singură când contradicția dispare.
 
-Nivelurile de încredere sunt `id` (Betradar), `alias` (fallback confirmat prin aliasuri învățate) și `fuzzy` (doar observat).
+| Motiv         | Când apare                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `start`       | Ambele starturi sunt cunoscute și diferă cu mai mult de `startToleranceMs`.                                  |
+| `markers`     | Marcajele de lot (U21, feminin, II, LDD...) diferă la gazde sau la oaspeți.                                  |
+| `orientation` | Numele se potrivesc mult mai bine inversat: similaritatea inversată ≥ 0,5 și cu cel puțin 0,25 peste cea directă. |
+| `clock`       | Ambele ceasuri sunt cunoscute și proaspete și diferă cu mai mult de `clockToleranceSeconds`.                 |
+| `score`       | Scorurile diferă de cel puțin `scoreMismatchMs`.                                                             |
+| `unverified`  | Numele nu ajung la 0,5 și nici startul și ceasul nu confirmă împreună ID-ul.                                  |
+
+### Numele
+
+[matching/names.ts](../src/aggregation/matching/names.ts) aplică NFKD, elimină semnele diacritice, înlocuiește `ð`, `đ`, `ß`, `æ`, `œ`, `ø`, `ł`, `ı`, `þ` și scoate formele juridice și conectorii (`fc`, `cf`, `sc`, `ad`, `ec`, `clube`, `esporte`, `de`, `la`...). Marcajele de lot sunt **extrase**, nu șterse. Un `II`/`B`/`III` contează ca marcaj doar la finalul numelui.
+
+Similaritatea dintre două nume, între 0 și 1:
+
+- cheie identică sau alias învățat: 1; acronim complet (`PSG`): 0,9;
+- pe cuvinte: identic 1; prefix de minim 3 litere 0,9; o literă diferită (`Gabala`/`Qabala`) 0,8; abreviere ca subsecvență (`Utd`) sau prefix comun de 4 litere 0,7; inițiale ale unor cuvinte consecutive (`NY` = New York) 0,9;
+- scorul se împarte la numărul de cuvinte al numelui mai scurt, plus **jumătate** din cuvintele rămase nefolosite din numele mai lung (`Alianza` față de `Alianza San Salvador` = 0,5);
+- un cuvânt semnificativ fără corespondent plafonează scorul la 0,4 (`Rapid București` față de `Dinamo București`);
+- un cod de două litere fără corespondent (`SP`, `GO`) nu contează nici pentru, nici contra.
+
+Exonimele (`Munich`/`München`) nu sunt ghicite: rămân la 0,4 până când un alias este învățat.
+
+### Ceasul
+
+Ceasurile vin ca **ancoră**: valoarea, momentul primirii și bitul `running`.
+
+- Superbet: în `1H`/`2H`, minutul × 60 și curge; la `HT`, 45:00 oprit; altfel necunoscut.
+- Betano: `secondsSinceStart`; `clockStopped` lipsă înseamnă că ceasul curge. În datele live, `clockStopped: true` apare explicit la pauză, iar în timpul jocului câmpul lipsește (Betano omite valorile implicite).
+- Un ceas care curge este extrapolat de la momentul primirii; o ancoră mai veche de 10 minute nu mai este folosită. Toleranța implicită de 300 s acoperă granularitatea de un minut a Superbet.
+
+### Fallback și învățare
+
+`scan()` rulează la fiecare raport de statistici, peste meciurile live neasociate și fără conflict. O pereche **observată** cere: start în toleranță, marcaje egale, similaritate de cel puțin 0,7 la ambele echipe, competiție compatibilă dacă este cunoscută, niciun ID diferit la cele două meciuri și unicitate în ambele sensuri. Este raportată o singură dată și nu ajunge niciodată la detector.
+
+[matching/learning.ts](../src/aggregation/matching/learning.ts) învață aliasuri și competiții doar din perechi confirmate de cel puțin 5 minute, cu marcaje egale. Cu `learningPath`, tabelele sunt încărcate înaintea primei sesiuni, validate și salvate atomic (fișier temporar + `rename`) la fiecare raport și la oprire. Un fișier invalid este raportat și ignorat în întregime.
 
 ## 9. Scenarii care pot produce meciuri greșite
 
-Fiecare scenariu are o protecție și un test dedicat. Cele marcate **real** au fost găsite în mostrele live (44 de meciuri Superbet, 34 Betano).
+Fiecare scenariu are o protecție și un test. Cele marcate **real** au fost găsite în datele live. Testele sunt în [aggregation-engine](../test/aggregation-engine.test.mjs), [aggregation-names](../test/aggregation-names.test.mjs), [aggregation-adapter](../test/aggregation-adapter.test.mjs) și testele de proiecție.
 
 ### A. ID-uri
 
 | #   | Scenariu                                                               | Protecție                                                                                   |
 | --- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| A1  | **Real:** ID Betradar string la Superbet, number la Betano             | Validare strictă și conversie la număr sigur în proiecție.                                  |
-| A2  | **Real:** ID lipsă (9 meciuri Superbet, 4 Betano)                      | Doar fallback ([F](#f-fallback-pe-nume)). Cheile absente nu se indexează.                   |
-| A3  | Același ID la două meciuri ale aceleiași case                          | `conflict`: niciunul nu se folosește.                                                       |
-| A4  | ID greșit introdus de casă                                             | ID-ul singur nu ajunge: startul, numele, scorul și ceasul trebuie să concorde.              |
-| A5  | Meci șters și readăugat, alt ID de provider, același Betradar          | La `event-invalidate` perechea se desface complet; asocierea se reface de la zero.          |
-| A6  | ID-ul Betradar apare sau se schimbă în timpul meciului                 | Reevaluare la fiecare `event-identity`, cu retrogradare la contradicție.                    |
+| A1  | **Real:** ID Betradar string la Superbet, number la Betano             | Validare strictă în proiecții. Un test a prins o expresie regulată stricată la implementare. |
+| A2  | **Real:** ID lipsă (9 meciuri Superbet, 4 Betano în mostră)            | Doar fallback observat. Cheile absente nu se indexează.                                     |
+| A3  | Același ID la două meciuri ale aceleiași case                          | Conflict: niciunul nu este asociat până dispare duplicatul.                                 |
+| A4  | ID greșit introdus de casă                                             | ID-ul singur nu ajunge: numele sau startul și ceasul împreună trebuie să-l confirme; scorul și marcajele trebuie să concorde. |
+| A5  | Meci șters și readăugat, alt ID de provider, același Betradar          | Eliberarea meciului desface perechea; asocierea se reface de la zero.                       |
+| A6  | ID-ul Betradar apare sau se schimbă în timpul meciului                 | Reindexare la fiecare `event-identity`, cu desfacerea perechii vechi.                       |
 
 ### B. Participanți
 
 | #   | Scenariu                                                                                       | Protecție                                                                                                                            |
 | --- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| B1  | Gazde și oaspeți inversați între case                                                          | Orientare verificată prin similaritatea numelor. `suspect`, nefolosit. Inversarea ar cere și inversarea semnului handicapului (vezi corespondențele). |
-| B2  | **Real:** `Atenas U21` (Superbet) și `Atenas LDD` (Betano), fără ID, aceeași oră               | Marcajele (`U19`–`U23`, `(F)`/women, `II`, `B`, `LDD`, `Academy`, `Reserves`) sunt **extrase ca atribute** și trebuie să fie egale. `LDD` ≈ `U21` doar din tabela învățată. |
-| B3  | Același nume de club în țări diferite                                                          | Corespondența competițiilor, învățată din perechi confirmate, devine condiție la fallback.                                           |
-| B4  | **Real:** diacritice: `ș` (virgulă) față de `ş` (sedilă), `Garðabær`, `Asociación`             | NFKD, eliminarea semnelor, apoi `ð`→`d`, `ß`→`ss`, `æ`→`ae`, `ø`→`o`.                                                                |
-| B5  | Prescurtări (`PSG` / `Paris Saint-Germain`)                                                    | Doar prin aliasuri învățate din perechi confirmate, niciodată din similaritate brută.                                                |
-| B6  | Aceleași echipe de două ori la interval scurt (tur-retur, U21 și seniori în aceeași zi)        | Fereastră de timp plus regula „**exact un candidat**”. Doi candidați înseamnă `conflict`.                                            |
+| B1  | Gazde și oaspeți inversați între case                                                          | Motivul `orientation`: perechea nu este folosită. Inversarea ar cere și inversarea semnului handicapului.                             |
+| B2  | **Real:** `Atenas U21` (Superbet) și `Atenas LDD` (Betano), fără ID, aceeași oră               | Marcajele trebuie să fie egale, atât la perechile cu ID, cât și la fallback. `LDD` nu este echivalat cu `U21`.                        |
+| B3  | Același nume de club în țări diferite                                                          | Fallback-ul cere competiția compatibilă când corespondența ei a fost învățată.                                                        |
+| B4  | **Real:** `ș` față de `ş`, `Garðabær`, `Asociación`                                            | Normalizarea de mai sus.                                                                                                             |
+| B5  | **Real:** nume scurtate sau completate (`NY Cosmos`/`New York Cosmos`, `Novorizontino SP`/`Gremio Novorizontino`, `Alianza FC`/`Alianza San Salvador`) | Inițiale de cuvinte, coduri de două litere neutre, cuvinte în plus la jumătate de greutate. Toate cazurile reale sunt teste.         |
+| B6  | Nume diferite ale aceluiași club (`Genesis Policia Nacional`/`Genesis Comayagua`)             | Sub 0,5: perechea are nevoie de start și ceas care să confirme ID-ul. Live a devenit confirmată când ambele ceasuri erau cunoscute.    |
+| B7  | Același oraș, cluburi diferite (`Rapid`/`Dinamo București`)                                    | Cuvântul fără corespondent plafonează similaritatea la 0,4.                                                                           |
+| B8  | Aceleași echipe de două ori la interval scurt (tur-retur, U21 și seniori în aceeași zi)        | Conflict la ID duplicat; la fallback, unicitate în ambele sensuri.                                                                    |
 
 ### C. Timp și ceas
 
 | #   | Scenariu                                                     | Protecție                                                                                       |
 | --- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| C1  | **Real:** start diferit între case (19:33 față de 19:40)     | Toleranță `startToleranceMs`, combinată obligatoriu cu B6.                                      |
-| C2  | Fus orar: `event_date` local față de `utc_date`              | Proiecția folosește deja `utc_date`; se adaugă verificarea cu `unix_date_millis`.               |
-| C3  | Meci reprogramat care își păstrează ID-ul                    | Diferență de start peste prag: `suspect`, chiar cu ID identic.                                  |
-| C4  | Ceasuri de joc foarte diferite                               | Diferență între minutul Superbet și `clockSeconds` Betano peste `clockToleranceS`: `suspect`. Prinde atât perechile greșite, cât și un feed blocat. |
+| C1  | **Real:** start diferit între case (19:33 față de 19:40)     | Toleranță `startToleranceMs`.                                                                   |
+| C2  | Fus orar: `event_date` local față de `utc_date`              | Doar `utc_date`; dacă `unix_date_millis` îl contrazice, startul devine necunoscut.               |
+| C3  | Meci reprogramat care își păstrează ID-ul                    | Motivul `start`.                                                                                |
+| C4  | Ceasuri de joc foarte diferite                               | Motivul `clock`, cu extrapolare și ancore proaspete.                                            |
+| C5  | **Real:** Betano omite `clockStopped` cât timp ceasul curge  | Lipsa câmpului înseamnă „curge”. Înainte de corecție, ceasul Betano era necunoscut în 40 din 47 de meciuri. |
 
 ### D. Starea live
 
@@ -387,142 +428,136 @@ Scorul este semnalul cel mai puternic: prinde și perechea greșită, și casa r
 
 | #   | Scenariu                                                     | Protecție                                                                                                  |
 | --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| D1  | Scoruri diferite                                             | Detectorul este blocat pe pereche. Dacă diferența persistă peste `scoreMismatchMs`, perechea devine `suspect`. |
-| D2  | O casă arată meciul suspendat, cealaltă activ                | Blocare până se aliniază.                                                                                  |
-| D3  | Imediat după o schimbare de scor                             | Liniște `scoreSettleMs`: casele suspendă și recalculează în ritmuri diferite.                              |
-| D4  | Cotă de dinaintea golului sosită după scorul nou             | Închiderea segmentului în adaptor ([coada](#coada-coalescentă-din-adaptor)).                              |
-| D5  | `invalidate` sau meci eliminat                               | Liniile meciului și linkurile lor sunt șterse imediat.                                                     |
+| D1  | Scoruri diferite                                             | Poarta `score` blochează imediat; după `scoreMismatchMs`, perechea devine `suspect`.                       |
+| D2  | O casă arată meciul suspendat, cealaltă activ                | Poarta `suspended`.                                                                                        |
+| D3  | Imediat după o schimbare de scor                             | Poarta `settling` pentru `scoreSettleMs`; sweep-ul reevaluează liniile când liniștea expiră.               |
+| D4  | Cotă de dinaintea golului sosită după scorul nou             | Închiderea segmentului în outbox.                                                                          |
+| D5  | Meci invalidat sau eliminat                                  | Liniile, linkurile și oportunitățile sunt închise imediat.                                                 |
 
 ### E. Linii
 
-Nu sunt erori de asociere a meciurilor, dar produc la fel comparații greșite:
-
-| Capcană                                  | Protecție                                                                                   |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Reguli de numărare diferite (marcaj P)   | Marcajul este dezactivat până la confirmare.                                                |
-| Handicap asiatic cu scor curent (H)      | Dezactivat; Betano păstrează separat `scoreContext`.                                        |
-| Intervale cu limite diferite (I)         | Dezactivat; `endsAtPeriodBoundary` nu este rescris drept `:59`.                             |
-| Da/Nu convertit la alt prag decât cel declarat | Conversia `T(x)` cere pragul exact din rândul de mapare.                              |
-| Semnul handicapului                      | Ambele proiecții orientează linia spre gazde; cheia folosește valoarea liniei, nu a selecției. |
-| Erori de virgulă mobilă la prag          | Prag în sferturi de unitate, cu respingerea valorilor nealiniate.                           |
-
-### F. Fallback pe nume
-
-Pentru meciurile fără ID Betradar, o pereche este propusă numai dacă:
-
-- startul este în toleranță (căutare în bucketul de 15 minute și vecini);
-- marcajele sunt identice;
-- ambii participanți se potrivesc după normalizare și aliasuri;
-- competiția este compatibilă, dacă corespondența ei este cunoscută;
-- există **un singur** candidat.
-
-În prima versiune, rezultatul este doar **observat**: logat cu motivul, nefolosit de detector. Tabelele învățate sunt construite numai din perechi confirmate prin ID și salvate ca JSON, validat la încărcare și la scriere.
+| Capcană                                         | Protecție                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Reguli de numărare diferite (P)                 | Marcaj dezactivat.                                                                          |
+| Handicap asiatic cu scor curent (H)             | Marcaj dezactivat; liniile Betano cu `scoreContext` sunt oricum excluse de codec.           |
+| Intervale cu limite diferite (I)                | Marcaj dezactivat; intervalele Betano terminate la limita reprizei sunt excluse.            |
+| Da/Nu convertit la alt prag decât cel declarat  | Linia Superbet intră numai la pragul exact al rândului.                                     |
+| Două linii vendor pe aceeași cheie              | Amândouă retrase până la următoarea bază.                                                   |
+| Semnul handicapului                             | Cheia folosește valoarea liniei, orientată spre gazde în ambele proiecții.                  |
+| Erori de virgulă mobilă la prag                 | Prag în sferturi de unitate; valorile nealiniate sunt respinse.                             |
 
 ## 10. Detectorul
 
-Pentru o linie `x` din coada de lucru, cu `y = peer[x]`:
+[processing/detector.ts](../src/aggregation/processing/detector.ts), pentru o linie Superbet `x` din coada de lucru, cu `y = peer[x]`:
 
 ```
-dacă y = −1 sau perechea nu e confirmat sau meciul e blocat → închide oportunitatea liniei, stop
+dacă y = −1 → închide („unlinked”)
+dacă o poartă este închisă → închide (motivul porții)
 s1 = 1/priceA[x] + 1/priceB[y]     (doar dacă usableA[x] și usableB[y])
 s2 = 1/priceA[y] + 1/priceB[x]     (doar dacă usableA[y] și usableB[x])
-S  = min(s1, s2)
-profit = 1/S − 1
+S  = min(s1, s2);  marjă = (1/S − 1) în puncte de bază
+dacă marjă < minMarginBps → închide („margin”)
 ```
 
-Cu două rezultate există doar două combinații încrucișate. Combinația în aceeași casă nu are sens: marja casei o face mereu > 1. Calculul este O(1), fără alocare.
+Cu două rezultate există doar două combinații încrucișate; combinația în aceeași casă poartă mereu marja casei. Calculul este O(1).
 
-Condițiile de blocare la nivel de meci sunt evaluate o dată pe schimbare de stare și ținute într-un flag pe pereche, nu recalculate per linie:
+Porțile, în ordinea în care sunt verificate, dau și motivul închiderii: `pair` (perechea nu este confirmată), `not-live`, `suspended`, `score` (scor necunoscut sau diferit), `settling`, `lag` (ultimul batch al unui provider a întârziat peste `maxLagMs`).
 
-1. perechea este `confirmat`;
-2. ambele meciuri sunt definite în generația curentă, nesuspendate;
-3. scorurile sunt egale și stabile de cel puțin `scoreSettleMs`;
-4. întârzierea ultimului batch al fiecărui provider (`acum − sentAt`) este sub `maxLagMs`.
+**Vârsta unui preț nu blochează comparația.** Un preț neschimbat este valid cât timp meciul este sincronizat; providerii invalidează meciul la deconectare, gap sau inactivitate. Vârsta fiecărui preț este însă raportată (`ageMs`), pentru decizia manuală: un preț vechi față de unul proaspăt indică de obicei o casă rămasă în urmă.
 
-**Vârsta unui preț nu este un semnal de prospețime.** Un preț neschimbat de un minut este valid cât timp meciul este sincronizat; providerii invalidează deja meciul la deconectare, gap sau inactivitate. Ce contează este întârzierea canalului, măsurată per batch.
+| Rezultat      | Condiție                                     | Efect                                                 |
+| ------------- | -------------------------------------------- | ----------------------------------------------------- |
+| sub prag      | marjă < `minMarginBps`                       | Ignorat; o oportunitate deschisă se închide.          |
+| oportunitate  | `minMarginBps` ≤ marjă ≤ `suspiciousMarginBps` | Deschisă sau actualizată.                           |
+| suspectă      | marjă > `suspiciousMarginBps`                | Marcată `suspicious`: eroare de mapare sau casă în urmă. |
 
-| Rezultat      | Condiție                                  | Efect                                               |
-| ------------- | ----------------------------------------- | --------------------------------------------------- |
-| sub prag      | profit < `minMargin`                      | Ignorat; o oportunitate deschisă se închide.        |
-| oportunitate  | `minMargin` ≤ profit ≤ `suspiciousMargin` | Deschisă sau actualizată.                           |
-| suspectă      | profit > `suspiciousMargin`               | Marcată `suspicious`: de obicei o eroare de mapare. |
-
-Miza pe rezultat este `miza_i = Total × (1 / cota_i) / S`.
+Fiecare picior raportează casa, rolul (`A`/`B` și eticheta: over, under, yes...), cota, partea din miza totală (`(1/cotă)/S`) și vârsta prețului.
 
 ### Ciclul de viață al oportunităților
 
-- Oportunitățile deschise sunt ținute într-un `Map<lineSlot, Opportunity>`; sunt puține, deci obiectele sunt acceptabile.
-- Un singur timer periodic (`sweepMs`) verifică doar oportunitățile deschise, pentru `maxLagMs` și pentru scorul nestabilizat. Nu există timere per linie.
-- Deschiderea, schimbarea de profit peste `reportStep` și închiderea sunt trimise la main și scrise în JSONL, cu durata la închidere.
-- Mesajele spre main sunt limitate (`reportIntervalMs`), ca main threadul să nu fie inundat.
+- Oportunitățile deschise stau într-un `Map<linie Superbet, stare>`; sunt puține.
+- Un singur timer (`sweepMs`) reevaluează matcherul, liniile perechilor a căror liniște tocmai a expirat și oportunitățile deschise. Nu există timere per linie.
+- Se raportează deschiderea, schimbarea direcției, o schimbare de marjă de cel puțin `reportStepBps` și închiderea, cu durata și marja maximă.
+- Rapoartele (perechi, candidați observați, oportunități) se adună și pleacă spre main la cel mult `reportIntervalMs`; coada lor este limitată, iar depășirile sunt numărate.
 
 ### Recorderul
 
-Scrierea JSONL rulează în workerul agregatorului, printr-un `WriteStream` cu buffer. Dacă `write()` cere așteptare, înregistrările se adună într-o listă limitată (`recordBufferLimit`); peste limită, cele mai vechi sunt numărate ca pierdute, nu blochează detectorul.
+Cu `recordPath`, fiecare raport este scris ca o linie JSON, printr-un `WriteStream` în modul append. Cât timp fișierul cere așteptare, liniile stau într-o coadă limitată (`recordBufferLimit`); peste limită, cele mai vechi sunt numărate ca pierdute. Detecția nu așteaptă niciodată după disc.
 
 ## 11. Performanță: unde se duce costul
 
-| Cale                       | Frecvență        | Cost țintă                                    | Cum                                                                                   |
+| Cale                       | Frecvență        | Cost                                          | Cum                                                                                   |
 | -------------------------- | ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Preț schimbat în provider  | Foarte mare      | O(1), fără alocare                            | Scriere în `Float64Array` și bit `dirty`.                                             |
-| Linie nemapată             | Foarte mare      | O(1)                                          | Un `Map.get` pe ID-ul vendor la definire; nu ajunge pe canal.                         |
-| Trimiterea unui batch      | ≤ 1 / `batchWindowMs` per provider | O(linii modificate)          | Scriere secvențială într-un buffer preallocat; transfer, nu copiere.                  |
-| Aplicarea unui batch       | Idem             | O(linii modificate)                           | Citire din `DataView`; indexare directă după handle.                                  |
+| Preț schimbat în provider  | Foarte mare      | O(1), fără alocare                            | Două căutări în `Map`, scriere în `Float64Array`, bit `dirty`.                         |
+| Linie nemapată             | Foarte mare      | O(1)                                          | Un `Map.get` pe tipul vendor; nu ajunge pe canal.                                     |
+| Trimiterea unui batch      | ≤ 1 / `batchWindowMs` per provider | O(linii modificate)          | Scriere secvențială în bufferul curent; transfer, nu copiere.                         |
+| Aplicarea unui batch       | Idem             | O(operații + valori)                          | `DataView`; indexare directă după handle.                                             |
 | Detector                   | Per linie atinsă | O(1)                                          | Două sume de inverse.                                                                 |
-| Schimbare de identitate    | Rară             | O(lungimea numelor)                           | Normalizare o dată, păstrată în cache.                                                |
-| Confirmarea unei perechi   | Rară             | O(min(n, m))                                  | Parcurgerea `Map`-ului de linii al meciului mai mic.                                  |
-| Sweep                      | Periodic         | O(oportunități deschise)                      | Nu parcurge liniile.                                                                  |
+| Schimbare de identitate    | Rară             | O(lungimea numelor)                           | Normalizare o dată, păstrată pe meci.                                                 |
+| Confirmarea unei perechi   | Rară             | O(min(n, m))                                  | Parcurgerea liniilor meciului mai mic.                                                |
+| Sweep                      | La `sweepMs`     | O(perechi + oportunități deschise)            | Nu parcurge liniile.                                                                  |
+| Fallback                   | La `statsIntervalMs` | O(meciuri neasociate × candidați din buckete) | Doar meciurile live neasociate.                                                  |
 
-Reguli suplimentare:
-
-- **Bufferele se refolosesc.** Adaptorul păstrează un pool mic de `ArrayBuffer`-e. Agregatorul îl înapoiază transferat în ACK, deci în regim stabil nu se alocă buffere noi.
+- **Bufferele se refolosesc.** Agregatorul întoarce bufferul transferat în ACK; outboxul păstrează până la două în pool.
 - **Fără string-uri pe calea fierbinte.** Cheile de linie sunt numere, handle-urile sunt indecși.
-- **Forme stabile.** Obiectele rare (meciuri, perechi, oportunități) sunt create cu toate câmpurile inițializate, ca motorul să nu schimbe forma lor.
-- **Măsurare, nu presupunere.** Statisticile includ: batch-uri pe secundă, linii pe batch, timpul de aplicare (p50/p99), întârzierea `acum − projectedAt` și dimensiunea cozilor. Un benchmark în `test/` aplică batch-uri sintetice și verifică faptul că nu cresc alocările.
+- **Măsurare.** Statisticile periodice includ, per provider, batch-urile, operațiile, valorile, bytes, întârzierea ultimului batch și maximele ferestrei pentru întârziere și timpul de aplicare. Detectorul raportează liniile linkate, liniile comparate în fereastră și cea mai bună marjă văzută, inclusiv negativă. Un benchmark de alocări nu există încă.
 
-## 12. Configurare propusă
+## 12. Configurare
 
-| Opțiune               | Implicit  | Semnificație                                                        |
-| --------------------- | --------- | ------------------------------------------------------------------- |
-| `batchWindowMs`       | 25 ms     | Fereastra maximă de coalescență în outbox. **Implementat.**         |
-| `maxLines`            | 65 536    | Limita de handle-uri de linie per provider. **Implementat.**        |
-| `maxEvents`           | 4 096     | Limita de handle-uri de meci per provider. **Implementat.**         |
-| `maxBatchBytes`       | 16 MiB    | Limita unui batch; cel puțin dublul stării complete. **Implementat.** |
-| `statsIntervalMs`     | 5 s       | Ritmul raportării statisticilor sesiunilor. **Implementat.**        |
-| `enabledConditions`   | `D`, `T`  | Marcajele de corespondență active.                                  |
-| `startToleranceMs`    | 30 min    | Diferența maximă de start între case.                               |
-| `clockToleranceS`     | 180 s     | Diferența maximă de ceas de joc.                                    |
-| `scoreSettleMs`       | 5 s       | Liniștea după o schimbare de scor.                                  |
-| `scoreMismatchMs`     | 60 s      | Durata unei diferențe de scor după care perechea devine `suspect`.  |
-| `maxLagMs`            | 2 s       | Întârzierea maximă a ultimului batch al unui provider.              |
-| `minMargin`           | 0.005     | Profitul minim raportat.                                            |
-| `suspiciousMargin`    | 0.10      | Peste această valoare oportunitatea este `suspicious`.              |
-| `reportStep`          | 0.001     | Schimbarea minimă de profit care produce o actualizare.             |
-| `sweepMs`             | 250 ms    | Perioada verificării oportunităților deschise.                      |
-| `reportIntervalMs`    | 250 ms    | Ritmul maxim al notificărilor către main.                           |
-| `fallbackMode`        | `observe` | `off`, `observe` sau `active`.                                      |
-| `recordPath`          | —         | Fișierul JSONL; fără el nu se înregistrează nimic.                  |
-| `recordBufferLimit`   | 10 000    | Înregistrări ținute cât timp fișierul cere așteptare.               |
+Valorile sunt în [config.ts](../src/aggregation/config.ts). Numerele trebuie să fie întregi pozitivi siguri, ca la provideri; de aceea marjele sunt în puncte de bază.
 
-Ca la provideri, constructorul cere întregi pozitivi siguri pentru valorile numerice, fracții finite în `(0, 1)` pentru marje și marcaje din enumul cunoscut. Valorile sunt propuneri de pornire, de ajustat după primele rulări live.
+| Opțiune                 | Implicit  | Semnificație                                                        |
+| ----------------------- | --------- | ------------------------------------------------------------------- |
+| `batchWindowMs`         | 25 ms     | Fereastra maximă de coalescență în outbox.                          |
+| `maxEvents`             | 4 096     | Handle-uri de meci per provider.                                    |
+| `maxLines`              | 65 536    | Handle-uri de linie per provider.                                   |
+| `maxBatchBytes`         | 16 MiB    | Limita unui batch; cel puțin dublul stării complete.                |
+| `enabledConditions`     | `D`, `T`  | Marcajele de corespondență active.                                  |
+| `statsIntervalMs`       | 5 s       | Statistici, scanarea fallback, salvarea tabelelor învățate.         |
+| `startToleranceMs`      | 30 min    | Diferența maximă de start.                                          |
+| `clockToleranceSeconds` | 300 s     | Diferența maximă de ceas de joc.                                    |
+| `scoreSettleMs`         | 5 s       | Liniștea după o schimbare de scor.                                  |
+| `scoreMismatchMs`       | 60 s      | Diferența de scor după care perechea devine `suspect`.              |
+| `maxLagMs`              | 2 s       | Întârzierea maximă a ultimului batch al unui provider.              |
+| `minMarginBps`          | 50        | Marja minimă raportată (0,5%).                                      |
+| `suspiciousMarginBps`   | 1 000     | Peste 10%, oportunitatea este `suspicious`.                         |
+| `reportStepBps`         | 10        | Schimbarea minimă de marjă care produce o actualizare.              |
+| `sweepMs`               | 250 ms    | Perioada sweep-ului.                                                |
+| `reportIntervalMs`      | 250 ms    | Ritmul maxim al rapoartelor către main.                             |
+| `recordBufferLimit`     | 10 000    | Linii JSONL ținute cât timp fișierul cere așteptare.                |
+| `fallbackMode`          | `observe` | `off` sau `observe`. Un mod activ nu există.                        |
+| `recordPath`            | `null`    | Fișierul JSONL; fără el nu se înregistrează nimic.                  |
+| `learningPath`          | `null`    | Fișierul tabelelor învățate; fără el, învățarea ține doar în memorie. |
+
+Constructorul mai verifică: marcaje din enum, `minMarginBps` sub `suspiciousMarginBps`, căi nevide, limitele de batch coerente și maparea validă față de ambele cataloage.
 
 ## 13. Etape
 
-| Etapă | Conținut                                                                                                                          | Verificare                                                                                   |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1 ✔   | `protocol/wire.ts`, validarea, outbox-ul coalescent, sesiunea, workerul și controllerul, porturile, ACK, generații, `resync`.     | [Teste](../test/aggregation-wire.test.mjs) de codare/decodare, batch-uri corupte, [coalescență și ordine](../test/aggregation-outbox.test.mjs), [ciclu de viață și controller](../test/aggregation-session.test.mjs). |
-| 2     | Betradar în proiecții, adaptoarele cu `mapping.config.ts`, `EventRegistry`, `QuoteBook`.                                         | Teste pe mostre reale: aceleași chei canonice la ambele case pentru liniile D și T.          |
-| 3     | `EventMatcher` cu verificările A–D și raport live în consolă (confirmate / suspecte / conflicte / neasociate).                   | Un test pentru fiecare scenariu, inclusiv cele reale.                                        |
-| 4     | `LineLinker`, detectorul, ciclul de viață, recorderul.                                                                           | Teste de calcul, praguri, blocări, sweep; benchmark de alocări.                              |
-| 5     | Fallback observat, învățarea aliasurilor și a competițiilor; activarea marcajelor P/A/H/I pe măsură ce regulile sunt confirmate. | Rata de erori măsurată pe date live.                                                         |
+| Etapă | Conținut                                                                                                       | Teste                                                                                         |
+| ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1 ✔   | Formatul binar, validarea, outboxul, sesiunea, workerul, controllerul, ACK, generații, `resync`.               | [wire](../test/aggregation-wire.test.mjs), [outbox](../test/aggregation-outbox.test.mjs), [session](../test/aggregation-session.test.mjs) |
+| 2 ✔   | Betradar în proiecții, maparea validată, adaptorul generic și codecurile, `EventRegistry`, `QuoteBook`.        | [mapping](../test/aggregation-mapping.test.mjs), [adapter](../test/aggregation-adapter.test.mjs), testele de proiecție |
+| 3 ✔   | `EventMatcher` cu verificările A–D și raportul live.                                                           | [engine](../test/aggregation-engine.test.mjs), [names](../test/aggregation-names.test.mjs)    |
+| 4 ✔   | `LineLinker`, detectorul, porțile, ciclul de viață, recorderul.                                                | [engine](../test/aggregation-engine.test.mjs), [files](../test/aggregation-files.test.mjs)    |
+| 5 ✔   | Fallback observat, aliasuri și competiții învățate, salvate atomic.                                            | [engine](../test/aggregation-engine.test.mjs), [files](../test/aggregation-files.test.mjs)    |
 
-La finalul etapei 3, raportul live arată câte meciuri se asociază și de ce cad celelalte, înainte să fie comparată vreo cotă.
+Rămân deschise: activarea marcajelor P/A/H/I după confirmarea regulilor, reatașarea agregatorului după o cădere și un benchmark de alocări.
 
-## 14. Decizii deschise
+## 14. Decizii aplicate
 
 Implicit este aleasă varianta conservatoare:
 
-1. **Gazde/oaspeți inversați:** `suspect`, nefolosit (implicit), sau inversarea rolurilor și a semnului handicapului.
-2. **Fallback pe nume:** doar observat în prima versiune (implicit), sau activ de la început.
-3. **Statusul Superbet:** ce valori `status` înseamnă selecție activă. Până la confirmare, numai `1`.
-4. **Marcajele active:** `D` și `T` (implicit); restul se activează individual după confirmarea regulilor.
+1. **Gazde/oaspeți inversați:** perechea este `suspect` și nu este folosită.
+2. **Fallback pe nume:** doar observat.
+3. **Statusul Superbet:** numai `status === 1` este utilizabil.
+4. **Marcaje active:** `D` și `T`, fără combinațiile lor cu `P`.
+
+## 15. Observații live
+
+Rulări de 1–2 minute pe ofertele live, după corecțiile de nume și ceas:
+
+- 46 de meciuri Superbet și 48 Betano urmărite de agregator; **43 de perechi confirmate**, 0 suspecte, 0 conflicte, 2 candidați doar pe nume.
+- 389 de linii linkate; cea mai bună marjă dintr-o fereastră obișnuită a fost −4,2%, adică nicio oportunitate, cum este normal.
+- Întârzierea batch-urilor: 0–1 ms.
+- Un episod pe un singur meci: cinci linii de goluri în prima repriză au deschis oportunități în aceeași direcție (1,9–11,5%) și s-au închis toate după 12 s, la scor egal. Tiparul indică o casă care a reacționat mai repede la o fază, nu o eroare de mapare; de aceea fiecare picior raportează acum vârsta prețului. Cea de 11,5% a fost marcată `suspicious`.
+- Perechile Superbet se desfac și se refac la reparațiile de stream ale providerului (snapshot nou după invalidare). Este comportamentul dorit: o bază nouă nu se amestecă cu cea veche.

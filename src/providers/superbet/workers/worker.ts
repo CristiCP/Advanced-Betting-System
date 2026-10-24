@@ -1,6 +1,12 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
 import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
+import { FootballAggregationAdapter } from "../../../aggregation/adapter/football.js";
+import { superbetFootballCodec } from "../processing/aggregation.js";
+import type {
+  SuperbetFootballEvent,
+  SuperbetFootballLine,
+} from "../model/football-projection.interfaces.js";
 import { SuperbetFeed } from "../processing/feed.js";
 import type {
   SuperbetWorkerCommand,
@@ -18,13 +24,37 @@ const port = parentPort;
 const data: SuperbetWorkerData = workerData;
 const post = (message: SuperbetWorkerMessage): void =>
   port.postMessage(message);
-// Projection adapters will feed the outbox; without a port the provider runs unchanged.
+// The adapter turns football projections into canonical lines; without a port the provider runs unchanged.
+let adapter: FootballAggregationAdapter<
+  SuperbetFootballEvent,
+  SuperbetFootballLine
+> | null = null;
 const aggregation = data.aggregationPort
   ? new AggregationOutbox(data.aggregationPort, "superbet", {
+      onResync: () => aggregate((target) => target.resync()),
       onError: (error) =>
         post({ type: "error", error: `Aggregation: ${error}` }),
     })
   : null;
+
+// An adapter failure must never break odds processing: report it and drop only the aggregation link.
+function aggregate(
+  action: (
+    target: FootballAggregationAdapter<SuperbetFootballEvent, SuperbetFootballLine>,
+  ) => void,
+): void {
+  if (adapter === null) return;
+  try {
+    action(adapter);
+  } catch (error) {
+    post({
+      type: "error",
+      error: `Aggregation adapter failed: ${String(error)}`,
+    });
+    adapter = null;
+    aggregation?.close();
+  }
+}
 const client = new NetworkPortClient(data.networkPort, (message) =>
   feed.handle(message),
 );
@@ -36,15 +66,22 @@ const feed = new SuperbetFeed(client, data.options, {
   onUpdate: (update) => {
     if (data.publishUpdates) post({ type: "update", update });
   },
-  ...(data.publishFootballSnapshots
+  ...(data.publishFootballSnapshots || aggregation
     ? {
-        onFootballSnapshot: (snapshot) =>
-          post({ type: "football-snapshot", snapshot }),
+        onFootballSnapshot: (snapshot) => {
+          aggregate((target) => target.install(snapshot));
+          if (data.publishFootballSnapshots)
+            post({ type: "football-snapshot", snapshot });
+        },
       }
     : {}),
-  ...(data.publishFootballUpdates
+  ...(data.publishFootballUpdates || aggregation
     ? {
-        onFootballUpdate: (change) => post({ type: "football-update", change }),
+        onFootballUpdate: (change) => {
+          aggregate((target) => target.update(change));
+          if (data.publishFootballUpdates)
+            post({ type: "football-update", change });
+        },
       }
     : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
@@ -56,6 +93,16 @@ const feed = new SuperbetFeed(client, data.options, {
       ...(eventId === undefined ? {} : { eventId }),
     }),
 });
+if (aggregation !== null)
+  adapter = new FootballAggregationAdapter(
+    aggregation,
+    superbetFootballCodec,
+    () =>
+      feed.getEvents().flatMap((event) => {
+        const snapshot = feed.getFootballSnapshot(event.id);
+        return snapshot ? [snapshot] : [];
+      }),
+  );
 let started = false;
 let stopping = false;
 

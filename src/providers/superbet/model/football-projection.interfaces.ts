@@ -7,6 +7,8 @@ export interface SuperbetFootballTeam {
 
 export interface SuperbetFootballEvent {
   id: number;
+  // Shared match ID used to pair events across books; null when absent or malformed.
+  betradarId: number | null;
   home: SuperbetFootballTeam;
   away: SuperbetFootballTeam;
   competitionId: number | null;

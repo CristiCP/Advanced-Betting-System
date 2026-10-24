@@ -160,7 +160,7 @@ EOF curat provoacă redeschiderea SSE și resincronizare; nu este numărat drept
 
 `getFootballSnapshot(id)` returnează modelul filtrat sau `null`, cu aceeași condiție de conectare și sincronizare ca snapshotul brut. `onFootballSnapshot` publică o bază completă; `onFootballUpdate` publică linii schimbate, chei eliminate sau `kind: "invalidate"` pentru ștergerea întregului eveniment. Notificările sunt copiate către main numai când există handlerii respectivi. Modelul de selecție este explicat în [documentul dedicat](SUPERBET-FOOTBALL.md).
 
-Proiecția poate interpreta separat snapshoturi prematch, dar providerul activ urmărește în continuare doar live. Matching workerul și livrarea directă cu ACK/coalescing nu sunt adăugate în acest pas.
+Proiecția poate interpreta separat snapshoturi prematch, dar providerul activ urmărește în continuare doar live. Livrarea directă către [agregator](AGGREGATOR.md), cu ACK și coalescență, pornește doar când controllerul primește un port de agregare.
 
 ### Endpointurile folosite
 

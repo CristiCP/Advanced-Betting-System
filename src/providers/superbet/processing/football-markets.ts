@@ -29,6 +29,23 @@ const text = (value: unknown): string | null =>
       : null;
 const integer = (value: unknown): number | null =>
   typeof value === "number" && Number.isSafeInteger(value) ? value : null;
+// Superbet publishes the Betradar match ID as a decimal string.
+const betradar = (value: unknown): number | null =>
+  typeof value === "string" &&
+  /^[1-9]\d{0,15}$/.test(value) &&
+  Number.isSafeInteger(Number(value))
+    ? Number(value)
+    : null;
+
+// Reject a start time when the ISO date and the epoch field disagree.
+function startTime(fixture: SuperbetSnapshot["fixture"]): string | null {
+  const parsed =
+    typeof fixture.utc_date === "string" ? Date.parse(fixture.utc_date) : NaN;
+  if (!Number.isFinite(parsed)) return null;
+  const epoch = fixture.unix_date_millis;
+  if (epoch !== undefined && epoch !== parsed) return null;
+  return new Date(parsed).toISOString();
+}
 
 // Preserve local event identity and source state without copying the vendor fixture.
 export function footballEvent(
@@ -55,15 +72,12 @@ export function footballEvent(
   if (offerStatus === 2) return null;
   return {
     id: snapshot.event_id,
+    betradarId: betradar(fixture.betradar_id),
     home: { id: text(fixture.home_team_id), name: home },
     away: { id: text(fixture.away_team_id), name: away },
     competitionId: integer(fixture.tournament_id),
     categoryId: integer(fixture.category_id),
-    startsAt:
-      typeof fixture.utc_date === "string" &&
-      Number.isFinite(Date.parse(fixture.utc_date))
-        ? new Date(fixture.utc_date).toISOString()
-        : null,
+    startsAt: startTime(fixture),
     phase,
     status,
     offerStatus,

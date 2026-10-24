@@ -1,5 +1,6 @@
 import type { MessagePort } from "node:worker_threads";
 import type {
+  AggregationProviderSink,
   AggregationSessionHandlers,
   AggregationSessionStats,
 } from "../model/session.interfaces.js";
@@ -46,6 +47,8 @@ export class AggregationSession implements AggregationBatchSink {
     private readonly generation: number,
     private readonly options: AggregationOutboxOptions,
     private readonly handlers: AggregationSessionHandlers,
+    // Receives each operation after it passed validation; cleared together with this session.
+    private readonly downstream: AggregationProviderSink | null = null,
   ) {
     this.eventDefined = new Uint8Array(options.maxEvents);
     this.eventLines = new Uint32Array(options.maxEvents);
@@ -61,10 +64,19 @@ export class AggregationSession implements AggregationBatchSink {
       this.closed = true;
       this.clear();
     });
+    // Send only the outbox limits; the aggregator's own settings stay in this worker.
+    const { batchWindowMs, maxEvents, maxLines, maxBatchBytes, enabledConditions } =
+      this.options;
     this.post({
       type: "attach",
       generation: this.generation,
-      options: this.options,
+      options: {
+        batchWindowMs,
+        maxEvents,
+        maxLines,
+        maxBatchBytes,
+        enabledConditions,
+      },
     });
   }
 
@@ -120,9 +132,11 @@ export class AggregationSession implements AggregationBatchSink {
       if (header.byteLength > this.options.maxBatchBytes)
         throw new WireError("Batch exceeds the configured limit.");
       this.touched = false;
+      this.downstream?.begin(Date.now());
       readBatch(message.buffer, header, this);
       if (this.awaitingReset)
         throw new WireError("Expected reset after resynchronization.");
+      this.downstream?.commit(header.sentAt);
       const now = Date.now();
       this.counters.batches++;
       this.counters.bytes += header.byteLength;
@@ -164,7 +178,7 @@ export class AggregationSession implements AggregationBatchSink {
     this.awaitingReset = false;
   }
 
-  eventIdentity(event: number, _identity: AggregationEventIdentity): void {
+  eventIdentity(event: number, identity: AggregationEventIdentity): void {
     this.operation();
     if (event >= this.options.maxEvents)
       throw new WireError("Event handle is out of range.");
@@ -172,17 +186,19 @@ export class AggregationSession implements AggregationBatchSink {
       this.eventDefined[event] = 1;
       this.events++;
     }
+    this.downstream?.eventIdentity(event, identity);
   }
 
   eventLive(
     event: number,
-    _flags: number,
-    _homeScore: number,
-    _awayScore: number,
-    _clockSeconds: number,
+    flags: number,
+    homeScore: number,
+    awayScore: number,
+    clockSeconds: number,
   ): void {
     this.operation();
     this.requireEvent(event);
+    this.downstream?.eventLive(event, flags, homeScore, awayScore, clockSeconds);
   }
 
   eventRelease(event: number): void {
@@ -192,9 +208,10 @@ export class AggregationSession implements AggregationBatchSink {
       throw new WireError("Event released before its lines.");
     this.eventDefined[event] = 0;
     this.events--;
+    this.downstream?.eventRelease(event);
   }
 
-  lineDefine(line: number, event: number, _key: number): void {
+  lineDefine(line: number, event: number, key: number): void {
     this.operation();
     this.requireEvent(event);
     if (line >= this.options.maxLines || this.lineEvent[line] !== -1)
@@ -202,22 +219,26 @@ export class AggregationSession implements AggregationBatchSink {
     this.lineEvent[line] = event;
     this.eventLines[event]!++;
     this.lines++;
+    this.downstream?.lineDefine(line, event, key);
   }
 
   lineRelease(line: number): void {
     this.operation();
     const event = this.requireLine(line);
+    // Notify first: the downstream state still needs the line's event and key.
+    this.downstream?.lineRelease(line);
     this.lineEvent[line] = -1;
     this.eventLines[event]!--;
     this.lines--;
   }
 
-  value(line: number, _priceA: number, _priceB: number, _flags: number): void {
+  value(line: number, priceA: number, priceB: number, flags: number): void {
     if (this.awaitingReset)
       throw new WireError("Expected reset after resynchronization.");
     this.touched = true;
     this.requireLine(line);
     this.counters.values++;
+    this.downstream?.value(line, priceA, priceB, flags);
   }
 
   private operation(): void {
@@ -239,6 +260,7 @@ export class AggregationSession implements AggregationBatchSink {
   }
 
   private clear(): void {
+    this.downstream?.clear();
     this.eventDefined.fill(0);
     this.eventLines.fill(0);
     this.lineEvent.fill(-1);

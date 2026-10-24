@@ -21,10 +21,10 @@ flowchart TB
         C -->|"reguli explicite"| F
     end
     A["Controller / aplicație<br/>query și notificări opționale"]
-    M["Matching worker<br/>etapă viitoare"]
+    M["Aggregation worker"]
     N -->|"payloaduri brute"| D
     F -->|"snapshot / schimbări / invalidare"| A
-    F -.->|"viitor canal direct"| M
+    F -->|"canal direct, prin adaptor"| M
 ```
 
 Filtrarea rulează în workerul de procesare existent. Numărul de workeri rămâne neschimbat. Store-ul vendor rămâne baza pentru patchuri și verificarea versiunilor; cache-ul filtrat conține numai datele necesare ieșirii. Nu se filtrează bytes comprimați înainte de decodare.
@@ -78,7 +78,7 @@ Interfețele sunt în [football-projection.interfaces.ts](../src/providers/super
 | Nivel            | Date păstrate                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Snapshot filtrat | Provider, eveniment, versiune sursă, momentul proiecției și liniile eligibile.                                                             |
-| Eveniment        | ID, ID-urile și numele gazdelor/oaspeților, competiție și categorie, început UTC, fază, stare ofertă, scor, perioadă, minut și prelungiri. |
+| Eveniment        | ID, ID Betradar, ID-urile și numele gazdelor/oaspeților, competiție și categorie, început UTC, fază, stare ofertă, scor, perioadă, minut și prelungiri. |
 | Linie            | Cheie, ID de piață, UUID de linie, fază ofertă, prag/handicap și parametrii de timp aplicabili.                                            |
 | Selecție         | UUID, outcome ID, rol fix, cotă, status, display și handicapul semnat pentru selecția respectivă.                                          |
 
@@ -125,7 +125,7 @@ O linie care pierde un membru este eliminată complet. Înlocuirile integrale ș
 
 Publicarea prin controller este opțională și nu schimbă API-ul brut `getSnapshot/onSnapshot/onUpdate`. Handlerii pentru snapshot și update filtrat se înregistrează împreună dacă aplicația menține o copie. Fără handlerul de snapshot filtrat, nu se construiește pentru export un tablou complet de linii doar pentru a-l arunca.
 
-În această etapă, notificările merg prin canalul existent processing–controller. **Matching workerul, canalul său direct, ACK-urile și combinarea valorilor în așteptare nu sunt încă implementate.** Acestea sunt transportul etapei următoare; filtrarea nu adaugă acum un worker sau un timer de grupare. Consumatorul actual nu primește o garanție de coadă limitată pentru notificările prin main thread.
+Notificările către aplicație merg prin canalul processing–controller, fără garanție de coadă limitată. Cu un port de agregare, proiecția alimentează și [adaptorul de agregare](AGGREGATOR.md), pe un canal direct cu ACK și coalescență. Startul devine necunoscut dacă `unix_date_millis` contrazice `utc_date`.
 
 ## 5. Catalogul verificat
 

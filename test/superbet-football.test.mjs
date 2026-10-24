@@ -395,3 +395,18 @@ test("ended events and invalid event metadata invalidate previously published da
   assert.equal(view.getSnapshot(11), null);
   assert.equal(messages.at(-1).kind, "invalidate");
 });
+
+test("the Betradar ID and start time are validated before aggregation uses them", () => {
+  const event = (fixture) =>
+    project([total()], { fixture: { ...snapshot().fixture, ...fixture } }).event;
+  assert.equal(event({ betradar_id: "72530980" }).betradarId, 72_530_980);
+  for (const invalid of [undefined, "", "0", "07", "12a", 72530980, "9".repeat(17)])
+    assert.equal(event({ betradar_id: invalid }).betradarId, null, String(invalid));
+  const start = Date.parse("2026-10-24T14:00:00Z");
+  assert.equal(
+    event({ unix_date_millis: start }).startsAt,
+    "2026-10-24T14:00:00.000Z",
+  );
+  // Two disagreeing start fields leave the start unknown rather than picking one.
+  assert.equal(event({ unix_date_millis: start + 60_000 }).startsAt, null);
+});
