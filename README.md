@@ -6,6 +6,10 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 
 - [Network](docs/NETWORK.md): conexiuni, transporturi, comunicare între workeri și controlul fluxului de date.
 - [Providers](docs/PROVIDERS.md): descoperirea meciurilor, protocoalele fiecărui site și sincronizarea cotelor.
+- [Superbet fotbal](docs/SUPERBET-FOOTBALL.md): catalogul explicit, filtrarea liniilor cu exact două selecții și modelul de ieșire.
+- [Betano fotbal](docs/BETANO-FOOTBALL.md): catalogul echivalent, parametrii liniilor și actualizările filtrate.
+- [Corespondențe fotbal](docs/FOOTBALL-MARKET-MAPPING.md): tipurile comparabile între siteuri și condițiile de asociere.
+- Contractele [Superbet](docs/contracts/SUPERBET.md) și [Betano](docs/contracts/BETANO.md): endpointuri, mesaje, câmpuri și regulile de aplicare a actualizărilor.
 - [Aggregation](docs/AGGREGATOR.md) (în proiectare): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
 
 ## Arhitectura actuală
@@ -19,13 +23,13 @@ flowchart LR
 
     subgraph SP["Provider Superbet"]
         SN["Network worker<br/>HTTP + SSE"]
-        SW["Processing worker<br/>gzip + SSE + stare"]
+        SW["Processing worker<br/>gzip + SSE + stare + filtru fotbal"]
         SN -->|"date brute"| SW
     end
 
     subgraph BP["Provider Betano"]
         BN["Network worker<br/>HTTP + WebSocket"]
-        BW["Processing worker<br/>SignalR + LZ4 + stare"]
+        BW["Processing worker<br/>SignalR + LZ4 + stare + filtru fotbal"]
         BN -->|"date brute"| BW
     end
 
@@ -63,6 +67,8 @@ Separarea ține procesarea mesajelor în afara event loop-ului de networking. Co
 4. Procesarea construiește o stare completă și aplică actualizările în ordinea versiunilor.
 5. Aplicația cere un snapshot sau primește notificările pentru care a înregistrat handlers.
 
+La ambii provideri, aceeași procesare menține și un model filtrat pentru fotbal: numai tipuri configurate explicit și linii cu exact două selecții distincte. Starea vendor rămâne baza verificării versiunilor. Detaliile sunt în [Superbet fotbal](docs/SUPERBET-FOOTBALL.md) și [Betano fotbal](docs/BETANO-FOOTBALL.md).
+
 La Betano, un socket suplimentar pentru overview poate declanșa descoperirea unor schimbări și între verificările periodice. La ambele siteuri, semnalele de finalizare pot elimina imediat un meci urmărit.
 
 ## Contractul pe care se poate baza aplicația
@@ -76,16 +82,18 @@ La Betano, un socket suplimentar pentru overview poate declanșa descoperirea un
 
 Prețurile și indicatorii de suspendare păstrează semantica siteului. Providerii au aceeași formă de API, dar structurile meciurilor, piețelor și actualizărilor sunt încă specifice fiecărui site.
 
+Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`: bază filtrată, schimbări de linii și invalidări ale evenimentului. Fluxul brut rămâne disponibil separat. [Corespondențele dintre cataloage](docs/FOOTBALL-MARKET-MAPPING.md) sunt documentate; matching-ul și canalul direct către un viitor matching worker sunt etape ulterioare.
+
 ## Organizarea codului
 
-| Locație                           | Ce găsești acolo                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------------------- |
-| [src/index.ts](src/index.ts)      | Pornirea în paralel și oprirea ambilor provideri.                                     |
-| [src/network](src/network)        | Infrastructura comună de networking: transporturi, streaming, polling și worker.      |
-| [src/providers](src/providers)    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
-| `model/` în fiecare modul         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
-| `config.ts` la rădăcina modulului | Valorile de configurare. Configurile efective ale providerilor sunt în folderele lor. |
-| [test](test)                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |
+| Locație                                           | Ce găsești acolo                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [src/index.ts](src/index.ts)                      | Pornirea în paralel și oprirea ambilor provideri.                                     |
+| [src/network](src/network)                        | Infrastructura comună de networking: transporturi, streaming, polling și worker.      |
+| [src/providers](src/providers)                    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
+| `model/` în fiecare modul                         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
+| `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite de piețe de fotbal pentru ambii provideri. |
+| [test](test)                                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |
 
 Detaliile despre fișiere și motivele separării lor sunt în cele două documente dedicate.
 

@@ -8,7 +8,11 @@ import type {
   PendingSuperbetQuery,
 } from "./model/controller.interfaces.js";
 import type { SuperbetStats } from "./model/feed.interfaces.js";
-import type { SuperbetEvent, SuperbetSnapshot } from "./model/state.interfaces.js";
+import type {
+  SuperbetEvent,
+  SuperbetSnapshot,
+} from "./model/state.interfaces.js";
+import type { SuperbetFootballSnapshot } from "./model/football-projection.interfaces.js";
 import type {
   SuperbetQueryCommand,
   SuperbetWorkerCommand,
@@ -65,6 +69,9 @@ export class SuperbetController implements SuperbetProvider {
         networkPort: channel.port1,
         publishSnapshots: this.handlers.onSnapshot !== undefined,
         publishUpdates: this.handlers.onUpdate !== undefined,
+        publishFootballSnapshots:
+          this.handlers.onFootballSnapshot !== undefined,
+        publishFootballUpdates: this.handlers.onFootballUpdate !== undefined,
       } satisfies SuperbetWorkerData,
       transferList: [channel.port1],
     });
@@ -169,6 +176,12 @@ export class SuperbetController implements SuperbetProvider {
       case "update":
         this.handlers.onUpdate?.(message.update);
         break;
+      case "football-snapshot":
+        this.handlers.onFootballSnapshot?.(message.snapshot);
+        break;
+      case "football-update":
+        this.handlers.onFootballUpdate?.(message.change);
+        break;
       case "removed":
         this.handlers.onRemove?.(message.eventId);
         break;
@@ -196,6 +209,16 @@ export class SuperbetController implements SuperbetProvider {
     if (!Number.isSafeInteger(eventId) || eventId <= 0)
       return Promise.reject(new Error("Invalid Superbet event ID."));
     return this.query("snapshot", eventId) as Promise<SuperbetSnapshot | null>;
+  }
+  getFootballSnapshot(
+    eventId: number,
+  ): Promise<SuperbetFootballSnapshot | null> {
+    if (!Number.isSafeInteger(eventId) || eventId <= 0)
+      return Promise.reject(new Error("Invalid Superbet event ID."));
+    return this.query(
+      "football-snapshot",
+      eventId,
+    ) as Promise<SuperbetFootballSnapshot | null>;
   }
   getStats(): Promise<SuperbetStats> {
     return this.query("stats") as Promise<SuperbetStats>;

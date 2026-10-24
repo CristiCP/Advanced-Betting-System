@@ -28,6 +28,17 @@ const feed = new SuperbetFeed(client, data.options, {
   onUpdate: (update) => {
     if (data.publishUpdates) post({ type: "update", update });
   },
+  ...(data.publishFootballSnapshots
+    ? {
+        onFootballSnapshot: (snapshot) =>
+          post({ type: "football-snapshot", snapshot }),
+      }
+    : {}),
+  ...(data.publishFootballUpdates
+    ? {
+        onFootballUpdate: (change) => post({ type: "football-update", change }),
+      }
+    : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
   onStatus: (status) => post({ type: "status", status }),
   onError: (error, eventId) =>
@@ -70,6 +81,9 @@ async function handle(command: SuperbetWorkerCommand): Promise<void> {
         break;
       case "snapshot":
         value = feed.getSnapshot(command.eventId!);
+        break;
+      case "football-snapshot":
+        value = feed.getFootballSnapshot(command.eventId!);
         break;
       case "stats":
         value = feed.getStats();

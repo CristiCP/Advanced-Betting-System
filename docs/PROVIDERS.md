@@ -2,21 +2,26 @@
 
 [Ansamblul proiectului](../README.md) · [Conexiuni și comunicare](NETWORK.md)
 
+Contracte detaliate cu siteurile: [Superbet](contracts/SUPERBET.md) · [Betano](contracts/BETANO.md). Acestea explică payloadurile, indicatorii și codurile de schimbări aplicate în store-uri.
+
+[Superbet fotbal](SUPERBET-FOOTBALL.md) și [Betano fotbal](BETANO-FOOTBALL.md) explică selecția explicită a piețelor, regula de exact două rezultate per linie și notificările filtrate. [Corespondențele dintre siteuri](FOOTBALL-MARKET-MAPPING.md) descriu tipurile comparabile și condițiile necesare.
+
 Un provider este integrarea completă a unui site: știe unde găsește meciurile, cum se abonează la ele, cum interpretează mesajele și când starea cotelor poate fi folosită. Superbet și Betano folosesc aceeași infrastructură de networking, dar protocoale și modele de date diferite.
 
 ## Piesele unui provider
 
 Ambele foldere, `src/providers/superbet` și `src/providers/betano`, au aceeași organizare:
 
-| Piesă                     | Unde rulează              | Responsabilitate                                                                                    |
-| ------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
-| `controller.ts`           | Main thread               | API public, configurare, crearea celor doi workeri, canale, query-uri și cleanup.                   |
-| `workers/worker.ts`       | Processing worker         | Leagă portul de networking de feed; răspunde main threadului și publică notificări.                 |
-| `processing/feed.ts`      | Processing worker         | Descoperă și filtrează meciurile, gestionează abonările și programează snapshoturile/reîncercările. |
-| `processing/state.ts`     | Processing worker         | Store-ul: starea fiecărui meci, aplicarea schimbărilor și verificarea versiunilor.                  |
-| `protocol/`               | Processing worker         | Decodarea specifică siteului: SSE/gzip sau SignalR/LZ4, plus erorile HTTP specifice.                |
-| `model/`                  | Contracte TypeScript      | Formele opțiunilor, datelor, mesajelor și handlerilor.                                              |
-| `config.ts`, `logging.ts` | Configurare / main thread | Valorile implicite și raportarea concisă în consolă.                                                |
+| Piesă                      | Unde rulează              | Responsabilitate                                                                                    |
+| -------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `controller.ts`            | Main thread               | API public, configurare, crearea celor doi workeri, canale, query-uri și cleanup.                   |
+| `workers/worker.ts`        | Processing worker         | Leagă portul de networking de feed; răspunde main threadului și publică notificări.                 |
+| `processing/feed.ts`       | Processing worker         | Descoperă și filtrează meciurile, gestionează abonările și programează snapshoturile/reîncercările. |
+| `processing/state.ts`      | Processing worker         | Store-ul: starea fiecărui meci, aplicarea schimbărilor și verificarea versiunilor.                  |
+| `processing/football-*.ts` | Processing worker         | Validarea catalogului, modelul filtrat de fotbal și actualizarea perechilor complete.               |
+| `protocol/`                | Processing worker         | Decodarea specifică siteului: SSE/gzip sau SignalR/LZ4, plus erorile HTTP specifice.                |
+| `model/`                   | Contracte TypeScript      | Formele opțiunilor, datelor, mesajelor și handlerilor.                                              |
+| `config.ts`, `logging.ts`  | Configurare / main thread | Valorile implicite și raportarea concisă în consolă.                                                |
 
 Feed-ul decide **când cere date**, protocolul decide **cum le citește**, iar store-ul decide **cum schimbă starea**. Sunt obiecte în același processing worker; fiecare fișier nu creează un thread separat.
 
@@ -29,10 +34,13 @@ flowchart TB
         FEED["Feed<br/>discovery și abonări"]
         PROTOCOL["Protocol<br/>decodează mesajele"]
         STORE["Store<br/>versiuni și stare"]
+        FILTER["FootballProjection<br/>catalog + perechi complete"]
         BRIDGE["worker.ts<br/>query-uri și notificări"]
         PORT <-->|"comenzi / payloaduri"| FEED
         FEED <-->|"decodează / rezultat"| PROTOCOL
         FEED <-->|"aplică / stare"| STORE
+        STORE -->|"stare acceptată, prin feed"| FILTER
+        FILTER -->|"snapshot / schimbări / invalidări"| BRIDGE
         FEED <-->|"query-uri / notificări"| BRIDGE
     end
 
@@ -45,17 +53,19 @@ Diagrama arată responsabilitățile. În cod, feed-ul leagă decodoarele și ca
 
 ## API-ul comun și comunicarea cu aplicația
 
-| Apel / handler           | Semnificație                                                                                                    |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `start()`                | Pornește workerii, discovery și înregistrarea abonărilor. Nu așteaptă sincronizarea tuturor cotelor.            |
-| `stop()`                 | Oprește feed-ul și processing workerul, apoi networkingul. O instanță oprită nu se repornește; se creează alta. |
-| `getEvents()`            | Meciurile urmărite; prezența în listă nu garantează un snapshot disponibil.                                     |
-| `getSnapshot(id)`        | Starea sincronizată sau `null` dacă lipsește ori este invalidată. La Superbet se cere și un SSE conectat.       |
-| `getStats()`             | Numărul de meciuri, starea abonărilor și contoarele de procesare/recuperare.                                    |
-| `reconnect()`            | Repornește abonările și declanșează resincronizarea.                                                            |
-| `onEvents`, `onRemove`   | Lista după discovery și eliminarea unui meci.                                                                   |
-| `onSnapshot`, `onUpdate` | Starea completă, apoi actualizările acceptate de store.                                                         |
-| `onStatus`, `onError`    | Conectare, deconectare, `event-stale`, statistici și erori.                                                     |
+| Apel / handler                           | Semnificație                                                                                                    |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `start()`                                | Pornește workerii, discovery și înregistrarea abonărilor. Nu așteaptă sincronizarea tuturor cotelor.            |
+| `stop()`                                 | Oprește feed-ul și processing workerul, apoi networkingul. O instanță oprită nu se repornește; se creează alta. |
+| `getEvents()`                            | Meciurile urmărite; prezența în listă nu garantează un snapshot disponibil.                                     |
+| `getSnapshot(id)`                        | Starea sincronizată sau `null` dacă lipsește ori este invalidată. La Superbet se cere și un SSE conectat.       |
+| `getStats()`                             | Numărul de meciuri, starea abonărilor și contoarele de procesare/recuperare.                                    |
+| `getFootballSnapshot(id)`                | Modelul filtrat de fotbal sincronizat sau `null`; disponibil la ambii provideri.                                |
+| `onFootballSnapshot`, `onFootballUpdate` | Bază filtrată, perechi schimbate, chei eliminate și invalidarea întregului meci.                                |
+| `reconnect()`                            | Repornește abonările și declanșează resincronizarea.                                                            |
+| `onEvents`, `onRemove`                   | Lista după discovery și eliminarea unui meci.                                                                   |
+| `onSnapshot`, `onUpdate`                 | Starea completă, apoi actualizările acceptate de store.                                                         |
+| `onStatus`, `onError`                    | Conectare, deconectare, `event-stale`, statistici și erori.                                                     |
 
 Snapshoturile și actualizările sunt copiate către main thread **numai dacă există handlerul corespunzător**. Query-urile copiază rezultatul cerut. Store-ul se actualizează în processing worker indiferent dacă aplicația ascultă notificările.
 
@@ -144,6 +154,14 @@ La reconectare invalidează baza veche. `revision` respinge snapshoturi REST por
 
 EOF curat provoacă redeschiderea SSE și resincronizare; nu este numărat drept eroare de transport. Inactivitatea prelungită provoacă restart. Un `stream-stopped` permanent, inclusiv cazul HTTP 204, elimină evenimentul urmărit fără o buclă imediată de reconectare; discovery ulterior îl poate găsi din nou.
 
+### Modelul filtrat pentru fotbal
+
+În același processing worker, [proiecția](../src/providers/superbet/processing/football-projection.ts) primește numai starea acceptată de store și aplică [catalogul explicit](../src/providers/superbet/football-markets.config.ts). Fiecare linie publicată are exact două selecții și rolurile configurate; handicapul european, combinațiile, piețele pe jucători și liniile incomplete sunt excluse. Starea protocolului rămâne completă.
+
+`getFootballSnapshot(id)` returnează modelul filtrat sau `null`, cu aceeași condiție de conectare și sincronizare ca snapshotul brut. `onFootballSnapshot` publică o bază completă; `onFootballUpdate` publică linii schimbate, chei eliminate sau `kind: "invalidate"` pentru ștergerea întregului eveniment. Notificările sunt copiate către main numai când există handlerii respectivi. Modelul de selecție este explicat în [documentul dedicat](SUPERBET-FOOTBALL.md).
+
+Proiecția poate interpreta separat snapshoturi prematch, dar providerul activ urmărește în continuare doar live. Matching workerul și livrarea directă cu ACK/coalescing nu sunt adăugate în acest pas.
+
 ### Endpointurile folosite
 
 Origin implicit: `https://production-superbet-offer-ro.freetls.fastly.net`.
@@ -209,6 +227,14 @@ Feed-ul face join, apoi cere snapshoturile pentru membrii grupului. Astfel, push
 La deconectarea unui socket sunt invalidate meciurile lui. După handshake și join se cer baze noi. La deschiderea noii conexiuni se schimbă revizia, iar răspunsurile REST din revizia anterioară sunt ignorate. Resetul de eveniment permite și refacerea bazei după restartarea numerotării versiunilor. Un reset global declanșează repararea stărilor și discovery.
 
 Store-ul păstrează separat evenimentul, piețele și selecțiile. Aplică prețuri, suspendări, adăugări/eliminări, ordonare și metadate cunoscute; nu presupune că un tip necunoscut poate fi ignorat în siguranță. Consumatorul primește diff-ul original acceptat sau un snapshot nou după reparare.
+
+### Modelul filtrat pentru fotbal
+
+[Catalogul Betano](../src/providers/betano/football-markets.config.ts) fixează `typeId`, codul, numele și cele două roluri. `market.id` identifică instanța, nu tipul reutilizabil. [Proiecția](../src/providers/betano/processing/football-projection.ts) primește starea după patch și păstrează copii mici, separate de obiectele brute modificate în loc.
+
+Prețurile și setările recalculează numai piețele afectate; schimbările structurale refac referințele. Fiecare upsert conține o pereche completă. Un gap, o deconectare, un reset sau o eliminare invalidează modelul; o bază nouă este publicată după sincronizare. Query-urile și handlerii au același stil ca la Superbet și transferă către main numai datele cerute.
+
+HTML-ul prematch grupează mai multe praguri într-o piață și poate repeta aceeași piață în mai multe secțiuni. Adaptorul separat validează perechile și copiile identice, fără să inventeze versiuni și fără să adauge un feed prematch. [Documentul Betano fotbal](BETANO-FOOTBALL.md) descrie modelul, catalogul și verificările.
 
 ### Endpointurile folosite
 
