@@ -6,6 +6,7 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 
 - [Network](docs/NETWORK.md): conexiuni, transporturi, comunicare între workeri și controlul fluxului de date.
 - [Providers](docs/PROVIDERS.md): descoperirea meciurilor, protocoalele fiecărui site și sincronizarea cotelor.
+- [Aggregation](docs/AGGREGATOR.md) (în proiectare): asocierea meciurilor între case, normalizarea cotelor și detectarea oportunităților.
 
 ## Arhitectura actuală
 
