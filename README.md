@@ -6,6 +6,7 @@ Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 
 - [Network](docs/NETWORK.md): conexiuni, transporturi, comunicare între workeri și controlul fluxului de date.
 - [Providers](docs/PROVIDERS.md): descoperirea meciurilor, protocoalele fiecărui site și sincronizarea cotelor.
+- [Superbet fotbal](docs/SUPERBET-FOOTBALL.md): catalogul explicit, filtrarea liniilor cu exact două selecții și modelul de ieșire.
 - Contractele [Superbet](docs/contracts/SUPERBET.md) și [Betano](docs/contracts/BETANO.md): endpointuri, mesaje, câmpuri și regulile de aplicare a actualizărilor.
 
 ## Arhitectura actuală
@@ -19,7 +20,7 @@ flowchart LR
 
     subgraph SP["Provider Superbet"]
         SN["Network worker<br/>HTTP + SSE"]
-        SW["Processing worker<br/>gzip + SSE + stare"]
+        SW["Processing worker<br/>gzip + SSE + stare + filtru fotbal"]
         SN -->|"date brute"| SW
     end
 
@@ -63,6 +64,8 @@ Separarea ține procesarea mesajelor în afara event loop-ului de networking. Co
 4. Procesarea construiește o stare completă și aplică actualizările în ordinea versiunilor.
 5. Aplicația cere un snapshot sau primește notificările pentru care a înregistrat handlers.
 
+La Superbet, aceeași procesare menține și un model filtrat pentru fotbal: numai tipuri configurate explicit și linii cu exact două selecții distincte. Starea vendor rămâne baza verificării versiunilor. Detaliile și catalogul sunt în [Superbet fotbal](docs/SUPERBET-FOOTBALL.md).
+
 La Betano, un socket suplimentar pentru overview poate declanșa descoperirea unor schimbări și între verificările periodice. La ambele siteuri, semnalele de finalizare pot elimina imediat un meci urmărit.
 
 ## Contractul pe care se poate baza aplicația
@@ -76,16 +79,18 @@ La Betano, un socket suplimentar pentru overview poate declanșa descoperirea un
 
 Prețurile și indicatorii de suspendare păstrează semantica siteului. Providerii au aceeași formă de API, dar structurile meciurilor, piețelor și actualizărilor sunt încă specifice fiecărui site.
 
+Superbet expune suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`: bază filtrată, schimbări de linii și invalidări ale evenimentului. Fluxul brut rămâne disponibil separat. Matching-ul și canalul direct către un viitor matching worker sunt etape ulterioare.
+
 ## Organizarea codului
 
-| Locație                           | Ce găsești acolo                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------------------- |
-| [src/index.ts](src/index.ts)      | Pornirea în paralel și oprirea ambilor provideri.                                     |
-| [src/network](src/network)        | Infrastructura comună de networking: transporturi, streaming, polling și worker.      |
-| [src/providers](src/providers)    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
-| `model/` în fiecare modul         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
-| `config.ts` la rădăcina modulului | Valorile de configurare. Configurile efective ale providerilor sunt în folderele lor. |
-| [test](test)                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |
+| Locație                                           | Ce găsești acolo                                                                 |
+| ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [src/index.ts](src/index.ts)                      | Pornirea în paralel și oprirea ambilor provideri.                                |
+| [src/network](src/network)                        | Infrastructura comună de networking: transporturi, streaming, polling și worker. |
+| [src/providers](src/providers)                    | Integrarea fiecărui site: controller, worker, protocol, feed și store.           |
+| `model/` în fiecare modul                         | Interfețele și contractele mesajelor; acestea nu creează threaduri.              |
+| `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite, inclusiv piețele Superbet de fotbal. |
+| [test](test)                                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.             |
 
 Detaliile despre fișiere și motivele separării lor sunt în cele două documente dedicate.
 

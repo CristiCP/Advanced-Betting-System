@@ -30,7 +30,7 @@ async function settle() {
   for (let i = 0; i < 4; i++) await turn();
 }
 
-function fixture(events, options = {}) {
+function fixture(events, options = {}, footballHandlers = {}) {
   let feed;
   let nextGeneration = 1;
   let sequence = 0;
@@ -124,10 +124,86 @@ function fixture(events, options = {}) {
       onError(error, id) {
         errors.push({ error, id });
       },
+      ...footballHandlers,
     },
   );
   return { feed, peer, streams, acks, requests, errors, states };
 }
+
+test("filtered football follows accepted SSE updates, invalidation, and recovery", async () => {
+  const changes = [];
+  const bases = [];
+  const f = fixture(
+    [event(1)],
+    {},
+    {
+      onFootballSnapshot: (value) => bases.push(value),
+      onFootballUpdate: (value) => changes.push(value),
+    },
+  );
+  const base = {
+    ...event(1),
+    fixture: {
+      sport_id: 5,
+      event_name: "Home\u00b7Away",
+      offer_state_status: { 2: 1 },
+    },
+    markets: [
+      {
+        id: 200734,
+        name: "Total goluri",
+        odds: [151888, 151889].map((id, index) => ({
+          uuid: `quote-${index}`,
+          price: 1.9,
+          status: 1,
+          display: true,
+          metadata: {
+            outcome_id: id,
+            market_line_uuid: "line",
+            offer_state_id: 2,
+            specifiers: { total: "2.5" },
+          },
+        })),
+      },
+    ],
+  };
+  try {
+    await f.feed.start();
+    await settle();
+    assert.equal(f.feed.getFootballSnapshot(1), null);
+    f.peer.data(1, [base]);
+    await settle();
+    assert.equal(bases.length, 1);
+    assert.equal(f.feed.getFootballSnapshot(1).lines.length, 1);
+    f.peer.data(1, [
+      {
+        event_id: 1,
+        increment_id: 11,
+        markets: [
+          {
+            id: 200734,
+            name: "Total goluri",
+            odds: [{ uuid: "quote-1", price: 2.2 }],
+          },
+        ],
+      },
+    ]);
+    await settle();
+    assert.equal(changes[0].upserts[0].selections[1].price, 2.2);
+    await f.feed.reconnect();
+    await settle();
+    assert.equal(changes.at(-1).kind, "invalidate");
+    assert.equal(f.feed.getFootballSnapshot(1), null);
+    f.peer.data(1, [{ ...base, increment_id: 12 }]);
+    await settle();
+    assert.equal(bases.length, 2);
+    assert.equal(f.feed.getFootballSnapshot(1).sourceVersion, 12);
+    assert.equal(f.errors.length, 0);
+  } finally {
+    await f.feed.stop();
+  }
+  assert.equal(f.feed.getFootballSnapshot(1), null);
+});
 
 test("discovery registers more than 100 independent streams and removes ended events", async () => {
   const events = Array.from({ length: 130 }, (_, i) => event(i + 1));

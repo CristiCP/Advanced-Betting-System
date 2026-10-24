@@ -4,6 +4,7 @@ import type {
   NetworkWorkerMessage,
 } from "../../../network/model/worker.interfaces.js";
 import type { SuperbetOptions } from "../model/config.interfaces.js";
+import type { SuperbetFootballSnapshot } from "../model/football-projection.interfaces.js";
 import type {
   SuperbetFeedHandlers,
   SuperbetStats,
@@ -17,6 +18,7 @@ import type {
 import { SuperbetStore, isRecord, isUpdate, isLive } from "./state.js";
 import { SuperbetSseDecoder, decodeJson } from "../protocol/sse.js";
 import { SuperbetHttpError } from "../protocol/http-error.js";
+import { SuperbetFootballProjection } from "./football-projection.js";
 
 /**
  * @file Discovers Superbet live events and synchronizes one independent SSE per match.
@@ -24,6 +26,7 @@ import { SuperbetHttpError } from "../protocol/http-error.js";
 
 export class SuperbetFeed {
   readonly store: SuperbetStore;
+  private readonly football: SuperbetFootballProjection;
   private readonly subscriptions = new Map<number, SuperbetSubscriptionState>();
   private readonly queued = new Set<number>();
   private readonly loading = new Set<number>();
@@ -54,19 +57,35 @@ export class SuperbetFeed {
     private readonly options: SuperbetOptions,
     private readonly handlers: SuperbetFeedHandlers,
   ) {
+    this.football = new SuperbetFootballProjection({
+      ...(handlers.onFootballSnapshot
+        ? { onSnapshot: handlers.onFootballSnapshot }
+        : {}),
+      ...(handlers.onFootballUpdate
+        ? { onUpdate: handlers.onFootballUpdate }
+        : {}),
+    });
     this.store = new SuperbetStore(options.maxBufferedUpdates, {
       onSnapshot: (snapshot) => {
         this.counters.snapshots++;
         this.clearSynchronizationTimer(snapshot.event_id);
+        this.football.install(snapshot);
         handlers.onSnapshot(snapshot);
       },
       onUpdate: (update) => {
         this.counters.appliedUpdates++;
+        const snapshot = this.store.getSnapshot(update.event_id);
+        if (snapshot) this.football.update(snapshot, update);
         handlers.onUpdate(update);
       },
-      onStale: (eventId, reason) =>
-        handlers.onStatus({ kind: "event-stale", eventId, reason }),
-      onRemove: (id) => this.detach(id),
+      onStale: (eventId, reason) => {
+        this.football.remove(eventId);
+        handlers.onStatus({ kind: "event-stale", eventId, reason });
+      },
+      onRemove: (id) => {
+        this.football.remove(id);
+        this.detach(id);
+      },
     });
   }
 
@@ -101,6 +120,10 @@ export class SuperbetFeed {
     return this.subscriptions.get(id)?.connected
       ? this.store.getSnapshot(id)
       : null;
+  }
+
+  getFootballSnapshot(id: number): SuperbetFootballSnapshot | null {
+    return this.getSnapshot(id) ? this.football.getSnapshot(id) : null;
   }
 
   getStats(): SuperbetStats {
@@ -611,6 +634,7 @@ export class SuperbetFeed {
       ...states.map((state) => state.queue),
     ]);
     this.subscriptions.clear();
+    this.football.clear();
     const errors = results.flatMap((result) =>
       result.status === "rejected" ? [result.reason] : [],
     );

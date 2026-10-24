@@ -4,6 +4,8 @@
 
 Contracte detaliate cu siteurile: [Superbet](contracts/SUPERBET.md) · [Betano](contracts/BETANO.md). Acestea explică payloadurile, indicatorii și codurile de schimbări aplicate în store-uri.
 
+[Superbet fotbal — catalog și model filtrat](SUPERBET-FOOTBALL.md) explică selecția explicită a piețelor, regula de exact două rezultate per linie și notificările filtrate.
+
 Un provider este integrarea completă a unui site: știe unde găsește meciurile, cum se abonează la ele, cum interpretează mesajele și când starea cotelor poate fi folosită. Superbet și Betano folosesc aceeași infrastructură de networking, dar protocoale și modele de date diferite.
 
 ## Piesele unui provider
@@ -145,6 +147,14 @@ La reconectare invalidează baza veche. `revision` respinge snapshoturi REST por
 - Prețul și `status` rămân în forma vendorului. Trebuie luate în calcul și suspendarea selecției și starea ofertei evenimentului.
 
 EOF curat provoacă redeschiderea SSE și resincronizare; nu este numărat drept eroare de transport. Inactivitatea prelungită provoacă restart. Un `stream-stopped` permanent, inclusiv cazul HTTP 204, elimină evenimentul urmărit fără o buclă imediată de reconectare; discovery ulterior îl poate găsi din nou.
+
+### Modelul filtrat pentru fotbal
+
+În același processing worker, [proiecția](../src/providers/superbet/processing/football-projection.ts) primește numai starea acceptată de store și aplică [catalogul explicit](../src/providers/superbet/football-markets.config.ts). Fiecare linie publicată are exact două selecții și rolurile configurate; handicapul european, combinațiile, piețele pe jucători și liniile incomplete sunt excluse. Starea protocolului rămâne completă.
+
+`getFootballSnapshot(id)` returnează modelul filtrat sau `null`, cu aceeași condiție de conectare și sincronizare ca snapshotul brut. `onFootballSnapshot` publică o bază completă; `onFootballUpdate` publică linii schimbate, chei eliminate sau `kind: "invalidate"` pentru ștergerea întregului eveniment. Notificările sunt copiate către main numai când există handlerii respectivi. Modelul de selecție este explicat în [documentul dedicat](SUPERBET-FOOTBALL.md).
+
+Proiecția poate interpreta separat snapshoturi prematch, dar providerul activ urmărește în continuare doar live. Matching workerul și livrarea directă cu ACK/coalescing nu sunt adăugate în acest pas.
 
 ### Endpointurile folosite
 

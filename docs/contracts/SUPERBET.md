@@ -78,6 +78,8 @@ Versiunea aparține unui meci Superbet. Nu se compară cu versiunea altui meci s
 
 ## 4. Baza completă a cotelor
 
+Contractul de aici descrie starea vendor completă. [Modelul filtrat de fotbal](../SUPERBET-FOOTBALL.md) este o proiecție separată, aplicată după sincronizare: catalog explicit și exact două rezultate per linie. Nu modifică semantica patchurilor sau API-ul snapshotului brut.
+
 ```json
 {
   "event_id": 11,

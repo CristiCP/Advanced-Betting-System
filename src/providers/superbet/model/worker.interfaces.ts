@@ -1,5 +1,9 @@
 import type { MessagePort } from "node:worker_threads";
 import type {
+  SuperbetFootballChange,
+  SuperbetFootballSnapshot,
+} from "./football-projection.interfaces.js";
+import type {
   SuperbetFeedConfiguration,
   SuperbetStatus,
 } from "./feed.interfaces.js";
@@ -16,7 +20,12 @@ export interface SuperbetWorkerData extends SuperbetFeedConfiguration {
 export interface SuperbetQueryCommand {
   type: "query";
   commandId: number;
-  operation: "events" | "snapshot" | "stats" | "reconnect";
+  operation:
+    | "events"
+    | "snapshot"
+    | "football-snapshot"
+    | "stats"
+    | "reconnect";
   eventId?: number;
 }
 
@@ -27,6 +36,8 @@ export type SuperbetWorkerMessage =
   | { type: "events"; events: SuperbetEvent[] }
   | { type: "snapshot"; snapshot: SuperbetSnapshot }
   | { type: "update"; update: SuperbetUpdate }
+  | { type: "football-snapshot"; snapshot: SuperbetFootballSnapshot }
+  | { type: "football-update"; change: SuperbetFootballChange }
   | { type: "removed"; eventId: number }
   | { type: "status"; status: SuperbetStatus }
   | { type: "error"; error: string; eventId?: number }

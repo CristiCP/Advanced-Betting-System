@@ -1,4 +1,8 @@
 import type { SuperbetOptions } from "./config.interfaces.js";
+import type {
+  SuperbetFootballChange,
+  SuperbetFootballSnapshot,
+} from "./football-projection.interfaces.js";
 import type { SuperbetSseDecoder } from "../protocol/sse.js";
 import type {
   SuperbetEvent,
@@ -33,6 +37,8 @@ export interface SuperbetFeedHandlers {
   onEvents(events: SuperbetEvent[]): void;
   onSnapshot(snapshot: SuperbetSnapshot): void;
   onUpdate(update: SuperbetUpdate): void;
+  onFootballSnapshot?(snapshot: SuperbetFootballSnapshot): void;
+  onFootballUpdate?(change: SuperbetFootballChange): void;
   onRemove(eventId: number): void;
   onStatus(status: SuperbetStatus): void;
   onError(error: string, eventId?: number): void;
@@ -59,4 +65,6 @@ export interface SuperbetFeedConfiguration {
   options: SuperbetOptions;
   publishSnapshots: boolean;
   publishUpdates: boolean;
+  publishFootballSnapshots: boolean;
+  publishFootballUpdates: boolean;
 }
