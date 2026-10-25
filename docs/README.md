@@ -34,5 +34,6 @@
 - [Corespondențe tenis](mapping/TENNIS.md): 26 de rânduri, 25 active, perioade și excluderi.
 - [Test de latență — 25 octombrie 2026](reports/LATENCY-TEST-2026-10-25.md): măsurarea locală de un minut.
 - [Stabilitate Betano — 25 octombrie 2026](reports/BETANO-STREAM-STABILITY-2026-10-25.md): diagnostic `1005`/429, flux fără incidente, versiuni și recuperare.
+- [Izolare evenimente Betano — 25 octombrie 2026](reports/BETANO-EVENT-ISOLATION-2026-10-25.md): abonament individual care închide grupul, partiționare adaptivă și retry separat.
 
 **Fotbalul și tenisul au filtrare, matching și oportunități.** Providerii activi colectează numai live; suportul de proiectare prematch este separat. Baschetul este colectat brut, fără proiecții filtrate sau agregare.

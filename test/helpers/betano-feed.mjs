@@ -10,10 +10,10 @@ export const feedSnapshot = (version = 10) => ({
   selections: { 200: { id: 200, price: 2 } },
 });
 
-export function feedHarness(t, requestSnapshot = async () => feedSnapshot()) {
+export function feedHarness(t, requestSnapshot = async () => feedSnapshot(), options = {}) {
   let feed, sequence = 0, generation = 0;
-  const sockets = new Map(), snapshots = [], errors = [], statuses = [], requests = [];
-  const controls = { automaticVersions: true, version: 10 };
+  const sockets = new Map(), memberships = new Map(), snapshots = [], errors = [], errorEvents = [], statuses = [], requests = [], commands = [];
+  const controls = { automaticVersions: true, version: 10, events: { 11: structuredClone(feedEvent) } };
   const deliver = (id, type, extra = {}) => {
     const socket = sockets.get(id);
     if (!socket) return;
@@ -22,17 +22,18 @@ export function feedHarness(t, requestSnapshot = async () => feedSnapshot()) {
   const chunk = (id, record) => deliver(id, "stream-chunk", {
     chunk: new TextEncoder().encode(JSON.stringify(record) + "\x1e").buffer,
   });
-  const version = (value = controls.version, flags = {}) => chunk("betano:events:1", {
+  const version = (value = controls.version, flags = {}, eventId = 11, socketId = "betano:events:1") => chunk(socketId, {
     type: 1, target: "OnActiveLiveEventSplitVersion", arguments: [{
-      eventId: 11, version: value, includeEvent: true, includeMarkets: true, includeIncidents: false, ...flags,
+      eventId, version: value, includeEvent: true, includeMarkets: true, includeIncidents: false, ...flags,
     }],
   });
   const network = {
     async command(command) {
+      commands.push(structuredClone(command));
       if (command.type === "request") {
         const overview = command.request.path.includes("/overview/");
         if (!overview) requests.push(command);
-        const value = overview ? { events: { 11: structuredClone(feedEvent) } } : await requestSnapshot(requests.length);
+        const value = overview ? { events: structuredClone(controls.events) } : await requestSnapshot(requests.length, command);
         return { type: "request-response", commandId: 1, response: {
           statusCode: 200, headers: {}, body: new TextEncoder().encode(JSON.stringify(value)).buffer,
         } };
@@ -41,7 +42,10 @@ export function feedHarness(t, requestSnapshot = async () => feedSnapshot()) {
         sockets.set(command.id, { generation: ++generation, attempt: 1 });
         queueMicrotask(() => deliver(command.id, "stream-open", { response: { statusCode: 101, headers: {} } }));
       }
-      if (command.type === "stop-socket") sockets.delete(command.id);
+      if (command.type === "stop-socket") {
+        sockets.delete(command.id);
+        memberships.delete(command.id);
+      }
       if (command.type === "send-socket") {
         const message = JSON.parse(command.data.slice(0, -1));
         if (message.protocol) queueMicrotask(() => chunk(command.id, {}));
@@ -49,7 +53,11 @@ export function feedHarness(t, requestSnapshot = async () => feedSnapshot()) {
           if (message.target === "joinLiveEventGroup") {
             if (message.arguments[0].IncludeIncidents !== false)
               throw new Error("Expected the event-and-market split subscription.");
-            if (controls.automaticVersions) queueMicrotask(() => version());
+            const ids = command.id;
+            memberships.set(ids, [...(memberships.get(ids) ?? []), ...message.arguments[0].eventIds]);
+            if (controls.automaticVersions)
+              for (const eventId of message.arguments[0].eventIds)
+                queueMicrotask(() => version(controls.version, {}, eventId, command.id));
           }
           queueMicrotask(() => chunk(command.id, { type: 3, invocationId: message.invocationId }));
         }
@@ -57,20 +65,24 @@ export function feedHarness(t, requestSnapshot = async () => feedSnapshot()) {
       return { type: "command-success", commandId: 1 };
     }, post() {},
   };
-  feed = new BetanoFeed(network, { ...betanoConfig, retryDelayMs: 5 }, {
+  feed = new BetanoFeed(network, { ...betanoConfig, retryDelayMs: 5, ...options }, {
     onEvents() {}, onSnapshot: (snapshot) => snapshots.push(structuredClone(snapshot)),
-    onUpdate() {}, onRemove() {}, onStatus: (s) => statuses.push(s), onError: (e) => errors.push(e),
+    onUpdate() {}, onRemove() {}, onStatus: (s) => statuses.push(s), onError: (error, eventId) => {
+      errors.push(error);
+      errorEvents.push({ error, eventId });
+    },
   });
   t.after(() => feed.stop());
   return {
-    feed, controls, snapshots, errors, statuses, requests, chunk, version,
-    disconnect() {
-      deliver("betano:events:1", "stream-end", { cancelled: false });
-      deliver("betano:events:1", "stream-error", { error: "WebSocket closed (1005)." });
+    feed, controls, snapshots, errors, errorEvents, statuses, requests, commands, sockets, network, chunk, version,
+    socketFor(eventId) { return [...memberships].find(([, ids]) => ids.includes(eventId))?.[0]; },
+    disconnect(id = "betano:events:1") {
+      deliver(id, "stream-end", { cancelled: false });
+      deliver(id, "stream-error", { error: "WebSocket closed (1005)." });
     },
-    reopen() {
-      sockets.get("betano:events:1").attempt++;
-      deliver("betano:events:1", "stream-open", { response: { statusCode: 101, headers: {} } });
+    reopen(id = "betano:events:1") {
+      sockets.get(id).attempt++;
+      deliver(id, "stream-open", { response: { statusCode: 101, headers: {} } });
     },
   };
 }

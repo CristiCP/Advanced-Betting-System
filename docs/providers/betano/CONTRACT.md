@@ -132,6 +132,8 @@ Capitalizarea câmpurilor este intenționată. Providerul grupează implicit max
 
 Overview-ul are un socket separat și apelează `joinLiveOverviewGroupWithOptions` cu `{language: 4, platformType: 1, includeVirtuals: false}`. `leaveLiveEventGroup` primește `language`, `platformType` și `eventIds` pentru eliminarea membrilor.
 
+Gruparea este adaptivă la închideri repetate `1005` după confirmarea versiunii: după două eșecuri, grupul este retras și înlocuit cu două partiții. Conexiunea veche este oprită înainte de deschiderea copiilor; membrii sunt revalidați pentru a nu readuce un eveniment eliminat în timpul opririi. Numai ramura instabilă continuă să fie împărțită. Un singur meci ajunge pe o conexiune cu retry de 30 s, fără să afecteze grupurile recuperate. După o conexiune stabilă de minimum 60 s, istoricul scurt de eșecuri este resetat. Timeouturile, lipsa creditului de bytes, erorile de deschidere și overview-ul nu declanșează această partiționare. Nu se schimbă payloadul de abonare sau audiența; [raportul de izolare](../../reports/BETANO-EVENT-ISOLATION-2026-10-25.md) descrie politica și testele.
+
 ### Notificările utilizate
 
 | Target                     | Conținut și utilizare                                                                                                                           |

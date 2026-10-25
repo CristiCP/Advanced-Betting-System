@@ -202,6 +202,8 @@ Discovery selectează sporturile `FOOT`, `BASK`, `TENN`, cu `isLive: true` și f
 
 Providerul folosește un socket de **overview** și socketuri de evenimente cu maximum **50 de meciuri fiecare**, implicit. Overview-ul urmărește apariții și eliminări; celelalte socketuri urmăresc versiunile și schimbările meciurilor. Grupurile își păstrează membrii când este posibil și sunt eliberate când devin goale.
 
+După două închideri `1005` pe abonări cu versiuni confirmate, fără o conexiune stabilă de 60 s între ele, grupul afectat se împarte în două. Numai ramurile care continuă să cadă sunt împărțite din nou. La un singur meci, conexiunea izolată reîncearcă la 30 s; celelalte conexiuni continuă independent. Partițiile nu acceptă membri noi din discovery și nu sunt recombinate în timpul rulării. Izolarea păstrează identitatea și liniile, dar datele rămân stale până la confirmarea versiunii pe noul socket. [Diagnosticul și izolarea pe eveniment](../reports/BETANO-EVENT-ISOLATION-2026-10-25.md) explică cazul reprodus și limitele.
+
 ### Abonarea înaintea snapshotului
 
 ```mermaid
@@ -286,6 +288,7 @@ Valorile implicite sunt în [Superbet config](../../src/providers/superbet/confi
 | Abonări                      | 1 SSE / meci                       | 1 overview + grupuri de 50                    | Costul conexiunilor și aria afectată de o reconectare.                    |
 | Request timeout              | 10 s                               | 10 s                                          | Limitează cererile REST și așteptările de deschidere relevante.           |
 | Retry de bază                | 1 s                                | 1 s                                           | Evită o buclă imediată la eșec. Reparațiile REST au backoff până la 30 s. |
+| Izolare abonament instabil   | —                                  | 2 închideri `1005`, stabilitate 60 s, retry izolat 30 s | Reduce aria afectată fără a publica date stale.                    |
 | Snapshoturi REST concurente  | 8                                  | 8                                             | Controlează încărcarea în timpul recuperării.                             |
 | Actualizări în buffer / meci | 256                                | 256                                           | Păstrează schimbările în zbor cu o limită de număr.                       |
 | Credit de date brute         | 256 KiB / SSE                      | 1 MiB / socket                                | Limitează bytes neconfirmați între workeri.                               |
@@ -301,6 +304,6 @@ La HTTP 429/503, ambele feed-uri respectă `Retry-After` printr-un cooldown REST
 
 `events` arată câte meciuri sunt urmărite; `synchronizedEvents`, câte au starea disponibilă. Diferența poate apărea la pornire, deconectare sau reparare, fără ca fiecare astfel de caz să fie o eroare HTTP.
 
-La Superbet, `reconnects` include redeschideri după EOF curat; `streamErrors`, `snapshotErrors` și `decodeErrors` separă tipurile de eșec. La Betano, `connectedSockets` reflectă sesiunile SignalR pregătite, iar `resynchronizations` numără invalidările unor stări anterior sincronizate. Ambele publică statistici periodic, la cinci secunde.
+La Superbet, `reconnects` include redeschideri după EOF curat; `streamErrors`, `snapshotErrors` și `decodeErrors` separă tipurile de eșec. La Betano, `connectedSockets` reflectă sesiunile SignalR pregătite, `resynchronizations` numără invalidările unor stări anterior sincronizate, `socketSplits` numără împărțirile grupurilor instabile, iar `isolatedSockets` numără conexiunile separate pentru câte un meci, inclusiv membrii sănătoși separați la ultima împărțire. Ambele publică statistici periodic, la cinci secunde.
 
 Providerii păstrează starea în memorie și folosesc API-uri nedocumentate ale siteurilor. Nu persistă istoric și nu oferă încă un model unic de cote între case. Testele din [test](../../test) acoperă protocoalele, ordinea versiunilor, recuperarea și anularea operațiilor; verificarea accesului real și a latenței sursei este o verificare live separată.

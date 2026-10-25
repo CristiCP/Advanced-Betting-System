@@ -80,7 +80,7 @@ test("pause and resume logs distinguish last confirmed quotes and disclose the u
   assert.match(lines[2], /CLOSED #7.*durata=2\.000s.*timp neconfirmat=1\.250s/);
 });
 
-test("closing colors use the reported margin with a strict 0.5% boundary for both sports", () => {
+test("only margin closures above 0.5% are purple; withdrawals and other reasons stay red", () => {
   const reports = [
     { kind: "close", marginBps: 100, reason: "margin" },
     { kind: "close", marginBps: 50.01, reason: "margin", sport: "tennis" },
@@ -88,6 +88,9 @@ test("closing colors use the reported margin with a strict 0.5% boundary for bot
     { kind: "close", marginBps: 49.99, reason: "margin", sport: "tennis" },
     { kind: "close", marginBps: -10, reason: "margin" },
     { kind: "close", marginBps: 300, reason: "suspended" },
+    { kind: "close", marginBps: 344, reason: "unlinked", reasonDetail: "betano: line withdrawn" },
+    { kind: "close", marginBps: 344, reason: "unlinked", reasonDetail: "superbet: line withdrawn", sport: "tennis" },
+    { kind: "close", marginBps: 300, reason: "tennis-context", sport: "tennis" },
     { kind: "open", marginBps: 200 },
     { kind: "update", marginBps: 210 },
     { kind: "pause", marginBps: 210 },
@@ -114,7 +117,7 @@ test("closing colors use the reported margin with a strict 0.5% boundary for bot
     return result.stdout.trimEnd().split(/\r?\n/);
   };
   const lines = run(env);
-  const codes = [35, 35, 31, 31, 31, 35, 32, 34, 33, 34];
+  const codes = [35, 35, 31, 31, 31, 31, 31, 31, 31, 32, 34, 33, 34];
   assert.equal(lines.length, reports.length);
   for (let i = 0; i < lines.length; i++) {
     assert.ok(lines[i].startsWith(`\u001b[${codes[i]}m`), `Unexpected color for report ${i}: ${JSON.stringify(lines[i])}`);

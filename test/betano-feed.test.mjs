@@ -154,7 +154,7 @@ test("a late HTTP response cannot restore odds from a disconnected connection at
 
 test("unchanged reconnects reuse confirmed state while missing versions require a new baseline", async (t) => {
   let version = 10;
-  const f = feedHarness(t, async () => feedSnapshot(version));
+  const f = feedHarness(t, async () => feedSnapshot(version), { socketFailureThreshold: 10 });
   await f.feed.start();
   await until(() => f.feed.getStats().synchronizedEvents === 1);
   f.disconnect();

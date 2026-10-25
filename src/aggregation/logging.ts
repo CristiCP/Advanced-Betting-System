@@ -35,7 +35,7 @@ const reasons: Record<AggregationCloseReason, string> = {
 };
 const matchSummaryIntervalMs = 60_000;
 const initialSummaryWaitMs = 30_000;
-// Closing reports above 0.5% remain purple; this does not change detection thresholds.
+// Only margin closures above 0.5% are purple; other closing reasons stay red.
 const closeMarginColorBps = 50;
 // Wait for usable pairs at startup, with a deadline when none become available.
 let initialSummaryDeadline: number | null = null;
@@ -85,7 +85,9 @@ export const aggregationConsoleHandlers: AggregationHandlers = {
         .replace(/\s+/g, " ")
         .trim();
     const color =
-      report.kind === "close" && report.marginBps > closeMarginColorBps
+      report.kind === "close" &&
+      report.reason === "margin" &&
+      report.marginBps > closeMarginColorBps
         ? "magenta"
         : colors[report.kind];
     console.log(styleText(color, line));

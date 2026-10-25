@@ -11,6 +11,7 @@ import { decodeDiffs } from "../protocol/compression.js";
 import { SignalRSession } from "../protocol/signalr.js";
 import { BetanoHttpError } from "../protocol/http-error.js";
 import { eventAudienceSnapshot } from "../protocol/audience.js";
+import { shouldIsolateSocket } from "./socket-recovery.js";
 import { BetanoStore, isBetanoEvent, isLiveEvent, isRecord } from "./state.js";
 import type {
   BetanoDiff,
@@ -34,6 +35,7 @@ export class BetanoFeed {
   private readonly tennis: BetanoTennisProjection;
   private readonly sockets = new Map<string, BetanoSocketState>();
   private readonly membership = new Map<number, BetanoSocketState>();
+  private readonly socketRecoveries = new Set<Promise<void>>();
   private readonly revisions = new Map<number, number>();
   private readonly queued = new Set<number>();
   private readonly retries = new Map<number, ReturnType<typeof setTimeout>>();
@@ -54,6 +56,7 @@ export class BetanoFeed {
     decodedBatches: 0,
     appliedDiffs: 0,
     resynchronizations: 0,
+    socketSplits: 0,
   };
 
   constructor(
@@ -158,6 +161,9 @@ export class BetanoFeed {
       connectedSockets: [...this.sockets.values()].filter(
         (state) => state.session?.ready,
       ).length,
+      isolatedSockets: [...this.sockets.values()].filter(
+        (state) => state.isolated,
+      ).length,
       ...this.counters,
     };
   }
@@ -180,6 +186,9 @@ export class BetanoFeed {
         state.confirmedEvents.clear();
         state.generation = stream.generation;
         state.attempt = stream.attempt;
+        state.openedAt = Date.now();
+        state.failedAttempt = 0;
+        state.confirmedOnDisconnect = false;
         for (const id of state.events) {
           this.revisions.set(id, (this.revisions.get(id) ?? 0) + 1);
           this.store.invalidate(
@@ -223,6 +232,7 @@ export class BetanoFeed {
           state.session?.receive(stream.chunk);
         if (stream.type === "stream-end" || stream.type === "stream-error") {
           if (state.session !== null) {
+            state.confirmedOnDisconnect = state.confirmedEvents.size > 0;
             state.session.stop();
             state.session = null;
             state.confirmedEvents.clear();
@@ -232,8 +242,14 @@ export class BetanoFeed {
             }
             this.handlers.onStatus({ kind: "disconnected", socketId: state.id });
           }
-          if (stream.type === "stream-error")
-            this.handlers.onError(`${state.id}: ${stream.error}`);
+          if (stream.type === "stream-error") {
+            this.handlers.onError(
+              `${state.id}: ${stream.error}${state.isolated ? ` Isolated event; retry delay ${this.options.isolatedRetryDelayMs}ms.` : ""}`,
+              state.isolated ? state.events.values().next().value : undefined,
+            );
+            if (shouldIsolateSocket(state, this.options, stream.error, Date.now()))
+              this.scheduleIsolation(state);
+          }
         }
       }
     } catch (error) {
@@ -264,11 +280,12 @@ export class BetanoFeed {
     this.retries.clear();
     this.queued.clear();
     for (const state of this.sockets.values()) state.session?.stop();
-    const results = await Promise.allSettled(
-      [...this.sockets.keys()].map((id) =>
+    const results = await Promise.allSettled([
+      ...[...this.sockets.keys()].map((id) =>
         this.network.command({ type: "stop-socket", id }),
       ),
-    );
+      ...this.socketRecoveries,
+    ]);
     this.sockets.clear();
     const errors = results.flatMap((result) =>
       result.status === "rejected" ? [result.reason] : [],
@@ -286,6 +303,12 @@ export class BetanoFeed {
       attempt: 0,
       session: null,
       restarting: null,
+      partitioned: false,
+      isolated: false,
+      openedAt: 0,
+      failures: 0,
+      failedAttempt: 0,
+      confirmedOnDisconnect: false,
     };
     this.sockets.set(id, state);
     return state;
@@ -299,10 +322,68 @@ export class BetanoFeed {
       path: "/contenthub?platformType=1",
       connectTimeoutMs: this.options.requestTimeoutMs,
       idleTimeoutMs: this.options.serverTimeoutMs,
-      retryDelayMs: this.options.retryDelayMs,
+      retryDelayMs: state.isolated
+        ? this.options.isolatedRetryDelayMs
+        : this.options.retryDelayMs,
       maxInFlightBytes: this.options.maxInFlightBytes,
       maxMessageBytes: this.options.maxDecodedMessageBytes,
     });
+  }
+
+  // Retire an unstable group before moving its members, so late messages cannot restore old odds.
+  private scheduleIsolation(state: BetanoSocketState): void {
+    if (this.stopping || state.restarting !== null) return;
+    const recovery = this.isolateSocket(state);
+    this.socketRecoveries.add(recovery);
+    void recovery
+      .catch((error: unknown) => {
+        if (!this.stopping)
+          this.handlers.onError(`Betano socket isolation failed: ${String(error)}`);
+      })
+      .finally(() => this.socketRecoveries.delete(recovery));
+  }
+
+  private async isolateSocket(state: BetanoSocketState): Promise<void> {
+    if (this.stopping || this.sockets.get(state.id) !== state) return;
+    state.partitioned = true;
+    if (state.events.size === 1) {
+      state.isolated = true;
+      await this.restartSocket(state);
+      return;
+    }
+
+    const ids = [...state.events];
+    this.sockets.delete(state.id);
+    state.session?.stop();
+    state.session = null;
+    state.confirmedEvents.clear();
+    for (const id of ids) {
+      this.revisions.set(id, (this.revisions.get(id) ?? 0) + 1);
+      this.store.invalidate(id, "Unstable socket is being partitioned.");
+    }
+    await this.network.command({ type: "stop-socket", id: state.id });
+    if (this.stopping) return;
+
+    // Only the branch containing the problematic event keeps splitting on later failures.
+    const remaining = ids.filter(
+      (id) => this.store.events.has(id) && this.membership.get(id) === state,
+    );
+    if (remaining.length === 0) return;
+    const midpoint = Math.ceil(remaining.length / 2);
+    const children: BetanoSocketState[] = [];
+    for (const group of [remaining.slice(0, midpoint), remaining.slice(midpoint)]) {
+      if (group.length === 0) continue;
+      const child = this.makeSocket(`betano:events:${this.nextSocket++}`);
+      child.partitioned = true;
+      child.isolated = group.length === 1;
+      for (const id of group) {
+        child.events.add(id);
+        this.membership.set(id, child);
+      }
+      children.push(child);
+    }
+    this.counters.socketSplits++;
+    await Promise.all(children.map((child) => this.openSocket(child)));
   }
 
   private restartSocket(state: BetanoSocketState): Promise<void> {
@@ -515,6 +596,7 @@ export class BetanoFeed {
       let socket = [...this.sockets.values()].find(
         (state) =>
           state.id !== "betano:overview" &&
+          !state.partitioned &&
           state.events.size < this.options.eventsPerSocket,
       );
       if (socket === undefined) {
@@ -614,6 +696,7 @@ export class BetanoFeed {
           if (
             this.stopping ||
             this.store.events.get(id) !== state ||
+            this.membership.get(id) !== socket ||
             this.revisions.get(id) !== revision ||
             !socket.session?.ready ||
             !socket.confirmedEvents.has(id)

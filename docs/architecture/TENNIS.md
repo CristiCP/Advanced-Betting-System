@@ -117,7 +117,7 @@ Pragul rămâne cel din [config.ts](../../src/aggregation/config.ts): `minMargin
 
 - Tabelul inițial conține meciurile confirmate și coloana `sport`; după aceea apar numai modificările de apartenență.
 - Oportunitățile de tenis au marcajul `[TENNIS]`, nume de participanți, scor pe seturi/game-uri/puncte, piață, prag și cote cu etichete explicite.
-- Verde `FOUND`, albastru `UPDATE`/`RESUMED`, galben `PAUSED`; `CLOSED` mov dacă marja raportată rămâne peste 0,5%, roșu la 0,5% sau mai jos, cu durata, ultimele cote și cauza observată. Acest prag vizual nu schimbă `minMarginBps` și nu prelungește urmărirea sub pragul configurat; movul nu confirmă disponibilitatea cotelor dacă motivul închiderii este o suspendare, retragere sau altă poartă.
+- Verde `FOUND`, albastru `UPDATE`/`RESUMED`, galben `PAUSED`; `CLOSED` mov numai la motivul `margin` cu marja raportată peste 0,5%, roșu la 0,5% sau mai jos ori la orice alt motiv de închidere, cu durata, ultimele cote și cauza observată. Acest prag vizual nu schimbă `minMarginBps` și nu prelungește urmărirea sub pragul configurat; suspendarea, retragerea și celelalte motive de închidere sunt întotdeauna roșii, indiferent de marja ultimelor cote cunoscute.
 - O pierdere de sincronizare pune în pauză oportunitatea existentă. O schimbare de scor/context neeligibil, suspendare, marjă sau retragere o închide; o nouă deschidere după această închidere primește un ID nou.
 
 Identitatea unui raport este `(sport, id)`, deoarece motoarele au contoare independente. `onOpportunity`, `onPair`, `onObserved` și `onMatches` includ `sport`; se pot înregistra în același fișier fără a amesteca identificatorii.

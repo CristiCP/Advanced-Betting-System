@@ -19,6 +19,8 @@ export interface BetanoStats {
   synchronizedEvents: number;
   sockets: number;
   connectedSockets: number;
+  isolatedSockets: number;
+  socketSplits: number;
   snapshots: number;
   snapshotErrors: number;
   decodedBatches: number;
@@ -56,6 +58,13 @@ export interface BetanoSocketState {
   attempt: number;
   session: SignalRSession | null;
   restarting: Promise<void> | null;
+  // Recovery partitions never accept new discovery members or merge back into shared groups.
+  partitioned: boolean;
+  isolated: boolean;
+  openedAt: number;
+  failures: number;
+  failedAttempt: number;
+  confirmedOnDisconnect: boolean;
 }
 
 export interface BetanoFeedConfiguration {

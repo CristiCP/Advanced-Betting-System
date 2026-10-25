@@ -101,3 +101,5 @@ Verificarea finală `npm test` a trecut toate cele 197 de teste și a refăcut b
 - [Contractul actualizat](../providers/betano/CONTRACT.md) și [arhitectura providerilor](../architecture/PROVIDERS.md).
 
 Scripturile de diagnostic au rulat din stdin; nu au fost salvate capturi brute sau scripturi temporare în proiect. Conexiunea adăugată în browser și procesele de test au fost închise. Exemplele reduse de metadata rămân intenționat în teste.
+
+Investigația ulterioară a identificat și un abonament individual care închide conexiunea independent de audiență. [Raportul de izolare pe eveniment](BETANO-EVENT-ISOLATION-2026-10-25.md) descrie reproducerea în Node și Chrome, partiționarea adaptivă și retry-ul separat de 30 s adăugat ulterior. Rezultatele de mai sus rămân observațiile ferestrelor testate înaintea acelei corecții.
