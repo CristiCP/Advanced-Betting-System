@@ -19,6 +19,7 @@ export function recorder() {
     reset: () => calls.push(["reset"]),
     eventIdentity: (event, value) => calls.push(["identity", event, value]),
     eventLive: (...args) => calls.push(["live", ...args]),
+    eventTennis: (...args) => calls.push(["tennis", ...args]),
     eventRelease: (event) => calls.push(["event-release", event]),
     lineDefine: (...args) => calls.push(["define", ...args]),
     lineRelease: (line) => calls.push(["line-release", line]),

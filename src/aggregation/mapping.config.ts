@@ -4,7 +4,7 @@ import type { AggregationMarketMapping } from "./model/mapping.interfaces.js";
  * @file Pairs verified Betano and Superbet football market types under stable canonical codes.
  */
 
-// Generated from docs/FOOTBALL-MARKET-MAPPING.md section 3. Codes are append-only: never renumber or reuse one.
+// Generated from docs/mapping/FOOTBALL.md section 3. Codes are append-only: never renumber or reuse one.
 export const footballMarketMapping: readonly AggregationMarketMapping[] = [
   {
     code: 1,

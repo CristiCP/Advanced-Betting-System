@@ -70,6 +70,7 @@ export class BetanoFootballProjection {
       return;
     }
     const state: BetanoFootballProjectionState = {
+      synchronized: true,
       event,
       sourceVersion: snapshot.version,
       projectedAt,
@@ -204,19 +205,43 @@ export class BetanoFootballProjection {
     for (const selection of ids) state.selectionMarkets.set(selection, id);
   }
 
-  getSnapshot(eventId: number): BetanoFootballSnapshot | null {
+  getSnapshot(
+    eventId: number,
+    includeStale = false,
+  ): BetanoFootballSnapshot | null {
     const state = this.events.get(eventId);
-    return state
+    return state && (state.synchronized || includeStale)
       ? {
           provider: "betano",
           event: state.event,
           sourceVersion: state.sourceVersion,
           projectedAt: state.projectedAt,
+          synchronized: state.synchronized,
           lines: [...state.groups.values()].flatMap((lines) => [
             ...lines.values(),
           ]),
         }
       : null;
+  }
+
+  // Retain identity and lines, but block quotes until a complete baseline arrives.
+  invalidate(eventId: number, projectedAt = Date.now()): void {
+    const state = this.events.get(eventId);
+    if (!state || !state.synchronized) return;
+    state.synchronized = false;
+    this.handlers.onUpdate?.({
+      kind: "invalidate",
+      eventId,
+      sourceVersion: state.sourceVersion,
+      projectedAt,
+      upserts: [],
+      removed: [],
+    });
+  }
+
+  // Internal replay includes retained identities with an explicit synchronization flag.
+  *snapshots(): IterableIterator<BetanoFootballSnapshot> {
+    for (const id of this.events.keys()) yield this.getSnapshot(id, true)!;
   }
 
   remove(
@@ -228,7 +253,7 @@ export class BetanoFootballProjection {
     if (!state) return;
     this.events.delete(eventId);
     this.handlers.onUpdate?.({
-      kind: "invalidate",
+      kind: "remove",
       eventId,
       sourceVersion: sourceVersion ?? state.sourceVersion,
       projectedAt,

@@ -30,6 +30,41 @@ async function settle() {
   for (let i = 0; i < 4; i++) await turn();
 }
 
+test("filtered tennis follows SSE patches, reconnect recovery and final removal without entering football", async () => {
+  const bases = [], changes = [], football = [];
+  const market = {
+    id: 1002, name: "Total game-uri",
+    odds: [
+      { uuid: "tennis-u", price: 1.9, status: 1, display: true, metadata: { name: "Sub 20.5", outcome_id: 4262, market_line_uuid: "tennis", offer_state_id: 2, specifiers: { total: "20.5" } } },
+      { uuid: "tennis-o", price: 1.9, status: 1, display: true, metadata: { name: "Peste 20.5", outcome_id: 4263, market_line_uuid: "tennis", offer_state_id: 2, specifiers: { total: "20.5" } } },
+    ],
+  };
+  const base = { ...event(1), fixture: { sport_id: 2, event_name: "Alice\u00b7Bea", offer_state_status: { 2: 1 } }, markets: [market] };
+  const f = fixture([base], {}, { onTennisSnapshot: (value) => bases.push(value), onTennisUpdate: (value) => changes.push(value), onFootballSnapshot: (value) => football.push(value) });
+  try {
+    await f.feed.start(); await settle();
+    assert.equal(f.feed.getTennisSnapshot(1), null);
+    f.peer.data(1, [base]); await settle();
+    assert.equal(f.feed.getTennisSnapshot(1).lines.length, 1);
+    assert.equal(bases.length, 1);
+    assert.deepEqual(football, []);
+    assert.equal(f.feed.getFootballSnapshot(1), null);
+    f.peer.data(1, [{ event_id: 1, increment_id: 11, markets: [{ id: 1002, name: market.name, odds: [{ uuid: "tennis-o", price: 2.2 }] }] }]); await settle();
+    assert.equal(changes.at(-1).upserts[0].selections[1].price, 2.2);
+    await f.feed.reconnect(); await settle();
+    assert.equal(changes.at(-1).kind, "invalidate");
+    assert.equal(f.feed.getTennisSnapshot(1), null);
+    f.peer.data(1, [{ ...base, increment_id: 12 }]); await settle();
+    assert.equal(bases.length, 2);
+    assert.equal(f.feed.getTennisSnapshot(1).sourceVersion, 12);
+    f.peer.data(1, [{ event_id: 1, increment_id: 13, inplay_stats_metadata: { status: "FINISHED" } }]); await settle();
+    assert.equal(changes.at(-1).kind, "remove");
+    assert.equal(f.feed.getTennisSnapshot(1), null);
+    assert.equal(f.streams.size, 0);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.feed.stop(); }
+});
+
 function fixture(events, options = {}, footballHandlers = {}) {
   let feed;
   let nextGeneration = 1;
@@ -194,10 +229,12 @@ test("filtered football follows accepted SSE updates, invalidation, and recovery
     await settle();
     assert.equal(changes.at(-1).kind, "invalidate");
     assert.equal(f.feed.getFootballSnapshot(1), null);
+    assert.equal([...f.feed.getFootballSnapshots()][0].synchronized, false);
     f.peer.data(1, [{ ...base, increment_id: 12 }]);
     await settle();
     assert.equal(bases.length, 2);
     assert.equal(f.feed.getFootballSnapshot(1).sourceVersion, 12);
+    assert.equal([...f.feed.getFootballSnapshots()][0].synchronized, true);
     assert.equal(f.errors.length, 0);
   } finally {
     await f.feed.stop();

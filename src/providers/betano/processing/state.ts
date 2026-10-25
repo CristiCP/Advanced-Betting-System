@@ -153,6 +153,18 @@ export class BetanoStore {
     return state === undefined || state.stale ? null : state.snapshot;
   }
 
+  // A fresh subscription can reuse a baseline only after all confirmed versions are present.
+  confirmVersion(id: number, version: number): boolean {
+    const state = this.events.get(id);
+    if (state === undefined) return false;
+    state.targetVersion = Math.max(state.targetVersion, version);
+    return (
+      state.snapshot !== null &&
+      state.snapshot.version <= version &&
+      this.install(id, state.snapshot)
+    );
+  }
+
   private patch(snapshot: BetanoSnapshot, diff: BetanoDiff): boolean {
     const payload = diff.payload;
     switch (diff.type) {

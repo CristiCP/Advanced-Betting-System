@@ -2,6 +2,7 @@
 export type AggregationMappingCondition = "D" | "P" | "A" | "H" | "I" | "T";
 
 export interface AggregationMarketMapping {
+  enabled?: boolean;
   code: number;
   betano: number;
   superbet: number;

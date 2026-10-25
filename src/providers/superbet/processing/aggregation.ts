@@ -1,6 +1,6 @@
 import { footballLineKey } from "../../../aggregation/adapter/football.js";
 import { isRoleA } from "../../../aggregation/mapping.js";
-import type { FootballCodec } from "../../../aggregation/model/adapter.interfaces.js";
+import type { ProjectionCodec } from "../../../aggregation/model/adapter.interfaces.js";
 import { superbetFootballMarkets } from "../football-markets.config.js";
 import type {
   SuperbetFootballEvent,
@@ -25,7 +25,7 @@ const epoch = (value: string | null): number => {
   return Number.isFinite(parsed) ? parsed : NaN;
 };
 
-export const superbetFootballCodec: FootballCodec<
+export const superbetFootballCodec: ProjectionCodec<
   SuperbetFootballEvent,
   SuperbetFootballLine
 > = {

@@ -1,5 +1,9 @@
 import type { MessagePort } from "node:worker_threads";
 import type {
+  BetanoTennisChange,
+  BetanoTennisSnapshot,
+} from "./tennis-projection.interfaces.js";
+import type {
   BetanoFootballChange,
   BetanoFootballSnapshot,
 } from "./football-projection.interfaces.js";
@@ -16,6 +20,7 @@ import type {
 export interface BetanoWorkerData extends BetanoFeedConfiguration {
   networkPort: MessagePort;
   aggregationPort?: MessagePort;
+  tennisAggregationPort?: MessagePort;
 }
 
 export interface BetanoQueryCommand {
@@ -25,6 +30,7 @@ export interface BetanoQueryCommand {
     | "events"
     | "snapshot"
     | "football-snapshot"
+    | "tennis-snapshot"
     | "stats"
     | "reconnect";
   eventId?: number;
@@ -39,6 +45,8 @@ export type BetanoWorkerMessage =
   | { type: "update"; diff: BetanoDiff }
   | { type: "football-snapshot"; snapshot: BetanoFootballSnapshot }
   | { type: "football-update"; change: BetanoFootballChange }
+  | { type: "tennis-snapshot"; snapshot: BetanoTennisSnapshot }
+  | { type: "tennis-update"; change: BetanoTennisChange }
   | { type: "removed"; eventId: number }
   | { type: "status"; status: BetanoStatus }
   | { type: "error"; error: string; eventId?: number }

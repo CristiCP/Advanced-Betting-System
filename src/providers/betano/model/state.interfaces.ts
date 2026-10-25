@@ -46,7 +46,10 @@ export interface BetanoSelection extends BetanoRecord {
 }
 
 export interface BetanoSnapshot extends BetanoRecord {
+  // Feed snapshots use the selected event-and-markets audience sequence.
   version: number;
+  restVersion?: number;
+  versionsPerAudience?: Record<string, number>;
   event: BetanoEvent;
   markets: Record<string, BetanoMarket>;
   selections: Record<string, BetanoSelection>;

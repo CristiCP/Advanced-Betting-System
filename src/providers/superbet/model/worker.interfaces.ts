@@ -1,5 +1,9 @@
 import type { MessagePort } from "node:worker_threads";
 import type {
+  SuperbetTennisChange,
+  SuperbetTennisSnapshot,
+} from "./tennis-projection.interfaces.js";
+import type {
   SuperbetFootballChange,
   SuperbetFootballSnapshot,
 } from "./football-projection.interfaces.js";
@@ -16,6 +20,7 @@ import type {
 export interface SuperbetWorkerData extends SuperbetFeedConfiguration {
   networkPort: MessagePort;
   aggregationPort?: MessagePort;
+  tennisAggregationPort?: MessagePort;
 }
 
 export interface SuperbetQueryCommand {
@@ -25,6 +30,7 @@ export interface SuperbetQueryCommand {
     | "events"
     | "snapshot"
     | "football-snapshot"
+    | "tennis-snapshot"
     | "stats"
     | "reconnect";
   eventId?: number;
@@ -39,6 +45,8 @@ export type SuperbetWorkerMessage =
   | { type: "update"; update: SuperbetUpdate }
   | { type: "football-snapshot"; snapshot: SuperbetFootballSnapshot }
   | { type: "football-update"; change: SuperbetFootballChange }
+  | { type: "tennis-snapshot"; snapshot: SuperbetTennisSnapshot }
+  | { type: "tennis-update"; change: SuperbetTennisChange }
   | { type: "removed"; eventId: number }
   | { type: "status"; status: SuperbetStatus }
   | { type: "error"; error: string; eventId?: number }

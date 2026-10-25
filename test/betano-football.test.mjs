@@ -71,7 +71,7 @@ function synchronized() {
   const store = new BetanoStore(8, {
     onSnapshot: (v) => view.install(v),
     onUpdate: (d) => view.update(store.getSnapshot(d.eventId), d),
-    onStale: (id) => view.remove(id),
+    onStale: (id) => view.invalidate(id),
     onRemove: (id) => view.remove(id),
   });
   const base = snapshot();
@@ -377,6 +377,10 @@ test("gap or disconnect invalidates immediately and recovery publishes a fresh b
   f.receive(100, {}, 12);
   assert.equal(f.view.getSnapshot(11), null);
   assert.equal(f.messages.at(-1).kind, "invalidate");
+  const retained = [...f.view.snapshots()];
+  assert.equal(retained.length, 1);
+  assert.equal(retained[0].synchronized, false);
+  assert.equal(retained[0].lines.length, 1);
   const replacement = snapshot();
   replacement.version = 12;
   f.store.install(11, replacement);
@@ -387,7 +391,8 @@ test("gap or disconnect invalidates immediately and recovery publishes a fresh b
   f.store.install(11, replacement);
   f.store.remove(11);
   assert.equal(f.view.getSnapshot(11), null);
-  assert.equal(f.messages.at(-1).kind, "invalidate");
+  assert.equal(f.messages.at(-1).kind, "remove");
+  assert.deepEqual([...f.view.snapshots()], []);
 });
 
 test("unsupported market selection indexes are excluded and a catalog type change installs them", () => {
@@ -397,7 +402,7 @@ test("unsupported market selection indexes are excluded and a catalog type chang
   const store = new BetanoStore(8, {
     onSnapshot: (s) => view.install(s),
     onUpdate: (d) => view.update(store.getSnapshot(d.eventId), d),
-    onStale: (id) => view.remove(id),
+    onStale: (id) => view.invalidate(id),
     onRemove: (id) => view.remove(id),
   });
   store.add(base.event);
@@ -460,7 +465,7 @@ test("unsupported sports, ended matches and shutdown expose no usable football s
   feed.store.install(11, base);
   await feed.stop();
   assert.equal(feed.getFootballSnapshot(11), null);
-  assert.equal(changes.at(-1).kind, "invalidate");
+  assert.equal(changes.at(-1).kind, "remove");
 });
 
 test("the Betradar match ID is kept only when it is a positive safe integer", () => {

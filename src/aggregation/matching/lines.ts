@@ -3,6 +3,7 @@ import type {
   AggregationPair,
 } from "../model/matching.interfaces.js";
 import type { QuoteBook } from "../processing/quotes.js";
+import type { AggregationUnlinkCause } from "../model/opportunity.interfaces.js";
 
 /**
  * @file Links equal canonical lines of confirmed pairs through the peer arrays of both quote books.
@@ -10,7 +11,7 @@ import type { QuoteBook } from "../processing/quotes.js";
 
 export interface LineLinkerHandlers {
   onLinked(superbetLine: number): void;
-  onUnlinked(superbetLine: number): void;
+  onUnlinked(superbetLine: number, cause: AggregationUnlinkCause): void;
 }
 
 export class LineLinker {
@@ -35,12 +36,12 @@ export class LineLinker {
     }
   }
 
-  unlink(pair: AggregationPair): void {
+  unlink(pair: AggregationPair, cause: AggregationUnlinkCause = { kind: "pair-lost" }): void {
     for (const line of pair.links) {
       const peer = this.superbet.peer[line]!;
       this.superbet.peer[line] = -1;
       if (peer >= 0) this.betano.peer[peer] = -1;
-      this.handlers.onUnlinked(line);
+      this.handlers.onUnlinked(line, cause);
     }
     pair.links.clear();
   }
@@ -66,7 +67,7 @@ export class LineLinker {
     this.superbet.peer[superbetLine] = -1;
     this.betano.peer[betanoLine] = -1;
     event.pair?.links.delete(superbetLine);
-    this.handlers.onUnlinked(superbetLine);
+    this.handlers.onUnlinked(superbetLine, { kind: "line-withdrawn", provider: event.provider });
   }
 
   private connect(

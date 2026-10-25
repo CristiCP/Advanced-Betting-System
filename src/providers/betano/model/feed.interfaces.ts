@@ -1,4 +1,8 @@
 import type { BetanoOptions } from "./config.interfaces.js";
+import type {
+  BetanoTennisChange,
+  BetanoTennisSnapshot,
+} from "./tennis-projection.interfaces.js";
 import type { SignalRSession } from "../protocol/signalr.js";
 import type {
   BetanoFootballChange,
@@ -36,6 +40,8 @@ export interface BetanoFeedHandlers {
   onUpdate(diff: BetanoDiff): void;
   onFootballSnapshot?(snapshot: BetanoFootballSnapshot): void;
   onFootballUpdate?(change: BetanoFootballChange): void;
+  onTennisSnapshot?(snapshot: BetanoTennisSnapshot): void;
+  onTennisUpdate?(change: BetanoTennisChange): void;
   onRemove(eventId: number): void;
   onStatus(status: BetanoStatus): void;
   onError(error: string, eventId?: number): void;
@@ -44,6 +50,8 @@ export interface BetanoFeedHandlers {
 export interface BetanoSocketState {
   id: string;
   events: Set<number>;
+  // Events whose selected audience version was confirmed on this connection attempt.
+  confirmedEvents: Set<number>;
   generation: number;
   attempt: number;
   session: SignalRSession | null;
@@ -56,4 +64,6 @@ export interface BetanoFeedConfiguration {
   publishUpdates: boolean;
   publishFootballSnapshots: boolean;
   publishFootballUpdates: boolean;
+  publishTennisSnapshots: boolean;
+  publishTennisUpdates: boolean;
 }

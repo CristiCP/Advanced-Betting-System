@@ -4,10 +4,11 @@ import test from "node:test";
 import { MessageChannel } from "node:worker_threads";
 import { FootballAggregationAdapter } from "../dist/aggregation/adapter/football.js";
 import { AggregationOutbox } from "../dist/aggregation/adapter/outbox.js";
+import { aggregationConfig } from "../dist/aggregation/config.js";
 import { fullStateBytes, lineKey, liveFlags } from "../dist/aggregation/protocol/wire.js";
 import { betanoFootballCodec } from "../dist/providers/betano/processing/aggregation.js";
 import { superbetFootballCodec } from "../dist/providers/superbet/processing/aggregation.js";
-import { decode } from "./helpers/aggregation.mjs";
+import { decode, tick, until } from "./helpers/aggregation.mjs";
 
 const running = liveFlags.live | liveFlags.score | liveFlags.clock | liveFlags.running;
 
@@ -80,7 +81,7 @@ const betanoRedCard = (extra = {}) => ({
   ...extra,
 });
 
-async function connect(codec, snapshots, enabledConditions = ["D", "T"]) {
+async function connect(codec, snapshots, enabledConditions = aggregationConfig.enabledConditions) {
   const { port1: aggregator, port2 } = new MessageChannel();
   let adapter;
   const outbox = new AggregationOutbox(port2, codec.provider, {
@@ -260,9 +261,85 @@ test("updates, removals, identity changes, and invalidation reach the outbox in 
   });
   assert.equal((await next())[0][2].betradarId, 556);
   adapter.update({ kind: "invalidate", eventId: 11, upserts: [], removed: [] });
+  const stale = await next();
+  assert.deepEqual(stale.map(([name]) => name), ["live"]);
+  assert.ok(stale[0][2] & liveFlags.stale);
+  assert.equal(adapter.getStats().events, 1);
+  adapter.update({ kind: "remove", eventId: 11, upserts: [], removed: [] });
   assert.deepEqual(
     (await next()).map(([name]) => name),
     ["line-release", "event-release"],
   );
   assert.equal(adapter.getStats().events, 0);
+});
+
+test("replacement baselines preserve canonical handles even when vendor line IDs change", async (t) => {
+  const { aggregator, adapter, outbox, next } = await connect(superbetFootballCodec, [
+    { event: superbetEvent(), lines: [superbetLine(200734, 2.5, "old")] },
+  ]);
+  t.after(() => aggregator.close());
+  await next();
+  await until(() => !outbox.getStats().inFlight);
+  const batches = outbox.getStats().batches;
+  // Identical canonical prices with a new vendor UUID require no wire operations.
+  adapter.install({ event: superbetEvent(), lines: [superbetLine(200734, 2.5, "new")] });
+  await tick(10);
+  assert.equal(outbox.getStats().batches, batches);
+  adapter.install({
+    event: superbetEvent(),
+    lines: [superbetLine(200734, 2.5, "newer", {}, [1.8, 2.2])],
+  });
+  assert.deepEqual(await next(), [["value", 0, 2.2, 1.8, 3]]);
+  // A delta using the new vendor key still owns the original canonical handle.
+  adapter.update({ kind: "update", eventId: 11, upserts: [], removed: ["200734:2:newer"] });
+  assert.deepEqual(await next(), [["line-release", 0]]);
+});
+
+test("recovery replaces missing lines while keeping surviving handles and excludes ambiguous baselines", async (t) => {
+  const { aggregator, adapter, next } = await connect(superbetFootballCodec, [
+    { event: superbetEvent(), lines: [superbetLine(200734, 2.5, "old"), superbetLine(200734, 3.5, "gone")] },
+  ]);
+  t.after(() => aggregator.close());
+  await next();
+  adapter.update({ kind: "invalidate", eventId: 11, upserts: [], removed: [] });
+  assert.deepEqual(await next(), [["live", 0, running | liveFlags.stale, 1, 0, 2_880]]);
+  adapter.install({ event: superbetEvent(), lines: [superbetLine(200734, 2.5, "new")] });
+  assert.deepEqual(await next(), [["line-release", 1], ["live", 0, running, 1, 0, 2_880]]);
+  adapter.install({
+    event: superbetEvent(),
+    lines: [superbetLine(200734, 2.5, "first"), superbetLine(200734, 2.5, "second")],
+  });
+  assert.deepEqual(await next(), [["line-release", 0]]);
+  assert.equal(adapter.getStats().events, 1);
+  assert.equal(adapter.getStats().lines, 0);
+});
+
+test("a retained stale projection replays its identity with blocked availability after attach", async (t) => {
+  const { aggregator, next } = await connect(superbetFootballCodec, [
+    { synchronized: false, event: superbetEvent(), lines: [superbetLine(200734, 2.5, "retained")] },
+  ]);
+  t.after(() => aggregator.close());
+  const calls = await next();
+  assert.equal(calls.find(([name]) => name === "identity")[2].eventId, 11);
+  assert.ok(calls.find(([name]) => name === "live")[2] & liveFlags.stale);
+});
+
+test("a recovery buffered behind an ACK preserves handles and orders fresh values before availability", async (t) => {
+  const { aggregator, adapter, outbox, next } = await connect(superbetFootballCodec, [
+    { event: superbetEvent(), lines: [superbetLine(200734, 2.5, "old")] },
+  ]);
+  t.after(() => aggregator.close());
+  const [first] = await once(aggregator, "message", { signal: AbortSignal.timeout(2_000) });
+  // Hold the first batch, so the entire outage/recovery must wait behind its ACK.
+  adapter.update({ kind: "invalidate", eventId: 11, upserts: [], removed: [] });
+  adapter.install({ event: superbetEvent(), lines: [superbetLine(200734, 2.5, "new", {}, [1.8, 2.3])] });
+  await tick(10);
+  assert.equal(outbox.getStats().batches, 1);
+  assert.equal(outbox.getStats().inFlight, true);
+  aggregator.postMessage({ type: "ack", generation: 1, sequence: first.sequence, buffer: first.buffer }, [first.buffer]);
+  assert.deepEqual(await next(), [
+    ["live", 0, running | liveFlags.stale, 1, 0, 2_880],
+    ["value", 0, 2.3, 1.8, 3],
+    ["live", 0, running, 1, 0, 2_880],
+  ]);
 });

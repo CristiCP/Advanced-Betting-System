@@ -10,7 +10,7 @@ export interface AggregationOptions extends AggregationOutboxOptions {
   scoreSettleMs: number;
   scoreMismatchMs: number;
   maxLagMs: number;
-  // Margins are integer basis points: 50 = 0.5%.
+  // Integer basis points: 50 = 0.5%; negative thresholds are allowed for diagnostics.
   minMarginBps: number;
   suspiciousMarginBps: number;
   reportStepBps: number;

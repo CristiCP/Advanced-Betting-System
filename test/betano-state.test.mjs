@@ -136,3 +136,23 @@ test("ended events are removed before they can publish more prices", () => {
   assert.equal(store.getSnapshot(11), null);
   assert.deepEqual(removed, [11]);
 });
+
+test("reconnection resumes unchanged or contiguous state only after a fresh version confirmation", () => {
+  const { store, published } = setup();
+  store.install(11, snapshot(10));
+  store.invalidate(11, "disconnected");
+  assert.equal(store.getSnapshot(11), null);
+  assert.equal(store.confirmVersion(11, 10), true);
+  assert.equal(store.getSnapshot(11).version, 10);
+  assert.equal(published.length, 2);
+  store.invalidate(11, "disconnected");
+  store.receive(diff(11, 100, { selectionChanges: { 100: [{ id: 200, price: 3 }] } }));
+  assert.equal(store.confirmVersion(11, 11), true);
+  assert.equal(store.getSnapshot(11).selections[200].price, 3);
+  store.invalidate(11, "disconnected");
+  store.receive(diff(13, 100, { selectionChanges: { 100: [{ id: 200, price: 4 }] } }));
+  assert.equal(store.confirmVersion(11, 13), false);
+  assert.equal(store.getSnapshot(11), null);
+  assert.equal(store.confirmVersion(11, 11), false); // An older confirmation cannot hide the gap.
+  assert.equal(store.getSnapshot(11), null);
+});

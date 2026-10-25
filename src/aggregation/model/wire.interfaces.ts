@@ -1,4 +1,5 @@
 import type { AggregationMappingCondition } from "./mapping.interfaces.js";
+import type { AggregationTennisContext } from "./tennis.interfaces.js";
 
 export type AggregationProvider = "superbet" | "betano";
 
@@ -25,6 +26,8 @@ export interface AggregationEventIdentity {
 }
 
 export interface AggregationEventLive {
+  // Independent of market suspension; false blocks all comparisons for this event.
+  synchronized?: boolean;
   live: boolean;
   suspended: boolean;
   // Null scores and clock mean the provider did not publish a valid value.
@@ -32,6 +35,7 @@ export interface AggregationEventLive {
   awayScore: number | null;
   clockSeconds: number | null;
   clockRunning: boolean;
+  tennis?: AggregationTennisContext;
 }
 
 export interface AggregationBatchHeader {
@@ -55,6 +59,7 @@ export interface AggregationBatchSink {
     clockSeconds: number,
   ): void;
   eventRelease(event: number): void;
+  eventTennis?(event: number, context: AggregationTennisContext): void;
   lineDefine(line: number, event: number, key: number): void;
   lineRelease(line: number): void;
   value(line: number, priceA: number, priceB: number, flags: number): void;

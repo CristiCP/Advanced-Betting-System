@@ -1,12 +1,12 @@
 # Betano fotbal — catalog și model filtrat
 
-[Ansamblu](../README.md) · [Providers](PROVIDERS.md) · [Contract Betano](contracts/BETANO.md) · [Corespondențe Superbet–Betano](FOOTBALL-MARKET-MAPPING.md)
+[Ansamblu](../../../README.md) · [Providers](../../architecture/PROVIDERS.md) · [Contract Betano](CONTRACT.md) · [Corespondențe Superbet–Betano](../../mapping/FOOTBALL.md)
 
 ## 1. Scop și locul în arhitectură
 
-[Catalogul fix](../src/providers/betano/football-markets.config.ts) conține **94 de definiții** verificate în oferta publică de fotbal. Păstrăm numai Peste/Sub, handicap cu două rezultate și Da/Nu, fără jucători, combinații de condiții diferite, handicap european, par/impar sau piețe cu o singură variantă.
+[Catalogul fix](../../../src/providers/betano/football-markets.config.ts) conține **94 de definiții** verificate în oferta publică de fotbal. Păstrăm numai Peste/Sub, handicap cu două rezultate și Da/Nu, fără jucători, combinații de condiții diferite, handicap european, par/impar sau piețe cu o singură variantă.
 
-Filtrarea rulează în **processing workerul Betano existent**, după verificarea versiunilor. Nu adaugă threaduri sau requesturi. Store-ul brut rămâne complet: avem nevoie de el pentru patch-uri, referințe și recuperarea sincronizării.
+Filtrarea rulează în **processing workerul Betano existent**, după verificarea versiunilor. Nu adaugă threaduri sau requesturi. Store-ul brut păstrează audiența eveniment + piețe pentru patch-uri, referințe și recuperarea sincronizării; cronologia incidentelor este exclusă din abonament.
 
 ```mermaid
 flowchart TB
@@ -29,7 +29,7 @@ flowchart TB
     class C output
 ```
 
-Providerul activ urmărește în continuare **numai live**, pentru fotbal, baschet și tenis. Proiecția filtrată privește doar fotbalul. [Adaptorul prematch](../src/providers/betano/processing/football-prematch.ts) poate interpreta separat un eveniment public deja extras; nu pornește discovery sau actualizări prematch.
+Providerul activ urmărește în continuare **numai live**, pentru fotbal, baschet și tenis. Proiecția descrisă aici privește fotbalul; [tenisul are un model separat](TENNIS.md), în același processing worker. [Adaptorul prematch](../../../src/providers/betano/processing/football-prematch.ts) poate interpreta separat un eveniment public deja extras; nu pornește discovery sau actualizări prematch.
 
 ## 2. Identitatea unei piețe și selecția explicită
 
@@ -69,11 +69,11 @@ Prețurile finite mai mari decât 1 sunt păstrate, restul devin `null`. Suspend
 
 ## 4. Modelul de ieșire și actualizările
 
-[Interfețele proiecției](../src/providers/betano/model/football-projection.interfaces.ts) descriu complet modelul.
+[Interfețele proiecției](../../../src/providers/betano/model/football-projection.interfaces.ts) descriu complet modelul.
 
 | Nivel     | Date păstrate                                                                                                         |
 | --------- | --------------------------------------------------------------------------------------------------------------------- |
-| Snapshot  | `provider`, contextul evenimentului, `sourceVersion`, `projectedAt`, `lines`.                                         |
+| Snapshot  | `provider`, contextul evenimentului, `sourceVersion`, `projectedAt`, `synchronized`, `lines`.                         |
 | Eveniment | ID, ID Betradar, echipe și ID-uri, competiție/zonă, ora de început, fază, suspendare, scor și ceasul primit.          |
 | Linie     | Cheie, ID de instanță și tip, total/handicap, interval, scorul din numele pieței, suspendare și perechea de selecții. |
 | Selecție  | ID de instanță, ID de rezultat disponibil, rol, preț, suspendare și handicap semnat.                                  |
@@ -81,7 +81,7 @@ Prețurile finite mai mari decât 1 sunt păstrate, restul devin `null`. Suspend
 
 Cheia liniei este `marketId:prag`, respectiv `marketId:binary`. Pentru handicap, pragul cheii este cel orientat spre gazde. Acestea sunt chei locale Betano, nu chei comune celor două siteuri.
 
-`sourceVersion` este versiunea Betano acceptată de store; `projectedAt` este momentul local al procesării, nu ora publicării cotei la sursă. HTML-ul prematch nu furnizează o versiune și adaptorul întoarce `null`.
+`sourceVersion` în feed-ul live este versiunea split Betano pentru eveniment + piețe, acceptată de store; nu se compară direct cu versiunea completă a răspunsului REST. `projectedAt` este momentul local al procesării, nu ora publicării cotei la sursă. HTML-ul prematch nu furnizează o versiune și adaptorul întoarce `null`.
 
 ```mermaid
 sequenceDiagram
@@ -96,14 +96,17 @@ sequenceDiagram
     opt Schimbare relevantă
         P-->>C: onFootballUpdate: perechi complete / chei eliminate
     end
-    S->>P: gap, reset, deconectare sau eliminare
+    S->>P: gap, reset sau deconectare
     P-->>C: kind: invalidate
-    Note over C: Șterge întregul meci din copia filtrată
+    Note over C: Păstrează identitatea; cotele sunt blocate
     S->>P: snapshot nou + replay continuu acceptat
     P-->>C: bază completă nouă
+    S->>P: eliminare definitivă sau metadate invalide
+    P-->>C: kind: remove
+    Note over C: Șterge proiecția
 ```
 
-[Proiecția](../src/providers/betano/processing/football-projection.ts) primește starea **după** patch-ul store-ului. Păstrează copii mici ale liniilor și un index selecție → piață, deoarece datele brute sunt modificate în loc.
+[Proiecția](../../../src/providers/betano/processing/football-projection.ts) primește starea **după** patch-ul store-ului. Păstrează copii mici ale liniilor și un index selecție → piață, deoarece datele brute sunt modificate în loc.
 
 - `100`, `105` și `150`: recalculează piețele afectate de prețuri sau setări.
 - `101`, `102`, `106`: refac membershipul pentru adăugări, eliminări și înlocuirea referințelor.
@@ -115,7 +118,9 @@ Defaulturile Betano se aplică întâi în store: de exemplu `100` poate pune `p
 
 Controllerul expune `getFootballSnapshot(id)`, `onFootballSnapshot` și `onFootballUpdate`, în același stil ca Superbet. Query-ul întoarce `null` când meciul lipsește, nu este fotbal, este stale sau providerul se oprește; un meci valid fără linii eligibile are `lines: []`.
 
-Notificările filtrate sunt trimise către main numai dacă handlerii respectivi sunt înregistrați. Cu un port de agregare, aceleași notificări alimentează și [adaptorul de agregare](AGGREGATOR.md), pe un canal direct cu ACK și coalescență, independent de handlerii aplicației.
+`invalidate` păstrează intern identitatea și liniile cu `synchronized: false`, fără a permite compararea cotelor. `remove` retrage efectiv proiecția la eliminare, metadate neproiectabile sau oprire. Replay-ul intern către agregator include identitățile stale cu marcajul lor; baza sincronizată nouă este reconciliată prin cheia canonică, fără ștergerea liniilor supraviețuitoare. Câmpul opțional `synchronized` lipsește din unele rezultate prematch construite separat; numai valoarea explicită `false` marchează datele reținute ca indisponibile.
+
+Notificările filtrate sunt trimise către main numai dacă handlerii respectivi sunt înregistrați. Cu un port de agregare, aceleași notificări alimentează și [adaptorul de agregare](../../architecture/AGGREGATOR.md), pe un canal direct cu ACK și coalescență, independent de handlerii aplicației.
 
 ## 5. Catalog verificat
 
@@ -237,4 +242,4 @@ Live: endpointul `/danae-webapi/api/live/events/<id>/latest`. Prematch: paginile
 
 Cele șase răspunsuri acoperă toate cele **94 de definiții** și produc **1.118 linii cu exact două selecții**. Sunt observații asupra acelor răspunsuri, nu o promisiune despre oferta curentă.
 
-[Testele locale](../test/betano-football.test.mjs) verifică perechile, ID-urile, numele, semnele, zero, intervalele, gruparea prematch, copiile HTML, patch-urile, versiunile, invalidarea și shutdownul. O verificare live separată a exercitat query-ul filtrat și reconectarea cu workerii reali, fără erori de snapshot sau de provider. Workerii și datele temporare de cercetare au fost închise/șterse după verificare.
+[Testele locale](../../../test/betano-football.test.mjs) verifică perechile, ID-urile, numele, semnele, zero, intervalele, gruparea prematch, copiile HTML, patch-urile, versiunile, invalidarea și shutdownul. O verificare live separată a exercitat query-ul filtrat și reconectarea cu workerii reali, fără erori de snapshot sau de provider. Workerii și datele temporare de cercetare au fost închise/șterse după verificare.

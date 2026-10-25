@@ -3,20 +3,25 @@ import type {
   AggregationPairReport,
 } from "./matching.interfaces.js";
 import type { AggregationProvider } from "./wire.interfaces.js";
+import type { AggregationSport } from "./tennis.interfaces.js";
 
 export type AggregationGate =
   | "pair"
+  | "stale"
   | "not-live"
   | "suspended"
   | "score"
+  | "tennis-context"
   | "settling"
   | "lag";
 
 export type AggregationCloseReason =
-  | AggregationGate
-  | "margin"
-  | "unlinked"
-  | "stopped";
+  AggregationGate | "margin" | "unlinked" | "stopped";
+
+export interface AggregationUnlinkCause {
+  kind: "line-withdrawn" | "event-withdrawn" | "provider-cleared" | "pair-lost";
+  provider?: AggregationProvider;
+}
 
 export interface AggregationOpportunityLeg {
   provider: AggregationProvider;
@@ -31,7 +36,8 @@ export interface AggregationOpportunityLeg {
 }
 
 export interface AggregationOpportunityReport {
-  kind: "open" | "update" | "close";
+  sport?: AggregationSport;
+  kind: "open" | "update" | "pause" | "resume" | "close";
   id: number;
   at: number;
   betradarId: number;
@@ -48,7 +54,10 @@ export interface AggregationOpportunityReport {
   suspicious: boolean;
   openedAt: number;
   durationMs: number;
+  // Total time with unconfirmed source data; durationMs includes this gap.
+  unconfirmedMs: number;
   reason?: AggregationCloseReason;
+  reasonDetail?: string;
 }
 
 export interface AggregationOpportunityState {
@@ -56,6 +65,8 @@ export interface AggregationOpportunityState {
   superbetLine: number;
   betanoLine: number;
   openedAt: number;
+  pausedAt: number | null;
+  unconfirmedMs: number;
   // 0: Superbet A with Betano B; 1: Betano A with Superbet B.
   orientation: number;
   priceA: number;
@@ -68,6 +79,7 @@ export interface AggregationOpportunityState {
 
 export interface AggregationOpportunityStats {
   open: number;
+  paused: number;
   opened: number;
   closed: number;
   suspicious: number;

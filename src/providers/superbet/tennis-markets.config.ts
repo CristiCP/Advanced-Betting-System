@@ -1,0 +1,1018 @@
+import type { SuperbetTennisMarketDefinition } from "./model/tennis-markets.interfaces.js";
+
+/**
+ * @file Lists verified binary tennis markets with fixed IDs, templates, parameters, and outcome roles.
+ */
+
+// Verified on three prematch and four live snapshots; see docs/providers/superbet/TENNIS.md.
+export const superbetTennisMarkets: readonly SuperbetTennisMarketDefinition[] =
+  [
+    {
+      id: 518,
+      nameTemplate: "Minim 1 set <PLAYER_1>",
+      kind: "yes-no",
+      statistic: "sets",
+      period: "match",
+      subject: "player1",
+      parameters: [],
+      outcomes: [
+        {
+          id: 1323,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 1324,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 519,
+      nameTemplate: "Va fi un tiebreak?",
+      kind: "yes-no",
+      statistic: "tiebreaks",
+      period: "match",
+      subject: "total",
+      parameters: [],
+      outcomes: [
+        {
+          id: 1325,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 1326,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 520,
+      nameTemplate: "Handicap game-uri",
+      kind: "handicap",
+      statistic: "games",
+      period: "match",
+      subject: "total",
+      parameters: ["hcp"],
+      outcomes: [
+        {
+          id: 1327,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 1328,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 522,
+      nameTemplate: "Minim 1 set <PLAYER_2>",
+      kind: "yes-no",
+      statistic: "sets",
+      period: "match",
+      subject: "player2",
+      parameters: [],
+      outcomes: [
+        {
+          id: 1331,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 1332,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 524,
+      nameTemplate: "Setul <SET> - Total game-uri",
+      kind: "total",
+      statistic: "games",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 1335,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 1336,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 548,
+      nameTemplate: "Orice set la zero",
+      kind: "yes-no",
+      statistic: "bagel-sets",
+      period: "match",
+      subject: "total",
+      parameters: [],
+      outcomes: [
+        {
+          id: 1473,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 1474,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 602,
+      nameTemplate: "Setul X - Va fi tiebreak?",
+      kind: "yes-no",
+      statistic: "tiebreaks",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr"],
+      outcomes: [
+        {
+          id: 1653,
+          role: "yes",
+          nameTemplate: "Setul <SET> - Da",
+        },
+        {
+          id: 1654,
+          role: "no",
+          nameTemplate: "Setul <SET> - Nu",
+        },
+      ],
+    },
+    {
+      id: 996,
+      nameTemplate: "Total game-uri <PLAYER_2>",
+      kind: "total",
+      statistic: "games",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4244,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4245,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 999,
+      nameTemplate: "Total game-uri <PLAYER_1>",
+      kind: "total",
+      statistic: "games",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4253,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4254,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 1000,
+      nameTemplate: "Setul <SET> - Game-ul X - Game la avantaj",
+      kind: "yes-no",
+      statistic: "deuce",
+      period: "game",
+      subject: "total",
+      parameters: ["gamenr", "setnr"],
+      outcomes: [
+        {
+          id: 4255,
+          role: "yes",
+          nameTemplate: "Game-ul <GAME> - Da",
+        },
+        {
+          id: 4256,
+          role: "no",
+          nameTemplate: "Game-ul <GAME> - Nu",
+        },
+      ],
+    },
+    {
+      id: 1002,
+      nameTemplate: "Total game-uri",
+      kind: "total",
+      statistic: "games",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4262,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4263,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 1003,
+      nameTemplate: "Setul <SET> - Handicap game-uri",
+      kind: "handicap",
+      statistic: "games",
+      period: "set",
+      subject: "total",
+      parameters: ["hcp", "setnr"],
+      outcomes: [
+        {
+          id: 4264,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 4265,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 2392,
+      nameTemplate: "Total seturi",
+      kind: "total",
+      statistic: "sets",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 6016,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 6017,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 200504,
+      nameTemplate: "Setul <SET> - Game-ul <GAME> - Total puncte",
+      kind: "total",
+      statistic: "points-played",
+      period: "game",
+      subject: "total",
+      parameters: ["gamenr", "setnr", "total"],
+      outcomes: [
+        {
+          id: 151110,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 151109,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 200776,
+      nameTemplate: "Handicap seturi",
+      kind: "handicap",
+      statistic: "sets",
+      period: "match",
+      subject: "total",
+      parameters: ["hcp"],
+      outcomes: [
+        {
+          id: 152184,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 152185,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 230641,
+      nameTemplate: "Total tiebreak-uri",
+      kind: "total",
+      statistic: "tiebreaks",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4203929,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4203930,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230648,
+      nameTemplate: "Total seturi câștigate la 0 (6-0)",
+      kind: "total",
+      statistic: "bagel-sets",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4203952,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4203953,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230649,
+      nameTemplate: "Va fi tiebreak sau super tiebreak în setul decisiv?",
+      kind: "yes-no",
+      statistic: "tiebreak-or-match-tiebreak",
+      period: "deciding-set",
+      subject: "total",
+      parameters: [],
+      outcomes: [
+        {
+          id: 4203954,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 4203955,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 230656,
+      nameTemplate: "Setul <SET> - Total game-uri <PLAYER_1>",
+      kind: "total",
+      statistic: "games",
+      period: "set",
+      subject: "player1",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4203979,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4203980,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230663,
+      nameTemplate: "Setul <SET> - Total game-uri <PLAYER_2>",
+      kind: "total",
+      statistic: "games",
+      period: "set",
+      subject: "player2",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204004,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204005,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230678,
+      nameTemplate: "Setul <SET> - Total ași",
+      kind: "total",
+      statistic: "aces",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204080,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204081,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230679,
+      nameTemplate: "Setul <SET> - Total ași <PLAYER_1>",
+      kind: "total",
+      statistic: "aces",
+      period: "set",
+      subject: "player1",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204082,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204083,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230680,
+      nameTemplate: "Setul <SET> - Total ași <PLAYER_2>",
+      kind: "total",
+      statistic: "aces",
+      period: "set",
+      subject: "player2",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204084,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204085,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230682,
+      nameTemplate: "Setul <SET> - Handicap ași",
+      kind: "handicap",
+      statistic: "aces",
+      period: "set",
+      subject: "total",
+      parameters: ["hcp", "setnr"],
+      outcomes: [
+        {
+          id: 4204089,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 4204090,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 230683,
+      nameTemplate: "Setul <SET> - Total duble greșeli",
+      kind: "total",
+      statistic: "double-faults",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204091,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204092,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230684,
+      nameTemplate: "Setul <SET> - Total duble greșeli <PLAYER_1>",
+      kind: "total",
+      statistic: "double-faults",
+      period: "set",
+      subject: "player1",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204093,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204094,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230685,
+      nameTemplate: "Setul <SET> - Total duble greșeli <PLAYER_2>",
+      kind: "total",
+      statistic: "double-faults",
+      period: "set",
+      subject: "player2",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4204095,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4204096,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 230687,
+      nameTemplate: "Setul <SET>  -  Handicap Duble greșeli",
+      kind: "handicap",
+      statistic: "double-faults",
+      period: "set",
+      subject: "total",
+      parameters: ["hcp", "setnr"],
+      outcomes: [
+        {
+          id: 4204100,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 4204101,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 231480,
+      nameTemplate: "Setul <SET> - Total puncte câștigate",
+      kind: "total",
+      statistic: "points-won",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4207004,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4207005,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 231481,
+      nameTemplate: "Setul <SET> - Total puncte <PLAYER_1>",
+      kind: "total",
+      statistic: "points-won",
+      period: "set",
+      subject: "player1",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4207006,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4207007,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 231482,
+      nameTemplate: "Setul <SET> - Total puncte <PLAYER_2>",
+      kind: "total",
+      statistic: "points-won",
+      period: "set",
+      subject: "player2",
+      parameters: ["setnr", "total"],
+      outcomes: [
+        {
+          id: 4207008,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4207009,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 231484,
+      nameTemplate: "Setul <SET> - Handicap puncte câștigate",
+      kind: "handicap",
+      statistic: "points-won",
+      period: "set",
+      subject: "total",
+      parameters: ["hcp", "setnr"],
+      outcomes: [
+        {
+          id: 4207013,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 4207014,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 232681,
+      nameTemplate: "Total ași <PLAYER_1>",
+      kind: "total",
+      statistic: "aces",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4209693,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4209694,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 232682,
+      nameTemplate: "Total ași <PLAYER_2>",
+      kind: "total",
+      statistic: "aces",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4209695,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4209696,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 232687,
+      nameTemplate: "Total seturi <PLAYER_1>",
+      kind: "total",
+      statistic: "sets",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4209708,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4209709,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 232688,
+      nameTemplate: "Total seturi <PLAYER_2>",
+      kind: "total",
+      statistic: "sets",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 4209710,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 4209711,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 232690,
+      nameTemplate: "Se va juca setul <SET>",
+      kind: "yes-no",
+      statistic: "sets",
+      period: "set",
+      subject: "total",
+      parameters: ["setnr"],
+      outcomes: [
+        {
+          id: 4209718,
+          role: "yes",
+          nameTemplate: "Da",
+        },
+        {
+          id: 4209719,
+          role: "no",
+          nameTemplate: "Nu",
+        },
+      ],
+    },
+    {
+      id: 233658,
+      nameTemplate: "Total duble greșeli <PLAYER_1>",
+      kind: "total",
+      statistic: "double-faults",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 7475,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 7476,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 233659,
+      nameTemplate: "Total duble greșeli <PLAYER_2>",
+      kind: "total",
+      statistic: "double-faults",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 7477,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 7478,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 235336,
+      nameTemplate: "Total ași",
+      kind: "total",
+      statistic: "aces",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 10998,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 10999,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 235337,
+      nameTemplate: "Handicap ași",
+      kind: "handicap",
+      statistic: "aces",
+      period: "match",
+      subject: "total",
+      parameters: ["hcp"],
+      outcomes: [
+        {
+          id: 11007,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 11008,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 235338,
+      nameTemplate: "Total duble greșeli",
+      kind: "total",
+      statistic: "double-faults",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 11020,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 11021,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 235344,
+      nameTemplate: "Handicap duble greșeli",
+      kind: "handicap",
+      statistic: "double-faults",
+      period: "match",
+      subject: "total",
+      parameters: ["hcp"],
+      outcomes: [
+        {
+          id: 11056,
+          role: "player1",
+          nameTemplate: "<PLAYER_1> (<HANDICAP>)",
+        },
+        {
+          id: 11057,
+          role: "player2",
+          nameTemplate: "<PLAYER_2> (<HANDICAP>)",
+        },
+      ],
+    },
+    {
+      id: 240072,
+      nameTemplate: "Total puncte câștigate <PLAYER_1>",
+      kind: "total",
+      statistic: "points-won",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 9656,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 9657,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 240073,
+      nameTemplate: "Total puncte câștigate <PLAYER_2>",
+      kind: "total",
+      statistic: "points-won",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 9658,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 9659,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 240761,
+      nameTemplate: "Total puncte servite",
+      kind: "total",
+      statistic: "points-served",
+      period: "match",
+      subject: "total",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 19062,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 19063,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 240762,
+      nameTemplate: "Total puncte servite <PLAYER_1>",
+      kind: "total",
+      statistic: "points-served",
+      period: "match",
+      subject: "player1",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 19064,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 19065,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+    {
+      id: 240763,
+      nameTemplate: "Total puncte servite <PLAYER_2>",
+      kind: "total",
+      statistic: "points-served",
+      period: "match",
+      subject: "player2",
+      parameters: ["total"],
+      outcomes: [
+        {
+          id: 19066,
+          role: "under",
+          nameTemplate: "Sub <TOTAL>",
+        },
+        {
+          id: 19067,
+          role: "over",
+          nameTemplate: "Peste <TOTAL>",
+        },
+      ],
+    },
+  ];

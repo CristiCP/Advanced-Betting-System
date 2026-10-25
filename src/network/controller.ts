@@ -85,7 +85,6 @@ export class NetworkWorkerController implements NetworkStreamingController {
           if (!startupConfirmed && !this.stopRequested) {
             startupConfirmed = true;
             this.ready = true;
-            console.log(`Network worker ready. Thread ID: ${message.threadId}`);
             resolve();
           }
 
@@ -116,6 +115,8 @@ export class NetworkWorkerController implements NetworkStreamingController {
         }
       });
     });
+
+    this.handlers?.onReady?.(worker.threadId);
   }
 
   // Resolve only after the worker accepts the new loop.

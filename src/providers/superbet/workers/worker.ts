@@ -1,6 +1,13 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
 import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
+import { ProjectionAggregationAdapter } from "../../../aggregation/adapter/projection.js";
+import { tennisMarketMapping } from "../../../aggregation/tennis-mapping.config.js";
+import { superbetTennisCodec } from "../processing/tennis-aggregation.js";
+import type {
+  SuperbetTennisEvent,
+  SuperbetTennisLine,
+} from "../model/tennis-projection.interfaces.js";
 import { FootballAggregationAdapter } from "../../../aggregation/adapter/football.js";
 import { superbetFootballCodec } from "../processing/aggregation.js";
 import type {
@@ -37,10 +44,46 @@ const aggregation = data.aggregationPort
     })
   : null;
 
+let tennisAdapter: ProjectionAggregationAdapter<
+  SuperbetTennisEvent,
+  SuperbetTennisLine
+> | null = null;
+const tennisAggregation = data.tennisAggregationPort
+  ? new AggregationOutbox(data.tennisAggregationPort, "superbet", {
+      onResync: () => aggregateTennis((target) => target.resync()),
+      onError: (error) =>
+        post({ type: "error", error: `Tennis aggregation: ${error}` }),
+    })
+  : null;
+
+function aggregateTennis(
+  action: (
+    target: ProjectionAggregationAdapter<
+      SuperbetTennisEvent,
+      SuperbetTennisLine
+    >,
+  ) => void,
+): void {
+  if (tennisAdapter === null) return;
+  try {
+    action(tennisAdapter);
+  } catch (error) {
+    post({
+      type: "error",
+      error: `Tennis aggregation adapter failed: ${String(error)}`,
+    });
+    tennisAdapter = null;
+    tennisAggregation?.close();
+  }
+}
+
 // An adapter failure must never break odds processing: report it and drop only the aggregation link.
 function aggregate(
   action: (
-    target: FootballAggregationAdapter<SuperbetFootballEvent, SuperbetFootballLine>,
+    target: FootballAggregationAdapter<
+      SuperbetFootballEvent,
+      SuperbetFootballLine
+    >,
   ) => void,
 ): void {
   if (adapter === null) return;
@@ -85,6 +128,24 @@ const feed = new SuperbetFeed(client, data.options, {
       }
     : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
+  ...(data.publishTennisSnapshots || tennisAggregation
+    ? {
+        onTennisSnapshot: (snapshot) => {
+          aggregateTennis((target) => target.install(snapshot));
+          if (data.publishTennisSnapshots)
+            post({ type: "tennis-snapshot", snapshot });
+        },
+      }
+    : {}),
+  ...(data.publishTennisUpdates || tennisAggregation
+    ? {
+        onTennisUpdate: (change) => {
+          aggregateTennis((target) => target.update(change));
+          if (data.publishTennisUpdates)
+            post({ type: "tennis-update", change });
+        },
+      }
+    : {}),
   onStatus: (status) => post({ type: "status", status }),
   onError: (error, eventId) =>
     post({
@@ -97,11 +158,14 @@ if (aggregation !== null)
   adapter = new FootballAggregationAdapter(
     aggregation,
     superbetFootballCodec,
-    () =>
-      feed.getEvents().flatMap((event) => {
-        const snapshot = feed.getFootballSnapshot(event.id);
-        return snapshot ? [snapshot] : [];
-      }),
+    () => feed.getFootballSnapshots(),
+  );
+if (tennisAggregation !== null)
+  tennisAdapter = new ProjectionAggregationAdapter(
+    tennisAggregation,
+    superbetTennisCodec,
+    () => feed.getTennisSnapshots(),
+    tennisMarketMapping,
   );
 let started = false;
 let stopping = false;
@@ -115,6 +179,7 @@ async function handle(command: SuperbetWorkerCommand): Promise<void> {
       await feed.stop();
     } finally {
       aggregation?.close();
+      tennisAggregation?.close();
       client.close();
       port.close();
     }
@@ -141,6 +206,9 @@ async function handle(command: SuperbetWorkerCommand): Promise<void> {
       case "football-snapshot":
         value = feed.getFootballSnapshot(command.eventId!);
         break;
+      case "tennis-snapshot":
+        value = feed.getTennisSnapshot(command.eventId!);
+        break;
       case "stats":
         value = feed.getStats();
         break;
@@ -166,6 +234,7 @@ port.on("message", (command: SuperbetWorkerCommand) => {
       await feed.stop();
     } finally {
       aggregation?.close();
+      tennisAggregation?.close();
       client.close();
       port.close();
     }

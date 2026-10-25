@@ -1,8 +1,8 @@
 # Contract Betano — snapshoturi, SignalR și diff-uri
 
-[Ansamblu](../../README.md) · [Arhitectura providerilor](../PROVIDERS.md) · [Contract Superbet](SUPERBET.md)
+[Ansamblu](../../../README.md) · [Arhitectura providerilor](../../architecture/PROVIDERS.md) · [Contract Superbet](../superbet/CONTRACT.md)
 
-[Betano fotbal](../BETANO-FOOTBALL.md) descrie filtrarea ulterioară a piețelor; [corespondențele cu Superbet](../FOOTBALL-MARKET-MAPPING.md) sunt documentate separat.
+[Betano fotbal](FOOTBALL.md) descrie filtrarea ulterioară a piețelor; [corespondențele cu Superbet](../../mapping/FOOTBALL.md) sunt documentate separat.
 
 Acest document descrie contractul tehnic folosit de implementarea noastră: ce trimitem către Betano, ce primim și cum transformăm mesajele în stare locală. API-ul este nedocumentat public; regulile de mai jos descriu comportamentul implementat, fără a reprezenta o specificație oficială Betano.
 
@@ -13,7 +13,7 @@ Exemplele JSON sunt minime, cu ID-uri și valori fictive. Numele câmpurilor și
 | Nivel         | Ce reprezintă                                   | Exemplu                                         |
 | ------------- | ----------------------------------------------- | ----------------------------------------------- |
 | Snapshot REST | Baza completă a unui meci la o versiune.        | Eveniment, piețe și selecții la versiunea `40`. |
-| Mesaj SignalR | Învelișul de comunicare peste WebSocket.        | Invocă targetul `NewLiveEventDiff`.             |
+| Mesaj SignalR | Învelișul de comunicare peste WebSocket.        | Invocă targetul `NewLiveEventSplitDiff`.             |
 | Diff de meci  | Schimbarea din interiorul notificării decodate. | La versiunea `41`, selecția `123` are alt preț. |
 
 **`type` din SignalR și `type` din diff sunt două coduri diferite.** De exemplu, SignalR `type: 3` confirmă un apel, iar diff `type: 3` modifică suspendarea meciului.
@@ -22,7 +22,7 @@ Exemplele JSON sunt minime, cu ID-uri și valori fictive. Numele câmpurilor și
 flowchart LR
     WS["WebSocket"]
     SR["SignalR JSON<br/>separator 0x1e"]
-    TARGET["NewLiveEventDiff<br/>arguments[0]"]
+    TARGET["NewLiveEventSplitDiff<br/>arguments[0]"]
     DECODE["Base64 + LZ4<br/>→ JSON"]
     DIFF["Diff-uri<br/>decodate"]
     STORE["Store<br/>receive → patch"]
@@ -57,6 +57,7 @@ Discovery citește `events` din răspuns și folosește și `zones` pentru exclu
 ```json
 {
   "version": 40,
+  "versionsPerAudience": { "1": 10, "2": 5, "4": 22, "7": 3, "8": 1 },
   "event": {
     "id": 11,
     "sportId": "FOOT",
@@ -72,6 +73,8 @@ Discovery citește `events` din răspuns și folosește și `zones` pentru exclu
   }
 }
 ```
+
+Exemplul de mai sus este răspunsul REST: feed-ul îi aliniază versiunea la audiența selectată înainte de instalare, conform secțiunii despre versiuni de mai jos.
 
 | Câmp                 | Contract relevant                                                             |
 | -------------------- | ----------------------------------------------------------------------------- |
@@ -117,7 +120,7 @@ Fiecare înregistrare SignalR se termină cu byte-ul **`0x1e`**. În exemple sep
       "platformType": 1,
       "includeEvent": true,
       "IncludeMarkets": true,
-      "IncludeIncidents": true,
+      "IncludeIncidents": false,
       "maxQueueSize": 30,
       "eventIds": [11, 12]
     }
@@ -125,7 +128,7 @@ Fiecare înregistrare SignalR se termină cu byte-ul **`0x1e`**. În exemple sep
 }
 ```
 
-Capitalizarea câmpurilor este intenționată. Providerul grupează implicit maximum 50 de meciuri pe socket; aceasta este alegerea noastră de configurare. Confirmarea join-ului permite cererea snapshoturilor REST și nu înseamnă că meciurile sunt deja sincronizate.
+Capitalizarea câmpurilor este intenționată. Providerul grupează implicit maximum 50 de meciuri pe socket; aceasta este alegerea noastră de configurare. Abonarea selectează datele evenimentului și piețele, fără cronologia incidentelor. Scorul, statisticile și cotele necesare proiecțiilor sunt incluse. Confirmarea join-ului nu certifică sincronizarea: fiecare meci așteaptă și `OnActiveLiveEventSplitVersion`, cu `includeEvent: true`, `includeMarkets: true`, `includeIncidents: false`, înainte de a putea cere sau reutiliza baza.
 
 Overview-ul are un socket separat și apelează `joinLiveOverviewGroupWithOptions` cu `{language: 4, platformType: 1, includeVirtuals: false}`. `leaveLiveEventGroup` primește `language`, `platformType` și `eventIds` pentru eliminarea membrilor.
 
@@ -133,11 +136,23 @@ Overview-ul are un socket separat și apelează `joinLiveOverviewGroupWithOption
 
 | Target                     | Conținut și utilizare                                                                                                                           |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NewLiveEventDiff`         | `arguments[0]` este un string base64 cu frame LZ4 și apoi o listă JSON de diff-uri. Se aplică meciurilor din acel grup.                         |
+| `NewLiveEventSplitDiff`         | `arguments[0]` este un string base64 cu frame LZ4 și apoi o listă JSON de diff-uri. Se aplică meciurilor din acel grup.                         |
 | `NewLiveOverviewDiffs`     | Același mecanism de decodare, dar feed-ul tratează apariții, eliminări și cereri de refresh, fără a aplica toate mesajele ca patch-uri de cote. |
-| `OnActiveLiveEventVersion` | `arguments[0]` conține `eventId` și `version`; indică versiunea de atins și poate declanșa repararea stării.                                    |
+| `OnActiveLiveEventSplitVersion` | `arguments[0]` conține `eventId` și `version`; indică versiunea de atins și poate declanșa repararea stării.                                    |
 
 Decoderul verifică frame-ul LZ4, limita de dimensiune și forma listei. Un `payload` nul este normalizat la `{}`. Metadatele globale din intervalul `200–299` și resetul `9999` pot primi intern `eventId: 0`, `version: 0` când aceste câmpuri lipsesc; aceasta nu le transformă în schimbări ale unui meci.
+
+### Versiunea REST și versiunea fluxului selectat
+
+`NewLiveEventDiff` / `OnActiveLiveEventVersion` aparțin variantei complete cu incidente și nu intră în store-ul abonamentului split. Nu se amestecă cele două secvențe.
+
+REST returnează `version` și `versionsPerAudience`. [protocol/audience.ts](../../../src/providers/betano/protocol/audience.ts) validează metadatele și calculează versiunea pentru masca `1 | 4 = 5`: eveniment și piețe. Se adună contoarele ale căror chei au intersecție de biți cu masca 5; contorul comun `7` intră o singură dată. Masca `2` reprezintă incidentele. Contorul `8` observat în răspunsuri este separat și nu se adună nici la versiunea completă `1 | 2 | 4`, nici la cea selectată.
+
+Exemplu verificat: `{1: 33, 2: 17, 4: 91, 7: 9, 8: 0}` înseamnă versiune REST `150`, dar versiune split `133`. Un update split `134` urmează baza `133`, nu baza `150`. Răspunsul este respins dacă metadatele lipsesc, sunt invalide sau suma audiențelor complete contrazice versiunea REST.
+
+Snapshotul publicat de feed are `version` în secvența split și `restVersion` pentru versiunea REST a ultimei baze. `versionsPerAudience` rămâne metadata ultimei baze, nu un contor întreținut la fiecare patch. Listele `event.incidents` și `event.incidentFilters` sunt eliminate din bază, deoarece acest abonament nu le actualizează. Celelalte câmpuri REST nu sunt rescrise ca să pară contoare split.
+
+Motivul schimbării și testele live sunt în [raportul de stabilitate Betano](../../reports/BETANO-STREAM-STABILITY-2026-10-25.md).
 
 ## 4. Diff-ul și ce înseamnă patch
 
@@ -240,22 +255,23 @@ flowchart TB
 
 La o bază locală `40`, un diff `41` acceptat avansează starea. Dacă vine `43` fără `42`, `getSnapshot()` devine `null`; un snapshot REST `42` permite replay pentru `43`. Un snapshot care încă nu acoperă versiunea țintă lasă starea stale.
 
-Join-ul se face înaintea cererii snapshotului: diff-urile sosite în timpul REST sunt păstrate și reaplicate în ordine. Bufferul are implicit 256 de versiuni per meci. Reconnectul reface SignalR și abonările, apoi bazele necesare. Erorile de încadrare/decompresie pot reporni socketul; un patch neacceptat declanșează repararea stării meciului.
+Join-ul și confirmarea audienței se fac înaintea cererii snapshotului: diff-urile sosite în timpul REST sunt păstrate și reaplicate în ordine. Bufferul are implicit 256 de versiuni per meci. Reconnectul reface SignalR și abonările, apoi verifică versiunile. Dacă baza păstrată și diff-urile continue acoperă versiunea confirmată, `confirmVersion` o poate reinstala fără REST; altfel cere o bază nouă. Datele rămân stale până la verificare. Revizia se schimbă și la pierderea conexiunii, iar o cerere din vechea revizie nu poate reactiva cotele. Erorile de încadrare/decompresie pot reporni socketul; un patch neacceptat declanșează repararea stării meciului.
 
 ## 7. Unde se verifică acest contract
 
-- [Modelul datelor](../../src/providers/betano/model/state.interfaces.ts): tipurile snapshotului și diff-ului.
-- [SignalR](../../src/providers/betano/protocol/signalr.ts) și [decodarea LZ4](../../src/providers/betano/protocol/compression.ts): încadrare și validare.
-- [Feed](../../src/providers/betano/processing/feed.ts): endpointuri, grupuri, notificări și reîncercări.
-- [Store](../../src/providers/betano/processing/state.ts): toate regulile `receive`, `install`, `patch`.
-- [Teste de stare](../../test/betano-state.test.mjs) și [de protocol](../../test/betano-protocol.test.mjs): exemple executabile ale regulilor implementate.
+- [Modelul datelor](../../../src/providers/betano/model/state.interfaces.ts): tipurile snapshotului și diff-ului.
+- [SignalR](../../../src/providers/betano/protocol/signalr.ts) și [decodarea LZ4](../../../src/providers/betano/protocol/compression.ts): încadrare și validare.
+- [Audiența](../../../src/providers/betano/protocol/audience.ts) și [testele ei](../../../test/betano-audience.test.mjs): conversia verificată a versiunii REST în secvența split.
+- [Feed](../../../src/providers/betano/processing/feed.ts): endpointuri, grupuri, notificări și reîncercări.
+- [Store](../../../src/providers/betano/processing/state.ts): toate regulile `receive`, `install`, `patch`.
+- [Teste de stare](../../../test/betano-state.test.mjs) și [de protocol](../../../test/betano-protocol.test.mjs): exemple executabile ale regulilor implementate.
 
-HTTP 429/503 aplică `Retry-After` pentru cererile REST ale providerului. Configurarea limitelor, threadurilor și controlului de bytes este explicată în [Providers](../PROVIDERS.md#configurări-care-contează) și [Network](../NETWORK.md).
+HTTP 429/503 aplică `Retry-After` pentru cererile REST ale providerului. Semnalele de discovery din timpul cooldownului sunt amânate fără cerere HTTP și fără repetarea artificială a erorii 429. O închidere de socket produce o singură notificare `disconnected`; eroarea include ID-ul socketului. Configurarea limitelor, threadurilor și controlului de bytes este explicată în [Providers](../../architecture/PROVIDERS.md#configurări-care-contează) și [Network](../../architecture/NETWORK.md).
 
 ## 8. Proiecția filtrată și diferența față de prematch
 
-După acceptarea snapshotului sau a unui diff continuu, feed-ul actualizează modelul filtrat de fotbal. Store-ul brut rămâne complet. `getFootballSnapshot`, `onFootballSnapshot` și `onFootballUpdate` expun numai catalogul fix și liniile cu exact două selecții; invalidarea brută șterge și proiecția.
+După acceptarea snapshotului sau a unui diff continuu, feed-ul actualizează modelele filtrate de fotbal și tenis în același processing worker. Store-ul păstrează datele brute pentru audiența eveniment + piețe, fără cronologia incidentelor. `getFootballSnapshot`, `onFootballSnapshot` și `onFootballUpdate`, respectiv `getTennisSnapshot`, `onTennisSnapshot` și `onTennisUpdate` expun cataloagele fixe și liniile cu exact două selecții. Invalidarea brută blochează proiecțiile (`invalidate`, identitate reținută); eliminarea efectivă le șterge (`remove`). Query-urile publice întorc `null` cât timp datele nu sunt sincronizate.
 
 Această ieșire nu schimbă regulile patch-urilor: defaulturile `100`, `105` sau `6` se aplică înaintea filtrării. Un preț brut `0` devine `null` în proiecție, iar suspendările se păstrează la toate cele trei niveluri.
 
-Oferta prematch cercetată se află în `initial_state.data.event` din pagina publică `/cote/<slug>/<id>/?bt=13`, fila Toate. Este o structură HTML/SSR diferită de REST-ul live: ID-uri string, selecții încorporate, mai multe praguri per piață, copii repetate între secțiuni și fără versiune live sau ID-uri de rezultat. Adaptorul pur pentru acest format nu pornește colectare prematch. Exemplele de cercetare și limitele validării sunt în [Betano fotbal](../BETANO-FOOTBALL.md).
+Oferta prematch cercetată se află în `initial_state.data.event` din pagina publică `/cote/<slug>/<id>/?bt=13`, fila Toate. Este o structură HTML/SSR diferită de REST-ul live: ID-uri string, selecții încorporate, mai multe praguri per piață, copii repetate între secțiuni și fără versiune live sau ID-uri de rezultat. Adaptoarele pure pentru acest format nu pornesc colectare prematch. Exemplele și limitele validării sunt în [Betano fotbal](FOOTBALL.md) și [Betano tenis](TENNIS.md). La tenis, `liveData.score` reprezintă punctele game-ului; seturile câștigate vin separat din `liveData.results.liveInfoHomeScore/liveInfoAwayScore`.

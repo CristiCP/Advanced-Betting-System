@@ -53,11 +53,13 @@ export interface SuperbetFootballSnapshot {
   event: SuperbetFootballEvent;
   sourceVersion: number;
   projectedAt: number;
+  // False retains identity internally while public snapshot queries return null.
+  synchronized?: boolean;
   lines: SuperbetFootballLine[];
 }
 
 export interface SuperbetFootballChange {
-  kind: "update" | "invalidate";
+  kind: "update" | "invalidate" | "remove";
   eventId: number;
   sourceVersion: number;
   projectedAt: number;
@@ -67,6 +69,7 @@ export interface SuperbetFootballChange {
 }
 
 export interface SuperbetFootballProjectionState {
+  synchronized: boolean;
   event: SuperbetFootballEvent;
   sourceVersion: number;
   projectedAt: number;

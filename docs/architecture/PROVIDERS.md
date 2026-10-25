@@ -1,10 +1,12 @@
 # Providers — de la mesaje la starea cotelor
 
-[Ansamblul proiectului](../README.md) · [Conexiuni și comunicare](NETWORK.md)
+[Ansamblul proiectului](../../README.md) · [Conexiuni și comunicare](NETWORK.md)
 
-Contracte detaliate cu siteurile: [Superbet](contracts/SUPERBET.md) · [Betano](contracts/BETANO.md). Acestea explică payloadurile, indicatorii și codurile de schimbări aplicate în store-uri.
+Contracte detaliate cu siteurile: [Superbet](../providers/superbet/CONTRACT.md) · [Betano](../providers/betano/CONTRACT.md). Acestea explică payloadurile, indicatorii și codurile de schimbări aplicate în store-uri.
 
-[Superbet fotbal](SUPERBET-FOOTBALL.md) și [Betano fotbal](BETANO-FOOTBALL.md) explică selecția explicită a piețelor, regula de exact două rezultate per linie și notificările filtrate. [Corespondențele dintre siteuri](FOOTBALL-MARKET-MAPPING.md) descriu tipurile comparabile și condițiile necesare.
+[Superbet fotbal](../providers/superbet/FOOTBALL.md) și [Betano fotbal](../providers/betano/FOOTBALL.md) explică selecția explicită a piețelor, regula de exact două rezultate per linie și notificările filtrate. [Corespondențele dintre siteuri](../mapping/FOOTBALL.md) descriu tipurile comparabile și condițiile necesare.
+
+[Superbet tenis](../providers/superbet/TENNIS.md) și [Betano tenis](../providers/betano/TENNIS.md) descriu separat cataloagele și proiecțiile acestui sport. [Matchingul de tenis](TENNIS.md) și [maparea](../mapping/TENNIS.md) sunt integrate până la oportunități, în motorul separat din aggregation worker.
 
 Un provider este integrarea completă a unui site: știe unde găsește meciurile, cum se abonează la ele, cum interpretează mesajele și când starea cotelor poate fi folosită. Superbet și Betano folosesc aceeași infrastructură de networking, dar protocoale și modele de date diferite.
 
@@ -19,11 +21,16 @@ Ambele foldere, `src/providers/superbet` și `src/providers/betano`, au aceeași
 | `processing/feed.ts`       | Processing worker         | Descoperă și filtrează meciurile, gestionează abonările și programează snapshoturile/reîncercările. |
 | `processing/state.ts`      | Processing worker         | Store-ul: starea fiecărui meci, aplicarea schimbărilor și verificarea versiunilor.                  |
 | `processing/football-*.ts` | Processing worker         | Validarea catalogului, modelul filtrat de fotbal și actualizarea perechilor complete.               |
+| `processing/tennis-*.ts`   | Processing worker         | Contextul de tenis, catalogul binar și actualizarea liniilor, separat de fotbal.                    |
 | `protocol/`                | Processing worker         | Decodarea specifică siteului: SSE/gzip sau SignalR/LZ4, plus erorile HTTP specifice.                |
 | `model/`                   | Contracte TypeScript      | Formele opțiunilor, datelor, mesajelor și handlerilor.                                              |
-| `config.ts`, `logging.ts`  | Configurare / main thread | Valorile implicite și raportarea concisă în consolă.                                                |
+| `config.ts`, `logging.ts`  | Configurare / main thread | Valorile implicite și raportarea erorilor în consolă.                                               |
 
 Feed-ul decide **când cere date**, protocolul decide **cum le citește**, iar store-ul decide **cum schimbă starea**. Sunt obiecte în același processing worker; fiecare fișier nu creează un thread separat.
+
+La confirmarea inițializării, controllerul afișează câte o linie cu providerul, rolul (`network` sau `processing`) și ID-ul threadului. Aceste mesaje apar o singură dată la pornire și nu indică sincronizarea tuturor meciurilor.
+
+După pornire, handlerii impliciți afișează numai erorile. Listele, eliminările și statisticile continuă să fie transmise către handlerii aplicației, fără tabele automate. [Testul de latență](../reports/LATENCY-TEST-2026-10-25.md) descrie separat măsurarea temporară a requesturilor și procesării.
 
 ```mermaid
 flowchart TB
@@ -35,12 +42,15 @@ flowchart TB
         PROTOCOL["Protocol<br/>decodează mesajele"]
         STORE["Store<br/>versiuni și stare"]
         FILTER["FootballProjection<br/>catalog + perechi complete"]
+        TENNIS["TennisProjection<br/>catalog și context tenis"]
         BRIDGE["worker.ts<br/>query-uri și notificări"]
         PORT <-->|"comenzi / payloaduri"| FEED
         FEED <-->|"decodează / rezultat"| PROTOCOL
         FEED <-->|"aplică / stare"| STORE
         STORE -->|"stare acceptată, prin feed"| FILTER
+        STORE -->|"stare acceptată, prin feed"| TENNIS
         FILTER -->|"snapshot / schimbări / invalidări"| BRIDGE
+        TENNIS -->|"snapshot / schimbări / invalidări"| BRIDGE
         FEED <-->|"query-uri / notificări"| BRIDGE
     end
 
@@ -61,6 +71,8 @@ Diagrama arată responsabilitățile. În cod, feed-ul leagă decodoarele și ca
 | `getSnapshot(id)`                        | Starea sincronizată sau `null` dacă lipsește ori este invalidată. La Superbet se cere și un SSE conectat.       |
 | `getStats()`                             | Numărul de meciuri, starea abonărilor și contoarele de procesare/recuperare.                                    |
 | `getFootballSnapshot(id)`                | Modelul filtrat de fotbal sincronizat sau `null`; disponibil la ambii provideri.                                |
+| `getTennisSnapshot(id)`                  | Modelul filtrat de tenis sincronizat sau `null`; disponibil la ambii provideri.                                  |
+| `onTennisSnapshot`, `onTennisUpdate`      | Bază, linii schimbate și disponibilitate pentru tenis; publicare opțională către main la ambii provideri.         |
 | `onFootballSnapshot`, `onFootballUpdate` | Bază filtrată, perechi schimbate, chei eliminate și invalidarea întregului meci.                                |
 | `reconnect()`                            | Repornește abonările și declanșează resincronizarea.                                                            |
 | `onEvents`, `onRemove`                   | Lista după discovery și eliminarea unui meci.                                                                   |
@@ -100,7 +112,7 @@ Nu există o limită de 100 de meciuri în logica providerilor. Creșterea numă
 
 ## Superbet: un SSE pentru fiecare meci
 
-[Controller](../src/providers/superbet/controller.ts) · [Feed](../src/providers/superbet/processing/feed.ts) · [Store](../src/providers/superbet/processing/state.ts) · [Decoder](../src/providers/superbet/protocol/sse.ts)
+[Controller](../../src/providers/superbet/controller.ts) · [Feed](../../src/providers/superbet/processing/feed.ts) · [Store](../../src/providers/superbet/processing/state.ts) · [Decoder](../../src/providers/superbet/protocol/sse.ts)
 
 Discovery folosește ID-urile `5` pentru fotbal, `4` pentru baschet și `2` pentru tenis. Feed-ul cere evenimente active live, apoi verifică sportul și statusul `STARTED`; exclude evenimentele finalizate și outright. Repetă reconcilierea la cinci minute și elimină meciurile finalizate și prin mesajele SSE.
 
@@ -156,11 +168,19 @@ EOF curat provoacă redeschiderea SSE și resincronizare; nu este numărat drept
 
 ### Modelul filtrat pentru fotbal
 
-În același processing worker, [proiecția](../src/providers/superbet/processing/football-projection.ts) primește numai starea acceptată de store și aplică [catalogul explicit](../src/providers/superbet/football-markets.config.ts). Fiecare linie publicată are exact două selecții și rolurile configurate; handicapul european, combinațiile, piețele pe jucători și liniile incomplete sunt excluse. Starea protocolului rămâne completă.
+În același processing worker, [proiecția](../../src/providers/superbet/processing/football-projection.ts) primește numai starea acceptată de store și aplică [catalogul explicit](../../src/providers/superbet/football-markets.config.ts). Fiecare linie publicată are exact două selecții și rolurile configurate; handicapul european, combinațiile, piețele pe jucători și liniile incomplete sunt excluse. Starea protocolului rămâne completă.
 
-`getFootballSnapshot(id)` returnează modelul filtrat sau `null`, cu aceeași condiție de conectare și sincronizare ca snapshotul brut. `onFootballSnapshot` publică o bază completă; `onFootballUpdate` publică linii schimbate, chei eliminate sau `kind: "invalidate"` pentru ștergerea întregului eveniment. Notificările sunt copiate către main numai când există handlerii respectivi. Modelul de selecție este explicat în [documentul dedicat](SUPERBET-FOOTBALL.md).
+`getFootballSnapshot(id)` returnează modelul filtrat sau `null`, cu aceeași condiție de conectare și sincronizare ca snapshotul brut. `onFootballSnapshot` publică o bază completă; `onFootballUpdate` publică linii schimbate, chei eliminate, `kind: "invalidate"` pentru blocarea temporară a cotelor sau `kind: "remove"` pentru retragerea efectivă a proiecției. La invalidare se păstrează intern identitatea și liniile, marcate `synchronized: false`; query-ul public întoarce în continuare `null`. Replay-ul intern către agregator include acest marcaj, astfel încât o resincronizare a canalului nu reactivează cotele vechi. Notificările sunt copiate către main numai când există handlerii respectivi. Modelul de selecție este explicat în [documentul dedicat](../providers/superbet/FOOTBALL.md).
 
 Proiecția poate interpreta separat snapshoturi prematch, dar providerul activ urmărește în continuare doar live. Livrarea directă către [agregator](AGGREGATOR.md), cu ACK și coalescență, pornește doar când controllerul primește un port de agregare.
+
+### Modelul filtrat pentru tenis
+
+Superbet aplică și [catalogul de tenis](../providers/superbet/TENNIS.md) în processing workerul existent, după acceptarea versiunilor de către store. Sunt 48 de definiții explicite: totaluri, handicapuri și Da/Nu, cu două selecții distincte și parametri structurați pentru set și game. Sunt păstrate scorurile pe seturi, punctele și jucătorul la serviciu; perioadele nu sunt folosite pentru a ghici formatul meciului.
+
+`getTennisSnapshot`, `onTennisSnapshot` și `onTennisUpdate` au același ciclu `update / invalidate / remove` ca proiecția de fotbal. O deconectare blochează query-ul public până la o bază acceptată, iar terminarea retrage proiecția. Exportul este opțional; nu apar conexiuni sau workeri suplimentari. Providerul activ urmărește live, deși proiecția poate interpreta separat snapshoturi prematch.
+
+Tenisul folosește un codec, outbox și canal direct proprii, până la motorul separat din aggregation worker. Nu este trimis motorului de fotbal. Controllerii primesc opțional portul de fotbal ca argument trei și pe cel de tenis ca argument patru; fără port, API-ul providerului funcționează în continuare. Replay-ul intern păstrează marcajul stale; cote vechi nu devin eligibile prin retrimitere.
 
 ### Endpointurile folosite
 
@@ -176,7 +196,7 @@ Intervalul discovery acoperă șapte zile în urmă până la începutul zilei U
 
 ## Betano: WebSocketuri cu grupuri de meciuri
 
-[Controller](../src/providers/betano/controller.ts) · [Feed](../src/providers/betano/processing/feed.ts) · [Store](../src/providers/betano/processing/state.ts) · [SignalR](../src/providers/betano/protocol/signalr.ts) · [LZ4](../src/providers/betano/protocol/compression.ts)
+[Controller](../../src/providers/betano/controller.ts) · [Feed](../../src/providers/betano/processing/feed.ts) · [Store](../../src/providers/betano/processing/state.ts) · [SignalR](../../src/providers/betano/protocol/signalr.ts) · [LZ4](../../src/providers/betano/protocol/compression.ts)
 
 Discovery selectează sporturile `FOOT`, `BASK`, `TENN`, cu `isLive: true` și fără `isEnded: true`. Zonele identificate ca virtuale sau esports sunt excluse.
 
@@ -211,7 +231,7 @@ sequenceDiagram
     F->>F: instalează baza și reaplică diff-urile continue
 ```
 
-Feed-ul face join, apoi cere snapshoturile pentru membrii grupului. Astfel, push-urile primite în timpul cererii REST pot fi reținute și reaplicate peste versiunea snapshotului. Varianta cu un singur REST, urmat abia apoi de abonare, ar lăsa un interval între cele două surse.
+Feed-ul face join cu `includeEvent: true`, `IncludeMarkets: true`, `IncludeIncidents: false`, apoi așteaptă versiunea split a fiecărui membru înainte de cererea REST. Astfel, push-urile primite în timpul cererii REST pot fi reținute și reaplicate peste versiunea snapshotului. Varianta cu un singur REST, urmat abia apoi de abonare, ar lăsa un interval între cele două surse. [protocol/audience.ts](../../src/providers/betano/protocol/audience.ts) aliniază versiunea REST la audiența eveniment + piețe; cronologia incidentelor nu este menținută de feed. Scorurile, statisticile și cotele rămân în flux.
 
 ### Straturile protocolului
 
@@ -222,19 +242,25 @@ Feed-ul face join, apoi cere snapshoturile pentru membrii grupului. Astfel, push
 | Base64 + LZ4 | Conținutul comprimat al notificărilor de diff este decodat înainte de verificarea datelor.                                           |
 | Store        | Aplică tipurile de schimbări cunoscute, verifică versiuni și cere reparare pentru gap-uri sau schimbări neacceptate.                 |
 
-`NewLiveEventDiff` actualizează meciurile; `NewLiveOverviewDiffs` poate elimina evenimente sau programa discovery, cu o scurtă grupare a semnalelor apropiate. `OnActiveLiveEventVersion` semnalează versiunea pe care trebuie să o atingă starea locală.
+`NewLiveEventSplitDiff` actualizează meciurile; `NewLiveOverviewDiffs` poate elimina evenimente sau programa discovery, cu o scurtă grupare a semnalelor apropiate. `OnActiveLiveEventSplitVersion` semnalează versiunea pe care trebuie să o atingă starea locală.
 
-La deconectarea unui socket sunt invalidate meciurile lui. După handshake și join se cer baze noi. La deschiderea noii conexiuni se schimbă revizia, iar răspunsurile REST din revizia anterioară sunt ignorate. Resetul de eveniment permite și refacerea bazei după restartarea numerotării versiunilor. Un reset global declanșează repararea stărilor și discovery.
+La deconectarea unui socket sunt invalidate meciurile lui și revizia se schimbă imediat; răspunsurile REST vechi sunt ignorate chiar dacă sosesc înaintea reconectării. Handshake-ul și join-ul nu deblochează singure starea: confirmarea audienței și versiunii permite reutilizarea bazei numai dacă aceasta și diff-urile continue acoperă versiunea confirmată. Se cer snapshoturi numai pentru golurile rămase. Notificarea de deconectare nu se dublează pentru `stream-end` și `stream-error`, iar eroarea identifică socketul. Resetul de eveniment permite și refacerea bazei după restartarea numerotării versiunilor. Un reset global declanșează repararea stărilor și discovery. Discovery este amânat în cooldownul REST fără a raporta fiecare semnal drept o nouă eroare 429.
 
 Store-ul păstrează separat evenimentul, piețele și selecțiile. Aplică prețuri, suspendări, adăugări/eliminări, ordonare și metadate cunoscute; nu presupune că un tip necunoscut poate fi ignorat în siguranță. Consumatorul primește diff-ul original acceptat sau un snapshot nou după reparare.
 
 ### Modelul filtrat pentru fotbal
 
-[Catalogul Betano](../src/providers/betano/football-markets.config.ts) fixează `typeId`, codul, numele și cele două roluri. `market.id` identifică instanța, nu tipul reutilizabil. [Proiecția](../src/providers/betano/processing/football-projection.ts) primește starea după patch și păstrează copii mici, separate de obiectele brute modificate în loc.
+[Catalogul Betano](../../src/providers/betano/football-markets.config.ts) fixează `typeId`, codul, numele și cele două roluri. `market.id` identifică instanța, nu tipul reutilizabil. [Proiecția](../../src/providers/betano/processing/football-projection.ts) primește starea după patch și păstrează copii mici, separate de obiectele brute modificate în loc.
 
-Prețurile și setările recalculează numai piețele afectate; schimbările structurale refac referințele. Fiecare upsert conține o pereche completă. Un gap, o deconectare, un reset sau o eliminare invalidează modelul; o bază nouă este publicată după sincronizare. Query-urile și handlerii au același stil ca la Superbet și transferă către main numai datele cerute.
+Prețurile și setările recalculează numai piețele afectate; schimbările structurale refac referințele. Fiecare upsert conține o pereche completă. Un gap, o deconectare sau un reset emite `invalidate`: identitatea rămâne, cotele sunt blocate și query-ul public întoarce `null` până la baza nouă. Eliminarea, metadatele neproiectabile și oprirea emit `remove`. Query-urile și handlerii au același stil ca la Superbet și transferă către main numai datele cerute.
 
-HTML-ul prematch grupează mai multe praguri într-o piață și poate repeta aceeași piață în mai multe secțiuni. Adaptorul separat validează perechile și copiile identice, fără să inventeze versiuni și fără să adauge un feed prematch. [Documentul Betano fotbal](BETANO-FOOTBALL.md) descrie modelul, catalogul și verificările.
+HTML-ul prematch grupează mai multe praguri într-o piață și poate repeta aceeași piață în mai multe secțiuni. Adaptorul separat validează perechile și copiile identice, fără să inventeze versiuni și fără să adauge un feed prematch. [Documentul Betano fotbal](../providers/betano/FOOTBALL.md) descrie modelul, catalogul și verificările.
+
+### Modelul filtrat pentru tenis
+
+[Catalogul Betano tenis](../providers/betano/TENNIS.md) conține 32 de definiții explicite: 23 totaluri, 3 handicapuri și 6 piețe Da/Nu. Aceeași stare brută acceptată alimentează proiecția de tenis în workerul existent, cu indexuri pentru recalcularea piețelor afectate. API-ul `getTennisSnapshot`, `onTennisSnapshot`, `onTennisUpdate` aplică aceleași reguli de invalidare, recuperare și eliminare ca la fotbal.
+
+Contextul distinge punctele game-ului de seturile câștigate și numărul game-ului în set de numărul global pe meci. Se păstrează participanții de simplu/dublu fără reordonarea numelor. Adaptorul pur prematch validează separat pragurile grupate și copiile SSR; nu adaugă discovery prematch. Codecul de tenis transmite numai liniile cu o corespondență activă, pe canalul dedicat, către motorul și detectorul de tenis. Contextul și disponibilitatea circulă separat de valorile cotelor.
 
 ### Endpointurile folosite
 
@@ -252,7 +278,7 @@ Transportul browser folosește `wreq-js`, nu browserul utilizatorului. Conexiune
 
 ## Configurări care contează
 
-Valorile implicite sunt în [Superbet config](../src/providers/superbet/config.ts) și [Betano config](../src/providers/betano/config.ts); constructorii acceptă suprascrieri parțiale.
+Valorile implicite sunt în [Superbet config](../../src/providers/superbet/config.ts) și [Betano config](../../src/providers/betano/config.ts); constructorii acceptă suprascrieri parțiale.
 
 | Opțiune / comportament       | Superbet                           | Betano                                        | De ce contează                                                            |
 | ---------------------------- | ---------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
@@ -277,4 +303,4 @@ La HTTP 429/503, ambele feed-uri respectă `Retry-After` printr-un cooldown REST
 
 La Superbet, `reconnects` include redeschideri după EOF curat; `streamErrors`, `snapshotErrors` și `decodeErrors` separă tipurile de eșec. La Betano, `connectedSockets` reflectă sesiunile SignalR pregătite, iar `resynchronizations` numără invalidările unor stări anterior sincronizate. Ambele publică statistici periodic, la cinci secunde.
 
-Providerii păstrează starea în memorie și folosesc API-uri nedocumentate ale siteurilor. Nu persistă istoric și nu oferă încă un model unic de cote între case. Testele din [test](../test) acoperă protocoalele, ordinea versiunilor, recuperarea și anularea operațiilor; verificarea accesului real și a latenței sursei este o verificare live separată.
+Providerii păstrează starea în memorie și folosesc API-uri nedocumentate ale siteurilor. Nu persistă istoric și nu oferă încă un model unic de cote între case. Testele din [test](../../test) acoperă protocoalele, ordinea versiunilor, recuperarea și anularea operațiilor; verificarea accesului real și a latenței sursei este o verificare live separată.

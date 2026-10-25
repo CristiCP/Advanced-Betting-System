@@ -62,11 +62,13 @@ export interface BetanoFootballSnapshot {
   // Public prematch HTML has no version; live versions come from the vendor store.
   sourceVersion: number | null;
   projectedAt: number;
+  // False retains identity internally while public snapshot queries return null.
+  synchronized?: boolean;
   lines: BetanoFootballLine[];
 }
 
 export interface BetanoFootballChange {
-  kind: "update" | "invalidate";
+  kind: "update" | "invalidate" | "remove";
   eventId: number;
   sourceVersion: number;
   projectedAt: number;
@@ -76,6 +78,7 @@ export interface BetanoFootballChange {
 }
 
 export interface BetanoFootballProjectionState {
+  synchronized: boolean;
   event: BetanoFootballEvent;
   sourceVersion: number;
   projectedAt: number;

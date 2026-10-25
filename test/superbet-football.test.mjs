@@ -61,7 +61,7 @@ function synchronized() {
     onSnapshot: (value) => view.install(value),
     onUpdate: (change) =>
       view.update(store.getSnapshot(change.event_id), change),
-    onStale: (id) => view.remove(id),
+    onStale: (id) => view.invalidate(id),
     onRemove: (id) => view.remove(id),
   });
   const base = snapshot();
@@ -363,15 +363,20 @@ test("version gaps invalidate the filtered view and repair publishes the replaye
   });
   assert.equal(view.getSnapshot(11), null);
   assert.equal(messages.at(-1).kind, "invalidate");
+  const retained = [...view.snapshots()];
+  assert.equal(retained.length, 1);
+  assert.equal(retained[0].synchronized, false);
+  assert.equal(retained[0].lines.length, 1);
   store.install({ ...snapshot(), increment_id: 11 });
   assert.equal(messages.at(-1).kind, "snapshot");
   assert.equal(view.getSnapshot(11).sourceVersion, 12);
+  assert.equal(view.getSnapshot(11).synchronized, true);
   assert.equal(view.getSnapshot(11).lines[0].selections[1].price, 2.4);
   store.receive({ event_id: 11, increment_id: 11 });
   assert.equal(view.getSnapshot(11).sourceVersion, 12);
 });
 
-test("ended events and invalid event metadata invalidate previously published data", () => {
+test("ended events and invalid event metadata remove previously published data", () => {
   const { store, view, messages } = synchronized();
   store.receive({
     event_id: 11,
@@ -379,7 +384,7 @@ test("ended events and invalid event metadata invalidate previously published da
     inplay_stats_metadata: { status: "FINISHED" },
   });
   assert.equal(view.getSnapshot(11), null);
-  assert.equal(messages.at(-1).kind, "invalidate");
+  assert.equal(messages.at(-1).kind, "remove");
   view.install(snapshot());
   view.update(
     snapshot([], {
@@ -393,7 +398,7 @@ test("ended events and invalid event metadata invalidate previously published da
     },
   );
   assert.equal(view.getSnapshot(11), null);
-  assert.equal(messages.at(-1).kind, "invalidate");
+  assert.equal(messages.at(-1).kind, "remove");
 });
 
 test("the Betradar ID and start time are validated before aggregation uses them", () => {

@@ -1,6 +1,6 @@
 import { footballLineKey } from "../../../aggregation/adapter/football.js";
 import { isRoleA } from "../../../aggregation/mapping.js";
-import type { FootballCodec } from "../../../aggregation/model/adapter.interfaces.js";
+import type { ProjectionCodec } from "../../../aggregation/model/adapter.interfaces.js";
 import { betanoFootballMarkets } from "../football-markets.config.js";
 import type { BetanoFootballMarketDefinition } from "../model/football-markets.interfaces.js";
 import type {
@@ -23,7 +23,7 @@ const epoch = (value: string | null): number => {
   return Number.isFinite(parsed) ? parsed : NaN;
 };
 
-export const betanoFootballCodec: FootballCodec<
+export const betanoFootballCodec: ProjectionCodec<
   BetanoFootballEvent,
   BetanoFootballLine
 > = {

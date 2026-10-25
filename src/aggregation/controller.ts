@@ -21,6 +21,8 @@ import { isCondition, validateMapping } from "./mapping.js";
 import { footballMarketMapping } from "./mapping.config.js";
 import { superbetFootballMarkets } from "../providers/superbet/football-markets.config.js";
 import { betanoFootballMarkets } from "../providers/betano/football-markets.config.js";
+import { validateTennisMapping } from "./tennis-mapping.js";
+import type { AggregationSport } from "./model/tennis.interfaces.js";
 
 /**
  * @file Owns the aggregation worker and the direct ports handed to provider processing workers.
@@ -42,13 +44,25 @@ export class AggregationController implements AggregationApi {
     private readonly handlers: AggregationHandlers = {},
   ) {
     this.options = { ...aggregationConfig, ...options };
-    const { enabledConditions, fallbackMode, recordPath, learningPath, ...numbers } =
-      this.options;
+    const {
+      enabledConditions,
+      fallbackMode,
+      recordPath,
+      learningPath,
+      minMarginBps,
+      ...numbers
+    } = this.options;
     for (const [key, value] of Object.entries(numbers)) {
       if (!Number.isSafeInteger(value) || value <= 0 || value > 2_147_483_647)
         throw new Error(`Invalid aggregation option: ${key}`);
     }
-    if (!Array.isArray(enabledConditions) || !enabledConditions.every(isCondition))
+    // Negative margins are allowed for diagnostics; keep the threshold above -100%.
+    if (!Number.isSafeInteger(minMarginBps) || minMarginBps <= -10_000)
+      throw new Error("Invalid aggregation option: minMarginBps");
+    if (
+      !Array.isArray(enabledConditions) ||
+      !enabledConditions.every(isCondition)
+    )
       throw new Error("Invalid aggregation option: enabledConditions");
     if (fallbackMode !== "off" && fallbackMode !== "observe")
       throw new Error("Invalid aggregation option: fallbackMode");
@@ -69,18 +83,34 @@ export class AggregationController implements AggregationApi {
     );
     if (errors.length)
       throw new Error(`Invalid football market mapping:\n${errors.join("\n")}`);
+    const tennisErrors = validateTennisMapping();
+    if (tennisErrors.length)
+      throw new Error(
+        `Invalid tennis market mapping:\n${tennisErrors.join("\n")}`,
+      );
   }
 
   // Ports are created before start, so each provider can transfer its end to its own worker.
-  createPort(provider: AggregationProvider): MessagePort {
-    if (!isProvider(provider))
-      throw new Error("Unknown aggregation provider.");
+  createPort(
+    provider: AggregationProvider,
+    sport: AggregationSport = "football",
+  ): MessagePort {
+    if (sport !== "football" && sport !== "tennis")
+      throw new Error("Unknown aggregation sport.");
+    if (!isProvider(provider)) throw new Error("Unknown aggregation provider.");
     if (this.starting !== null || this.stopping !== null)
       throw new Error("Aggregation ports must be created before start.");
-    if (this.ports.some((entry) => entry.provider === provider))
-      throw new Error(`Aggregation port already exists for ${provider}.`);
+    if (
+      this.ports.some(
+        (entry) =>
+          entry.provider === provider && (entry.sport ?? "football") === sport,
+      )
+    )
+      throw new Error(
+        `Aggregation port already exists for ${provider}/${sport}.`,
+      );
     const channel = new MessageChannel();
-    this.ports.push({ provider, port: channel.port1 });
+    this.ports.push({ provider, sport, port: channel.port1 });
     return channel.port2;
   }
 
@@ -96,6 +126,7 @@ export class AggregationController implements AggregationApi {
       workerData: {
         options: this.options,
         ports: this.ports,
+        publishMatches: this.handlers.onMatches !== undefined,
       } satisfies AggregationWorkerData,
       transferList: this.ports.map((entry) => entry.port),
     });
@@ -121,6 +152,9 @@ export class AggregationController implements AggregationApi {
         try {
           if (message.type === "ready") {
             this.ready = true;
+            console.log(
+              `[Thread ${worker.threadId}] Aggregation ready (event matching + odds comparison).`,
+            );
             resolve();
           } else if (message.type === "fatal") {
             reject(new Error(message.error));
@@ -157,13 +191,17 @@ export class AggregationController implements AggregationApi {
 
   private handle(message: AggregationWorkerMessage): void {
     switch (message.type) {
+      case "matches":
+        this.handlers.onMatches?.(message.matches);
+        break;
       case "status":
         this.handlers.onStatus?.(message.status);
         break;
       case "reports":
         for (const report of message.reports) {
           if (report.kind === "pair") this.handlers.onPair?.(report);
-          else if (report.kind === "observed") this.handlers.onObserved?.(report);
+          else if (report.kind === "observed")
+            this.handlers.onObserved?.(report);
           else {
             const { type: _type, ...opportunity } = report;
             this.handlers.onOpportunity?.(opportunity);

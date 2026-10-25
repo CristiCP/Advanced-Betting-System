@@ -20,8 +20,8 @@ export const mappingConditions: readonly AggregationMappingCondition[] = [
 ];
 
 // Role A is the first side of every two-outcome line; matching is by meaning, never by position.
-const roleA = new Set(["over", "home", "yes"]);
-const roleB = new Set(["under", "away", "no"]);
+const roleA = new Set(["over", "home", "player1", "yes"]);
+const roleB = new Set(["under", "away", "player2", "no"]);
 const totalKinds = new Set(["total", "asian-total"]);
 const handicapKinds = new Set(["handicap", "asian-handicap"]);
 
@@ -132,6 +132,7 @@ export function mappingIndex(
   const index = new Map<number, AggregationMarketMapping[]>();
   for (const row of mapping) {
     if (!row.conditions.every((condition) => allowed.has(condition))) continue;
+    if (row.enabled === false) continue;
     const id = row[provider];
     const rows = index.get(id);
     if (rows) rows.push(row);

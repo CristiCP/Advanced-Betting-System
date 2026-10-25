@@ -3,7 +3,13 @@ import { once } from "node:events";
 import test from "node:test";
 import { MessageChannel } from "node:worker_threads";
 import { AggregationOutbox } from "../dist/aggregation/adapter/outbox.js";
-import { fullStateBytes, lineKey } from "../dist/aggregation/protocol/wire.js";
+import {
+  BatchWriter,
+  headerBytes,
+  segmentBytes,
+  fullStateBytes,
+  lineKey,
+} from "../dist/aggregation/protocol/wire.js";
 import { decode, identity, tick } from "./helpers/aggregation.mjs";
 
 const key = lineKey(1, 10);
@@ -42,7 +48,9 @@ function connect(onResync = () => {}, errors = []) {
 }
 
 async function batch(port) {
-  const [message] = await once(port, "message", { signal: AbortSignal.timeout(2_000) });
+  const [message] = await once(port, "message", {
+    signal: AbortSignal.timeout(2_000),
+  });
   return { message, ...decode(message.buffer) };
 }
 
@@ -247,6 +255,57 @@ test("invalid adapter input is counted and never written", async (t) => {
   assert.equal(outbox.getStats().rejected, 4);
   const { calls } = await batch(aggregator);
   assert.deepEqual(calls.at(-1), ["value", 0, NaN, NaN, 0]);
+});
+
+test("pending values cannot push the transmitted batch beyond the byte limit", async (t) => {
+  const maxBatchBytes = 2 * fullStateBytes(1, 1);
+  let currentIdentity = identity(7);
+  let currentPrice = 1.8;
+  const { aggregator, outbox, attach, errors } = connect((target) => {
+    target.setEvent(currentIdentity);
+    target.setLive(7, live());
+    target.setLine(7, key, currentPrice, 2.1, true, true);
+  });
+  t.after(() => aggregator.close());
+  attach({ maxEvents: 1, maxLines: 1, maxBatchBytes });
+  const first = await batch(aggregator);
+  currentPrice = 1.9;
+  outbox.setLine(7, key, currentPrice, 2.1, true, true);
+  // Fill the current wire format to 10 bytes below the limit before the pending 21-byte value.
+  const recordBytes = (value) => {
+    const probe = new BatchWriter();
+    probe.eventIdentity(0, value);
+    return probe.byteLength - headerBytes - segmentBytes;
+  };
+  const short = identity(7, { home: "Alpha", away: "Gardabaer" });
+  const minimum = recordBytes(identity(7, { home: "X", away: "Gardabaer" }));
+  const budget = maxBatchBytes - 10 - headerBytes - segmentBytes;
+  const repeats = Math.floor((budget - minimum) / recordBytes(short));
+  for (let i = 0; i < repeats; i++) {
+    currentIdentity = identity(7, { home: "Alpha", away: "Gardabaer" });
+    outbox.setEvent(currentIdentity);
+  }
+  const nameLength = budget - repeats * recordBytes(short) - minimum + 1;
+  currentIdentity = identity(7, {
+    home: "X".repeat(nameLength),
+    away: "Gardabaer",
+  });
+  outbox.setEvent(currentIdentity);
+  ack(aggregator, first.message);
+  const second = await batch(aggregator);
+  assert.ok(
+    second.header.byteLength <= maxBatchBytes,
+    `Sent ${second.header.byteLength} bytes with a ${maxBatchBytes}-byte limit.`,
+  );
+  assert.equal(second.calls[0][0], "reset");
+  assert.deepEqual(
+    second.calls.find(([name]) => name === "identity")[2],
+    currentIdentity,
+  );
+  assert.deepEqual(second.calls.at(-1), ["value", 0, currentPrice, 2.1, 3]);
+  assert.equal(second.message.sequence, first.message.sequence + 1);
+  assert.equal(outbox.getStats().resets, 2);
+  assert.deepEqual(errors, []);
 });
 
 test("unexpected control messages are reported and ignored", async (t) => {

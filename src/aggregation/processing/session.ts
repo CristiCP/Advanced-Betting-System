@@ -1,4 +1,5 @@
 import type { MessagePort } from "node:worker_threads";
+import type { AggregationTennisContext } from "../model/tennis.interfaces.js";
 import type {
   AggregationProviderSink,
   AggregationSessionHandlers,
@@ -65,8 +66,13 @@ export class AggregationSession implements AggregationBatchSink {
       this.clear();
     });
     // Send only the outbox limits; the aggregator's own settings stay in this worker.
-    const { batchWindowMs, maxEvents, maxLines, maxBatchBytes, enabledConditions } =
-      this.options;
+    const {
+      batchWindowMs,
+      maxEvents,
+      maxLines,
+      maxBatchBytes,
+      enabledConditions,
+    } = this.options;
     this.post({
       type: "attach",
       generation: this.generation,
@@ -111,7 +117,10 @@ export class AggregationSession implements AggregationBatchSink {
     if (this.closed) return;
     // Without a valid envelope the provider cannot be told which batch failed; drop the link.
     if (!isBatchMessage(message)) {
-      this.handlers.onError(this.provider, "Invalid aggregation batch message.");
+      this.handlers.onError(
+        this.provider,
+        "Invalid aggregation batch message.",
+      );
       this.close();
       return;
     }
@@ -198,7 +207,13 @@ export class AggregationSession implements AggregationBatchSink {
   ): void {
     this.operation();
     this.requireEvent(event);
-    this.downstream?.eventLive(event, flags, homeScore, awayScore, clockSeconds);
+    this.downstream?.eventLive(
+      event,
+      flags,
+      homeScore,
+      awayScore,
+      clockSeconds,
+    );
   }
 
   eventRelease(event: number): void {
@@ -209,6 +224,14 @@ export class AggregationSession implements AggregationBatchSink {
     this.eventDefined[event] = 0;
     this.events--;
     this.downstream?.eventRelease(event);
+  }
+
+  eventTennis(event: number, context: AggregationTennisContext): void {
+    this.operation();
+    this.requireEvent(event);
+    if (!this.downstream?.eventTennis)
+      throw new WireError("Unexpected tennis context.");
+    this.downstream.eventTennis(event, context);
   }
 
   lineDefine(line: number, event: number, key: number): void {

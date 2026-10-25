@@ -1,5 +1,7 @@
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
 import { BetanoFootballProjection } from "./football-projection.js";
+import { BetanoTennisProjection } from "./tennis-projection.js";
+import type { BetanoTennisSnapshot } from "../model/tennis-projection.interfaces.js";
 import type { BetanoFootballSnapshot } from "../model/football-projection.interfaces.js";
 import type {
   NetworkWorkerMessage,
@@ -8,12 +10,12 @@ import type {
 import { decodeDiffs } from "../protocol/compression.js";
 import { SignalRSession } from "../protocol/signalr.js";
 import { BetanoHttpError } from "../protocol/http-error.js";
+import { eventAudienceSnapshot } from "../protocol/audience.js";
 import { BetanoStore, isBetanoEvent, isLiveEvent, isRecord } from "./state.js";
 import type {
   BetanoDiff,
   BetanoEvent,
   BetanoRecord,
-  BetanoSnapshot,
 } from "../model/state.interfaces.js";
 import type { BetanoOptions } from "../model/config.interfaces.js";
 import type {
@@ -29,6 +31,7 @@ import type {
 export class BetanoFeed {
   readonly store: BetanoStore;
   private readonly football: BetanoFootballProjection;
+  private readonly tennis: BetanoTennisProjection;
   private readonly sockets = new Map<string, BetanoSocketState>();
   private readonly membership = new Map<number, BetanoSocketState>();
   private readonly revisions = new Map<number, number>();
@@ -66,24 +69,36 @@ export class BetanoFeed {
         ? { onUpdate: handlers.onFootballUpdate }
         : {}),
     });
+    this.tennis = new BetanoTennisProjection({
+      ...(handlers.onTennisSnapshot
+        ? { onSnapshot: handlers.onTennisSnapshot }
+        : {}),
+      ...(handlers.onTennisUpdate ? { onUpdate: handlers.onTennisUpdate } : {}),
+    });
     this.store = new BetanoStore(options.maxBufferedDiffs, {
       onSnapshot: (snapshot) => {
         this.football.install(snapshot);
+        this.tennis.install(snapshot);
         handlers.onSnapshot(snapshot);
       },
       onUpdate: (diff) => {
         this.counters.appliedDiffs++;
         const snapshot = this.store.getSnapshot(diff.eventId);
-        if (snapshot) this.football.update(snapshot, diff);
+        if (snapshot) {
+          this.football.update(snapshot, diff);
+          this.tennis.update(snapshot, diff);
+        }
         handlers.onUpdate(diff);
       },
       onStale: (eventId, reason) => {
-        this.football.remove(eventId);
+        this.football.invalidate(eventId);
+        this.tennis.invalidate(eventId);
         this.counters.resynchronizations++;
         handlers.onStatus({ kind: "event-stale", eventId, reason });
       },
       onRemove: (id) => {
         this.football.remove(id);
+        this.tennis.remove(id);
         this.detach(id);
       },
     });
@@ -116,6 +131,23 @@ export class BetanoFeed {
       : null;
   }
 
+  // Expose tennis only while the raw store is synchronized.
+  getTennisSnapshot(eventId: number): BetanoTennisSnapshot | null {
+    return !this.stopping && this.store.getSnapshot(eventId)
+      ? this.tennis.getSnapshot(eventId)
+      : null;
+  }
+
+  // Replay retained identities without exposing stale snapshots to public queries.
+  getTennisSnapshots(): Iterable<BetanoTennisSnapshot> {
+    return this.tennis.snapshots();
+  }
+
+  // Replay retained football identities with their synchronization flag.
+  getFootballSnapshots(): Iterable<BetanoFootballSnapshot> {
+    return this.football.snapshots();
+  }
+
   getStats(): BetanoStats {
     return {
       events: this.store.events.size,
@@ -145,6 +177,7 @@ export class BetanoFeed {
       if (this.stopping || state === undefined) return;
       if (stream.type === "stream-open") {
         state.session?.stop();
+        state.confirmedEvents.clear();
         state.generation = stream.generation;
         state.attempt = stream.attempt;
         for (const id of state.events) {
@@ -189,13 +222,18 @@ export class BetanoFeed {
         if (stream.type === "stream-chunk")
           state.session?.receive(stream.chunk);
         if (stream.type === "stream-end" || stream.type === "stream-error") {
-          state.session?.stop();
-          state.session = null;
-          for (const id of state.events)
-            this.store.invalidate(id, "WebSocket disconnected.");
+          if (state.session !== null) {
+            state.session.stop();
+            state.session = null;
+            state.confirmedEvents.clear();
+            for (const id of state.events) {
+              this.revisions.set(id, (this.revisions.get(id) ?? 0) + 1);
+              this.store.invalidate(id, "WebSocket disconnected.");
+            }
+            this.handlers.onStatus({ kind: "disconnected", socketId: state.id });
+          }
           if (stream.type === "stream-error")
-            this.handlers.onError(stream.error);
-          this.handlers.onStatus({ kind: "disconnected", socketId: state.id });
+            this.handlers.onError(`${state.id}: ${stream.error}`);
         }
       }
     } catch (error) {
@@ -216,6 +254,7 @@ export class BetanoFeed {
     if (this.stopping) return;
     this.stopping = true;
     this.football.clear();
+    this.tennis.clear();
     if (this.discoveryTimer !== null) clearInterval(this.discoveryTimer);
     if (this.discoveryRetry !== null) clearTimeout(this.discoveryRetry);
     if (this.statsTimer !== null) clearInterval(this.statsTimer);
@@ -242,6 +281,7 @@ export class BetanoFeed {
     const state: BetanoSocketState = {
       id,
       events: new Set(),
+      confirmedEvents: new Set(),
       generation: 0,
       attempt: 0,
       session: null,
@@ -271,8 +311,11 @@ export class BetanoFeed {
     if (state.restarting !== null) return state.restarting;
     state.session?.stop();
     state.session = null;
-    for (const id of state.events)
+    state.confirmedEvents.clear();
+    for (const id of state.events) {
+      this.revisions.set(id, (this.revisions.get(id) ?? 0) + 1);
       this.store.invalidate(id, "WebSocket is restarting.");
+    }
     state.restarting = (async () => {
       await this.network.command({ type: "stop-socket", id: state.id });
       if (!this.stopping && this.sockets.get(state.id) === state)
@@ -307,7 +350,7 @@ export class BetanoFeed {
           platformType: 1,
           includeEvent: true,
           IncludeMarkets: true,
-          IncludeIncidents: true,
+          IncludeIncidents: false,
           maxQueueSize: 30,
           eventIds: ids,
         };
@@ -328,7 +371,11 @@ export class BetanoFeed {
     target: string,
     args: unknown[],
   ): void {
-    if (target === "NewLiveEventDiff" || target === "NewLiveOverviewDiffs") {
+    if (target === "NewLiveEventDiff" || target === "OnActiveLiveEventVersion")
+      throw new Error(
+        "Betano sent a full-audience message on a split subscription.",
+      );
+    if (target === "NewLiveEventSplitDiff" || target === "NewLiveOverviewDiffs") {
       const diffs = decodeDiffs(args[0], this.options.maxDecodedMessageBytes);
       this.counters.decodedBatches++;
       for (const diff of diffs) {
@@ -347,14 +394,24 @@ export class BetanoFeed {
             this.ensureSnapshot(diff.eventId);
         }
       }
-    } else if (target === "OnActiveLiveEventVersion" && isRecord(args[0])) {
+    } else if (target === "OnActiveLiveEventSplitVersion" && isRecord(args[0])) {
       const id = args[0].eventId;
       const version = args[0].version;
       if (
         typeof id === "number" &&
+        Number.isSafeInteger(id) &&
         typeof version === "number" &&
+        Number.isSafeInteger(version) &&
+        version >= 0 &&
         state.events.has(id)
       ) {
+        if (
+          args[0].includeEvent !== true ||
+          args[0].includeMarkets !== true ||
+          args[0].includeIncidents !== false
+        )
+          throw new Error("Betano confirmed a different event audience.");
+        state.confirmedEvents.add(id);
         const event = this.store.events.get(id);
         if (event && (event.snapshot?.version ?? 0) < version)
           this.store.invalidate(
@@ -362,7 +419,7 @@ export class BetanoFeed {
             "Subscribed version is newer than the local state.",
             version,
           );
-        this.ensureSnapshot(id);
+        if (!this.store.confirmVersion(id, version)) this.ensureSnapshot(id);
       }
     }
   }
@@ -396,6 +453,15 @@ export class BetanoFeed {
 
   private refreshDiscovery(): void {
     if (this.stopping) return;
+    // A local cooldown is not another server rejection and must not repeat error logs.
+    if (Date.now() < this.cooldownUntil) {
+      if (this.discoveryRetry === null)
+        this.discoveryRetry = setTimeout(() => {
+          this.discoveryRetry = null;
+          this.refreshDiscovery();
+        }, this.cooldownUntil - Date.now());
+      return;
+    }
     void this.discover().catch((error: unknown) => {
       if (this.stopping) return;
       this.handlers.onError(`Betano discovery failed: ${String(error)}`);
@@ -478,6 +544,7 @@ export class BetanoFeed {
     this.membership.delete(id);
     if (socket !== undefined) {
       socket.events.delete(id);
+      socket.confirmedEvents.delete(id);
       if (socket.events.size === 0) {
         socket.session?.stop();
         socket.session = null;
@@ -510,6 +577,7 @@ export class BetanoFeed {
       !state?.stale ||
       state.loading ||
       this.retries.has(id) ||
+      !this.membership.get(id)?.confirmedEvents.has(id) ||
       !this.membership.get(id)?.session?.ready
     )
       return;
@@ -536,6 +604,8 @@ export class BetanoFeed {
       this.queued.delete(id);
       const state = this.store.events.get(id);
       if (state === undefined || state.loading || !state.stale) continue;
+      const socket = this.membership.get(id);
+      if (!socket?.session?.ready || !socket.confirmedEvents.has(id)) continue;
       state.loading = true;
       this.activeRequests++;
       const revision = this.revisions.get(id);
@@ -544,13 +614,15 @@ export class BetanoFeed {
           if (
             this.stopping ||
             this.store.events.get(id) !== state ||
-            this.revisions.get(id) !== revision
+            this.revisions.get(id) !== revision ||
+            !socket.session?.ready ||
+            !socket.confirmedEvents.has(id)
           )
             return;
           this.counters.snapshots++;
           if (snapshot.result !== undefined && !snapshot.event)
             throw new Error(`Betano event ${id} is temporarily unavailable.`);
-          this.store.install(id, snapshot as BetanoSnapshot);
+          this.store.install(id, eventAudienceSnapshot(snapshot));
           this.failures.delete(id);
         })
         .catch((error: unknown) => {

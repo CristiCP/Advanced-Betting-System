@@ -5,6 +5,10 @@ import type {
 } from "./state.interfaces.js";
 import type { SuperbetStats, SuperbetStatus } from "./feed.interfaces.js";
 import type {
+  SuperbetTennisChange,
+  SuperbetTennisSnapshot,
+} from "./tennis-projection.interfaces.js";
+import type {
   SuperbetFootballChange,
   SuperbetFootballSnapshot,
 } from "./football-projection.interfaces.js";
@@ -15,6 +19,8 @@ export interface SuperbetHandlers {
   onUpdate?(update: SuperbetUpdate): void;
   onFootballSnapshot?(snapshot: SuperbetFootballSnapshot): void;
   onFootballUpdate?(change: SuperbetFootballChange): void;
+  onTennisSnapshot?(snapshot: SuperbetTennisSnapshot): void;
+  onTennisUpdate?(change: SuperbetTennisChange): void;
   onRemove?(eventId: number): void;
   onStatus?(status: SuperbetStatus): void;
   onError?(error: string, eventId?: number): void;
@@ -30,6 +36,7 @@ export interface SuperbetProvider {
     eventId: number,
   ): Promise<SuperbetFootballSnapshot | null>;
   getStats(): Promise<SuperbetStats>;
+  getTennisSnapshot(eventId: number): Promise<SuperbetTennisSnapshot | null>;
   reconnect(): Promise<void>;
 }
 

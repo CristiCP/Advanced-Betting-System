@@ -5,6 +5,8 @@ import type {
 } from "../model/wire.interfaces.js";
 import { normalizeTeam } from "../matching/names.js";
 import { liveFlags } from "../protocol/wire.js";
+import type { AggregationSport } from "../model/tennis.interfaces.js";
+import { normalizeTennisParticipant } from "../matching/tennis-names.js";
 
 /**
  * @file Keeps one provider's events by wire handle, with names normalized once per identity change.
@@ -17,6 +19,7 @@ export class EventRegistry {
   constructor(
     readonly provider: AggregationProvider,
     maxEvents: number,
+    private readonly sport: AggregationSport = "football",
   ) {
     this.events = new Array<AggregationEvent | undefined>(maxEvents);
   }
@@ -43,17 +46,18 @@ export class EventRegistry {
       const previous = event.identity;
       event.identity = identity;
       if (previous.home !== identity.home)
-        event.home = normalizeTeam(identity.home);
+        event.home = this.normalize(identity.home);
       if (previous.away !== identity.away)
-        event.away = normalizeTeam(identity.away);
+        event.away = this.normalize(identity.away);
       return { event, previous };
     }
     const created: AggregationEvent = {
       provider: this.provider,
       handle,
       identity,
-      home: normalizeTeam(identity.home),
-      away: normalizeTeam(identity.away),
+      home: this.normalize(identity.home),
+      away: this.normalize(identity.away),
+      synchronized: false,
       live: false,
       suspended: true,
       scoreKnown: false,
@@ -87,6 +91,8 @@ export class EventRegistry {
       scoreKnown !== event.scoreKnown ||
       homeScore !== event.homeScore ||
       awayScore !== event.awayScore;
+    const wasSynchronized = event.synchronized;
+    event.synchronized = (flags & liveFlags.stale) === 0;
     event.live = (flags & liveFlags.live) !== 0;
     event.suspended = (flags & liveFlags.suspended) !== 0;
     event.scoreKnown = scoreKnown;
@@ -95,6 +101,7 @@ export class EventRegistry {
     const clockKnown = (flags & liveFlags.clock) !== 0;
     const clockRunning = (flags & liveFlags.running) !== 0;
     if (
+      (!wasSynchronized && event.synchronized) ||
       clockKnown !== event.clockKnown ||
       clockRunning !== event.clockRunning ||
       clockSeconds !== event.clockSeconds
@@ -118,5 +125,11 @@ export class EventRegistry {
   clear(): void {
     this.events.fill(undefined);
     this.count = 0;
+  }
+
+  private normalize(name: string) {
+    return this.sport === "tennis"
+      ? normalizeTennisParticipant(name)
+      : normalizeTeam(name);
   }
 }

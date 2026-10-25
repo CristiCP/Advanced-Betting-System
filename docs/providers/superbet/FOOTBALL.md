@@ -1,8 +1,8 @@
 # Superbet fotbal — catalog și model filtrat
 
-[Betano fotbal](BETANO-FOOTBALL.md) · [Corespondențe Superbet–Betano](FOOTBALL-MARKET-MAPPING.md)
+[Betano fotbal](../betano/FOOTBALL.md) · [Corespondențe Superbet–Betano](../../mapping/FOOTBALL.md)
 
-[Ansamblu](../README.md) · [Provideri](PROVIDERS.md) · [Contract Superbet](contracts/SUPERBET.md)
+[Ansamblu](../../../README.md) · [Provideri](../../architecture/PROVIDERS.md) · [Contract Superbet](CONTRACT.md)
 
 Procesarea Superbet păstrează o vedere structurată a piețelor de fotbal recunoscute. **Fiecare linie publicată are exact două selecții distincte**, cu roluri verificate. Catalogul nu face matching între site-uri.
 
@@ -33,7 +33,7 @@ Providerul activ descoperă în continuare numai meciuri live. Proiecția poate 
 
 ## 2. Catalog explicit și regula exact două
 
-Configurația este în [football-markets.config.ts](../src/providers/superbet/football-markets.config.ts). Conține **165 de definiții**, verificate pe răspunsurile publice pentru Chelsea–Tottenham, Napoli–AS Roma, Barcelona–Real Madrid, RB Leipzig–Elversberg, Paderborn–Hamburger și FC Koln–Schalke, la 24 octombrie 2026.
+Configurația este în [football-markets.config.ts](../../../src/providers/superbet/football-markets.config.ts). Conține **165 de definiții**, verificate pe răspunsurile publice pentru Chelsea–Tottenham, Napoli–AS Roma, Barcelona–Real Madrid, RB Leipzig–Elversberg, Paderborn–Hamburger și FC Koln–Schalke, la 24 octombrie 2026.
 
 Fiecare definiție fixează ID-ul vendor, șablonul exact al numelui, tipul statisticii, perioada, echipa vizată, parametrii acceptați și cele două perechi `outcome_id → rol`. Nu clasificăm automat o piață nouă după cuvinte precum „total” sau „handicap”.
 
@@ -73,11 +73,11 @@ Se folosesc numai parametrii structurați verificați. Parametrii suplimentari, 
 
 ## 3. Ce păstrăm
 
-Interfețele sunt în [football-projection.interfaces.ts](../src/providers/superbet/model/football-projection.interfaces.ts); definițiile catalogului sunt în [football-markets.interfaces.ts](../src/providers/superbet/model/football-markets.interfaces.ts).
+Interfețele sunt în [football-projection.interfaces.ts](../../../src/providers/superbet/model/football-projection.interfaces.ts); definițiile catalogului sunt în [football-markets.interfaces.ts](../../../src/providers/superbet/model/football-markets.interfaces.ts).
 
 | Nivel            | Date păstrate                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Snapshot filtrat | Provider, eveniment, versiune sursă, momentul proiecției și liniile eligibile.                                                             |
+| Snapshot filtrat | Provider, eveniment, versiune sursă, momentul proiecției, `synchronized` și liniile eligibile.                                            |
 | Eveniment        | ID, ID Betradar, ID-urile și numele gazdelor/oaspeților, competiție și categorie, început UTC, fază, stare ofertă, scor, perioadă, minut și prelungiri. |
 | Linie            | Cheie, ID de piață, UUID de linie, fază ofertă, prag/handicap și parametrii de timp aplicabili.                                            |
 | Selecție         | UUID, outcome ID, rol fix, cotă, status, display și handicapul semnat pentru selecția respectivă.                                          |
@@ -112,20 +112,23 @@ sequenceDiagram
     F-->>C: kind update<br/>upserts și removed
     S->>F: update fără schimbări<br/>relevante
     Note over F,C: versiunea locală avansează<br/>fără notificare suplimentară
-    S->>F: gap, deconectare sau eliminare
+    S->>F: gap sau deconectare
     F-->>C: kind invalidate
-    Note over C: șterge copia<br/>evenimentului
+    Note over C: păstrează identitatea<br/>blochează folosirea cotelor
     S->>F: bază reparată și replay continuu
     F-->>C: onFootballSnapshot nou
+    S->>F: eliminare definitivă sau metadate invalide
+    F-->>C: kind remove
+    Note over C: șterge proiecția
 ```
 
-O linie care pierde un membru este eliminată complet. Înlocuirile integrale și declararea explicită a ofertei goale elimină și liniile care nu mai apar. La gap, deconectare, metadate de eveniment neproiectabile, eliminare sau oprire, `kind: "invalidate"` cere ștergerea întregului eveniment filtrat; consumatorul așteaptă o bază nouă.
+O linie care pierde un membru este eliminată complet. Înlocuirile integrale și declararea explicită a ofertei goale elimină și liniile care nu mai apar. La gap sau deconectare, `kind: "invalidate"` interzice folosirea cotelor până la o bază nouă; identitatea și liniile rămân intern cu `synchronized: false`, iar query-ul public întoarce `null`. La metadate neproiectabile, eliminare sau oprire, `kind: "remove"` cere ștergerea proiecției. Adaptorul agregatorului reconciliază baza nouă prin cheia canonică și păstrează handle-urile liniilor încă prezente, inclusiv când UUID-ul vendor se schimbă.
 
 `sourceVersion` aparține fluxului vendor. Poate să sară între notificări filtrate, deoarece updateurile irelevante nu sunt transmise. La invalidare poate desemna ultima versiune cunoscută. **Nu este o secvență proprie de livrare și nu trebuie verificată ca un șir consecutiv de mesaje filtrate.**
 
 Publicarea prin controller este opțională și nu schimbă API-ul brut `getSnapshot/onSnapshot/onUpdate`. Handlerii pentru snapshot și update filtrat se înregistrează împreună dacă aplicația menține o copie. Fără handlerul de snapshot filtrat, nu se construiește pentru export un tablou complet de linii doar pentru a-l arunca.
 
-Notificările către aplicație merg prin canalul processing–controller, fără garanție de coadă limitată. Cu un port de agregare, proiecția alimentează și [adaptorul de agregare](AGGREGATOR.md), pe un canal direct cu ACK și coalescență. Startul devine necunoscut dacă `unix_date_millis` contrazice `utc_date`.
+Notificările către aplicație merg prin canalul processing–controller, fără garanție de coadă limitată. Cu un port de agregare, proiecția alimentează și [adaptorul de agregare](../../architecture/AGGREGATOR.md), pe un canal direct cu ACK și coalescență. Startul devine necunoscut dacă `unix_date_millis` contrazice `utc_date`.
 
 ## 5. Catalogul verificat
 
@@ -301,6 +304,6 @@ Prezența în catalog nu garantează oferta la fiecare meci sau în fiecare mome
 
 ## 6. Verificare
 
-[npm test](../package.json) rulează și [testele proiecției](../test/superbet-football.test.mjs) și [integrarea feed-ului](../test/superbet-feed.test.mjs). Acoperă cardinalitatea per linie, membrii suspendați/ascunși, rolurile fixe, semnul handicapului, zero, intervalele, fazele distincte, schimbările parțiale, eliminările și recuperarea după gap/reconectare.
+[npm test](../../../package.json) rulează și [testele proiecției](../../../test/superbet-football.test.mjs) și [integrarea feed-ului](../../../test/superbet-feed.test.mjs). Acoperă cardinalitatea per linie, membrii suspendați/ascunși, rolurile fixe, semnul handicapului, zero, intervalele, fazele distincte, schimbările parțiale, eliminările și recuperarea după gap/reconectare.
 
 Verificarea separată pe cele șase răspunsuri API complete a acoperit toate cele 165 de definiții și a produs 2.585 de linii, fiecare cu exact două selecții. Aceste numere descriu snapshoturile cercetate, nu disponibilitatea curentă sau exhaustivitatea ofertei Superbet. Fișierele temporare folosite pentru verificare nu fac parte din proiect.

@@ -1,4 +1,5 @@
 import type { MessagePort } from "node:worker_threads";
+import { isTennisContext, sameTennisContext } from "../protocol/tennis.js";
 import type { AggregationMappingCondition } from "../model/mapping.interfaces.js";
 import type {
   AggregationOutboxEvent,
@@ -140,6 +141,19 @@ export class AggregationOutbox {
     if (!this.active) return false;
     const event = this.events.get(eventId);
     if (event === undefined) return this.reject();
+    let contextChanged = false;
+    if (live.tennis !== undefined) {
+      if (!isTennisContext(live.tennis)) {
+        this.setSynchronized(eventId, false);
+        return this.reject();
+      }
+      if (!sameTennisContext(event.tennis, live.tennis)) {
+        this.closeSegment();
+        this.writer.eventTennis(event.handle, live.tennis);
+        event.tennis = live.tennis;
+        contextChanged = true;
+      }
+    }
     const score =
       live.homeScore !== null &&
       live.awayScore !== null &&
@@ -159,7 +173,8 @@ export class AggregationOutbox {
       (live.suspended ? liveFlags.suspended : 0) |
       (score ? liveFlags.score : 0) |
       (clock ? liveFlags.clock : 0) |
-      (clock && live.clockRunning ? liveFlags.running : 0);
+      (clock && live.clockRunning ? liveFlags.running : 0) |
+      (live.synchronized === false ? liveFlags.stale : 0);
     const home = score ? live.homeScore! : 0;
     const away = score ? live.awayScore! : 0;
     const seconds = clock ? live.clockSeconds! : 0;
@@ -168,8 +183,10 @@ export class AggregationOutbox {
       home === event.homeScore &&
       away === event.awayScore &&
       seconds === event.clockSeconds
-    )
+    ) {
+      if (contextChanged) this.written(true);
       return true;
+    }
     const material =
       event.liveFlags < 0 ||
       ((flags ^ event.liveFlags) & ~liveFlags.clock) !== 0 ||
@@ -181,8 +198,28 @@ export class AggregationOutbox {
     event.homeScore = home;
     event.awayScore = away;
     event.clockSeconds = seconds;
-    this.written(material);
+    this.written(material || contextChanged);
     return true;
+  }
+
+  // Synchronization changes preserve the event's last known metadata and handles.
+  setSynchronized(eventId: number, synchronized: boolean): void {
+    const event = this.events.get(eventId);
+    if (!this.active || event === undefined || event.liveFlags < 0) return;
+    const flags = synchronized
+      ? event.liveFlags & ~liveFlags.stale
+      : event.liveFlags | liveFlags.stale;
+    if (flags === event.liveFlags) return;
+    this.closeSegment();
+    this.writer.eventLive(
+      event.handle,
+      flags,
+      event.homeScore,
+      event.awayScore,
+      event.clockSeconds,
+    );
+    event.liveFlags = flags;
+    this.written(true);
   }
 
   // The hot path: two map lookups, typed-array writes, and no allocation for known lines.
@@ -398,6 +435,11 @@ export class AggregationOutbox {
     this.clearTimers();
     if (this.inFlight || !this.active) return;
     this.closeSegment();
+    // Pending values are encoded here, so check the final size before transferring.
+    if (this.writer.byteLength > this.options!.maxBatchBytes) {
+      this.reset();
+      return;
+    }
     if (this.writer.empty) return;
     if (this.sequence >= maxWireCounter) {
       this.handlers.onError?.("Aggregation sequence limit reached.");

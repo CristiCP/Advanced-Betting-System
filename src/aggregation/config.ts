@@ -9,7 +9,7 @@ export const aggregationConfig: AggregationOptions = {
   maxEvents: 4_096,
   maxLines: 65_536,
   maxBatchBytes: 16 * 1024 * 1024,
-  enabledConditions: ["D", "T"],
+  enabledConditions: ["D", "P", "T"],
   statsIntervalMs: 5_000,
   startToleranceMs: 30 * 60_000,
   // Superbet reports whole minutes, so the tolerance covers granularity plus extrapolation.
@@ -17,7 +17,7 @@ export const aggregationConfig: AggregationOptions = {
   scoreSettleMs: 5_000,
   scoreMismatchMs: 60_000,
   maxLagMs: 2_000,
-  minMarginBps: 50,
+  minMarginBps: 200,
   suspiciousMarginBps: 1_000,
   reportStepBps: 10,
   sweepMs: 250,

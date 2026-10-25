@@ -1,6 +1,6 @@
 # Network — conexiuni și comunicare
 
-[Ansamblul proiectului](../README.md) · [Provideri și sincronizare](PROVIDERS.md)
+[Ansamblul proiectului](../../README.md) · [Provideri și sincronizare](PROVIDERS.md)
 
 Modulul `src/network` execută cereri și livrează payloaduri. Providerul decide **ce date cere și ce înseamnă ele**; networkingul decide **cum deschide, reutilizează și închide conexiunile**.
 
@@ -8,9 +8,9 @@ Modulul `src/network` execută cereri și livrează payloaduri. Providerul decid
 
 | Componentă                                                      | Rol și motiv                                                                                                                          |
 | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| [controller.ts](../src/network/controller.ts)                   | `NetworkWorkerController` rulează pe main thread. Creează workerul, așteaptă readiness și gestionează oprirea/failurile.              |
-| [workers/worker.ts](../src/network/workers/worker.ts)           | Deține transporturile per origin, registrele de polling/SSE, socketurile și livrările către consumator.                               |
-| [workers/port-client.ts](../src/network/workers/port-client.ts) | `NetworkPortClient` rulează în processing worker. Trimite comenzi direct networkingului și asociază răspunsurile cu promisiunile lor. |
+| [controller.ts](../../src/network/controller.ts)                   | `NetworkWorkerController` rulează pe main thread. Creează workerul, așteaptă readiness și gestionează oprirea/failurile.              |
+| [workers/worker.ts](../../src/network/workers/worker.ts)           | Deține transporturile per origin, registrele de polling/SSE, socketurile și livrările către consumator.                               |
+| [workers/port-client.ts](../../src/network/workers/port-client.ts) | `NetworkPortClient` rulează în processing worker. Trimite comenzi direct networkingului și asociază răspunsurile cu promisiunile lor. |
 | `transports/`                                                   | Execută HTTP și gestionează conexiunile. Alegerea engine-ului este separată de abonări și procesarea datelor.                         |
 | `streaming/`                                                    | Supraveghează conexiunile SSE/WebSocket, reîncercările și creditul de bytes.                                                          |
 | `polling/`                                                      | Repetă requesturi independente când un consumator are nevoie de polling.                                                              |
@@ -78,7 +78,7 @@ flowchart TB
 
 ### Engine-ul Node
 
-[transport.ts](../src/network/transports/transport.ts) este fațada comună. [tls.ts](../src/network/transports/tls.ts) deschide TLS, verifică certificatul și negociază HTTP/2 sau HTTP/1.1 prin **ALPN în handshake-ul TLS**. Socketul negociat este reutilizat de transportul selectat.
+[transport.ts](../../src/network/transports/transport.ts) este fațada comună. [tls.ts](../../src/network/transports/tls.ts) deschide TLS, verifică certificatul și negociază HTTP/2 sau HTTP/1.1 prin **ALPN în handshake-ul TLS**. Socketul negociat este reutilizat de transportul selectat.
 
 | Piesă                   | Ce rezolvă                                                                                                                                     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -96,7 +96,7 @@ Pe HTTP/1.1 nu există multiplexare ca în HTTP/2. Un SSE ocupă conexiunea pân
 
 ### Engine-ul browser
 
-[browser-transport.ts](../src/network/transports/browser-transport.ts) folosește `wreq-js` cu un profil Chrome/Windows pentru compatibilitatea cerută de Betano. Nu pornește Chrome și nu depinde de browserul utilizatorului sau de MCP.
+[browser-transport.ts](../../src/network/transports/browser-transport.ts) folosește `wreq-js` cu un profil Chrome/Windows pentru compatibilitatea cerută de Betano. Nu pornește Chrome și nu depinde de browserul utilizatorului sau de MCP.
 
 HTTP folosește o sesiune nativă reutilizabilă; WebSocketurile folosesc același profil și pot primi cookies din acea sesiune. Poolingul și negocierea HTTP sunt administrate de bibliotecă, separat de `Http2Pool`. Limitele poolului Node nu configurează poolul nativ `wreq-js`.
 
@@ -125,7 +125,7 @@ sequenceDiagram
     Note over N,P: SSE se reia. WebSocket poate reconecta și resincroniza
 ```
 
-[StreamDelivery](../src/network/streaming/stream-delivery.ts) numără bytes trimiși, dar neconfirmați. `ArrayBuffer` este transferat între workeri, schimbând proprietarul memoriei la acea graniță. Pot exista în continuare alocări și copii în transport, decodoare sau notificările către main thread.
+[StreamDelivery](../../src/network/streaming/stream-delivery.ts) numără bytes trimiși, dar neconfirmați. `ArrayBuffer` este transferat între workeri, schimbând proprietarul memoriei la acea graniță. Pot exista în continuare alocări și copii în transport, decodoare sau notificările către main thread.
 
 ACK confirmă consumul fragmentului, chiar dacă decoderul așteaptă alte fragmente pentru a completa un mesaj SSE. Nu așteaptă completarea întregului eveniment și nici executarea handlerilor de pe main thread.
 
@@ -158,6 +158,6 @@ La oprire, networkingul refuză operații noi, anulează pollingul și abonăril
 
 ## Configurarea efectivă
 
-[network/config.ts](../src/network/config.ts) rămâne o configurație demonstrativă pentru `nodejs.org`. **Providerii construiesc propriile setări pentru network worker din `providers/<site>/config.ts`.** Pentru trafic real se modifică acele configurări sau opțiunile constructorului providerului.
+[network/config.ts](../../src/network/config.ts) rămâne o configurație demonstrativă pentru `nodejs.org`. **Providerii construiesc propriile setări pentru network worker din `providers/<site>/config.ts`.** Pentru trafic real se modifică acele configurări sau opțiunile constructorului providerului.
 
 La Superbet contează în special numărul conexiunilor HTTP/1.1, plafonul sesiunilor HTTP/2 și creditul per SSE. La Betano contează gruparea meciurilor pe socket, limita mesajelor și creditul per socket. Valorile actuale și efectul lor asupra sincronizării sunt în [Providers](PROVIDERS.md#configurări-care-contează).

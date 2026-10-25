@@ -4,13 +4,19 @@ import type {
   AggregationEventIdentity,
   AggregationProvider,
 } from "../model/wire.interfaces.js";
+import type { AggregationTennisContext } from "../model/tennis.interfaces.js";
+import {
+  readTennisContext,
+  writeTennisContext,
+  tennisContextBytes,
+} from "./tennis.js";
 
 /**
  * @file Encodes and decodes transferable aggregation batches with fixed-width value records.
  */
 
 export const wireMagic = 0x41474231;
-export const wireVersion = 1;
+export const wireVersion = 3;
 export const headerBytes = 32;
 export const segmentBytes = 8;
 export const valueBytes = 21;
@@ -30,6 +36,7 @@ export const operations = {
   eventRelease: 3,
   lineDefine: 4,
   lineRelease: 5,
+  eventTennis: 6,
 } as const;
 
 // A running clock advances from the moment it was received; a stopped one stays at its value.
@@ -39,6 +46,7 @@ export const liveFlags = {
   score: 4,
   clock: 8,
   running: 16,
+  stale: 32,
 } as const;
 export const valueFlags = { usableA: 1, usableB: 2 } as const;
 
@@ -120,8 +128,13 @@ export function fullStateBytes(maxEvents: number, maxLines: number): number {
     segmentBytes +
     1 +
     maxEvents *
-      (identityBytes + 2 * (2 + maxNameBytes) + liveBytes + segmentBytes) +
-    maxLines * (lineDefineBytes + valueBytes)
+      (identityBytes +
+        2 * (2 + maxNameBytes) +
+        liveBytes +
+        5 +
+        tennisContextBytes +
+        3 * segmentBytes) +
+    maxLines * (lineDefineBytes + valueBytes + segmentBytes)
   );
 }
 
@@ -216,6 +229,12 @@ export class BatchWriter {
   eventRelease(event: number): void {
     const at = this.operation(operations.eventRelease, handleBytes);
     this.view.setUint32(at, event, true);
+  }
+
+  eventTennis(event: number, context: AggregationTennisContext): void {
+    const at = this.operation(operations.eventTennis, 5 + tennisContextBytes);
+    this.view.setUint32(at, event, true);
+    writeTennisContext(this.view, at + 4, context);
   }
 
   lineDefine(line: number, event: number, key: number): void {
@@ -342,7 +361,8 @@ export function readBatch(
   const end = header.byteLength;
   let offset = headerBytes;
   const need = (bytes: number): void => {
-    if (offset + bytes > end) throw new WireError("Batch ends inside a record.");
+    if (offset + bytes > end)
+      throw new WireError("Batch ends inside a record.");
   };
   const name = (): string => {
     need(2);
@@ -407,7 +427,7 @@ export function readBatch(
           const clock = view.getUint32(offset + 10, true);
           offset += liveBytes;
           if (
-            flags & 0xe0 ||
+            flags & 0xc0 ||
             (!(flags & liveFlags.score) && (home || away)) ||
             (!(flags & liveFlags.clock) && (clock || flags & liveFlags.running))
           )
@@ -420,6 +440,17 @@ export function readBatch(
           sink.eventRelease(view.getUint32(offset + 1, true));
           offset += handleBytes;
           break;
+        case operations.eventTennis: {
+          need(5 + tennisContextBytes);
+          const event = view.getUint32(offset + 1, true);
+          const context = readTennisContext(view, offset + 5);
+          if (!context) throw new WireError("Invalid tennis context.");
+          offset += 5 + tennisContextBytes;
+          if (!sink.eventTennis)
+            throw new WireError("Unexpected tennis context.");
+          sink.eventTennis(event, context);
+          break;
+        }
         case operations.lineDefine: {
           need(lineDefineBytes);
           const line = view.getUint32(offset + 1, true);

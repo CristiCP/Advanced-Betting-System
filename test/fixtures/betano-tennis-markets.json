@@ -1,0 +1,4108 @@
+{
+  "capturedOn": "2026-10-25",
+  "prematch": [
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358297",
+        "type": "TGHC",
+        "typeId": 162,
+        "name": "Total Game-uri Handicap",
+        "handicap": -4.5,
+        "selections": [
+          {
+            "id": "10688163275",
+            "name": "Karen Khachanov -4.5",
+            "price": 11.25,
+            "handicap": -4.5
+          },
+          {
+            "id": "10688163276",
+            "name": "Carlos Alcaraz +4.5",
+            "price": 1.02,
+            "handicap": 4.5
+          },
+          {
+            "id": "10688163271",
+            "name": "Karen Khachanov -3.5",
+            "price": 8.75,
+            "handicap": -3.5
+          },
+          {
+            "id": "10688163272",
+            "name": "Carlos Alcaraz +3.5",
+            "price": 1.05,
+            "handicap": 3.5
+          },
+          {
+            "id": "10688163269",
+            "name": "Karen Khachanov -2.5",
+            "price": 6.8,
+            "handicap": -2.5
+          },
+          {
+            "id": "10688163270",
+            "name": "Carlos Alcaraz +2.5",
+            "price": 1.08,
+            "handicap": 2.5
+          },
+          {
+            "id": "10688163267",
+            "name": "Karen Khachanov -1.5",
+            "price": 5.7,
+            "handicap": -1.5
+          },
+          {
+            "id": "10688163268",
+            "name": "Carlos Alcaraz +1.5",
+            "price": 1.12,
+            "handicap": 1.5
+          },
+          {
+            "id": "10688163263",
+            "name": "Karen Khachanov -0.5",
+            "price": 5,
+            "handicap": -0.5
+          },
+          {
+            "id": "10688163264",
+            "name": "Carlos Alcaraz +0.5",
+            "price": 1.15,
+            "handicap": 0.5
+          },
+          {
+            "id": "10688163261",
+            "name": "Karen Khachanov +0.5",
+            "price": 4.4,
+            "handicap": 0.5
+          },
+          {
+            "id": "10688163262",
+            "name": "Carlos Alcaraz -0.5",
+            "price": 1.19,
+            "handicap": -0.5
+          },
+          {
+            "id": "10688163259",
+            "name": "Karen Khachanov +1.5",
+            "price": 3.85,
+            "handicap": 1.5
+          },
+          {
+            "id": "10688163260",
+            "name": "Carlos Alcaraz -1.5",
+            "price": 1.23,
+            "handicap": -1.5
+          },
+          {
+            "id": "10688163255",
+            "name": "Karen Khachanov +2.5",
+            "price": 3.05,
+            "handicap": 2.5
+          },
+          {
+            "id": "10688163256",
+            "name": "Carlos Alcaraz -2.5",
+            "price": 1.35,
+            "handicap": -2.5
+          },
+          {
+            "id": "10688163253",
+            "name": "Karen Khachanov +3.5",
+            "price": 2.25,
+            "handicap": 3.5
+          },
+          {
+            "id": "10688163254",
+            "name": "Carlos Alcaraz -3.5",
+            "price": 1.6,
+            "handicap": -3.5
+          },
+          {
+            "id": "10688163249",
+            "name": "Karen Khachanov +4.5",
+            "price": 1.57,
+            "handicap": 4.5
+          },
+          {
+            "id": "10688163250",
+            "name": "Carlos Alcaraz -4.5",
+            "price": 2.32,
+            "handicap": -4.5
+          },
+          {
+            "id": "10688163251",
+            "name": "Karen Khachanov +5.5",
+            "price": 1.31,
+            "handicap": 5.5
+          },
+          {
+            "id": "10688163252",
+            "name": "Carlos Alcaraz -5.5",
+            "price": 3.25,
+            "handicap": -5.5
+          },
+          {
+            "id": "10688163257",
+            "name": "Karen Khachanov +6.5",
+            "price": 1.15,
+            "handicap": 6.5
+          },
+          {
+            "id": "10688163258",
+            "name": "Carlos Alcaraz -6.5",
+            "price": 5,
+            "handicap": -6.5
+          },
+          {
+            "id": "10688163265",
+            "name": "Karen Khachanov +7.5",
+            "price": 1.05,
+            "handicap": 7.5
+          },
+          {
+            "id": "10688163266",
+            "name": "Carlos Alcaraz -7.5",
+            "price": 8.25,
+            "handicap": -7.5
+          },
+          {
+            "id": "10688163273",
+            "name": "Karen Khachanov +8.5",
+            "price": 1.02,
+            "handicap": 8.5
+          },
+          {
+            "id": "10688163274",
+            "name": "Carlos Alcaraz -8.5",
+            "price": 11.25,
+            "handicap": -8.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358304",
+        "type": "GHCS",
+        "typeId": 1381,
+        "name": "Game-uri Handicap  (Set 1)",
+        "handicap": 2.5,
+        "selections": [
+          {
+            "id": "10688163289",
+            "name": "Karen Khachanov +2.5",
+            "price": 1.5,
+            "handicap": 2.5
+          },
+          {
+            "id": "10688163290",
+            "name": "Carlos Alcaraz -2.5",
+            "price": 2.5,
+            "handicap": -2.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358309",
+        "type": "MSSH",
+        "typeId": 1405,
+        "name": "Handicap meci (Set)",
+        "handicap": -1.5,
+        "selections": [
+          {
+            "id": "10688163299",
+            "name": "Karen Khachanov -1.5",
+            "price": 10.5,
+            "handicap": -1.5
+          },
+          {
+            "id": "10688163300",
+            "name": "Carlos Alcaraz +1.5",
+            "price": 1.06,
+            "handicap": 1.5
+          },
+          {
+            "id": "10688163297",
+            "name": "Karen Khachanov +1.5",
+            "price": 2.3,
+            "handicap": 1.5
+          },
+          {
+            "id": "10688163298",
+            "name": "Carlos Alcaraz -1.5",
+            "price": 1.57,
+            "handicap": -1.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358361",
+        "type": "FTGO",
+        "typeId": 1541,
+        "name": "Game-uri",
+        "handicap": 17.5,
+        "selections": [
+          {
+            "id": "10688163443",
+            "name": "Peste 17.5",
+            "price": 1.12,
+            "handicap": 17.5
+          },
+          {
+            "id": "10688163444",
+            "name": "Sub 17.5",
+            "price": 5.3,
+            "handicap": 17.5
+          },
+          {
+            "id": "10688163435",
+            "name": "Peste 18.5",
+            "price": 1.23,
+            "handicap": 18.5
+          },
+          {
+            "id": "10688163436",
+            "name": "Sub 18.5",
+            "price": 3.8,
+            "handicap": 18.5
+          },
+          {
+            "id": "10688163427",
+            "name": "Peste 19.5",
+            "price": 1.38,
+            "handicap": 19.5
+          },
+          {
+            "id": "10688163428",
+            "name": "Sub 19.5",
+            "price": 2.82,
+            "handicap": 19.5
+          },
+          {
+            "id": "10688163423",
+            "name": "Peste 20.5",
+            "price": 1.57,
+            "handicap": 20.5
+          },
+          {
+            "id": "10688163424",
+            "name": "Sub 20.5",
+            "price": 2.27,
+            "handicap": 20.5
+          },
+          {
+            "id": "10688163425",
+            "name": "Peste 21.5",
+            "price": 1.72,
+            "handicap": 21.5
+          },
+          {
+            "id": "10688163426",
+            "name": "Sub 21.5",
+            "price": 2.02,
+            "handicap": 21.5
+          },
+          {
+            "id": "10688163429",
+            "name": "Peste 22.5",
+            "price": 2.02,
+            "handicap": 22.5
+          },
+          {
+            "id": "10688163430",
+            "name": "Sub 22.5",
+            "price": 1.7,
+            "handicap": 22.5
+          },
+          {
+            "id": "10688163431",
+            "name": "Peste 23.5",
+            "price": 2.37,
+            "handicap": 23.5
+          },
+          {
+            "id": "10688163432",
+            "name": "Sub 23.5",
+            "price": 1.52,
+            "handicap": 23.5
+          },
+          {
+            "id": "10688163433",
+            "name": "Peste 24.5",
+            "price": 2.4,
+            "handicap": 24.5
+          },
+          {
+            "id": "10688163434",
+            "name": "Sub 24.5",
+            "price": 1.5,
+            "handicap": 24.5
+          },
+          {
+            "id": "10688163437",
+            "name": "Peste 25.5",
+            "price": 2.57,
+            "handicap": 25.5
+          },
+          {
+            "id": "10688163438",
+            "name": "Sub 25.5",
+            "price": 1.45,
+            "handicap": 25.5
+          },
+          {
+            "id": "10688163439",
+            "name": "Peste 26.5",
+            "price": 2.9,
+            "handicap": 26.5
+          },
+          {
+            "id": "10688163440",
+            "name": "Sub 26.5",
+            "price": 1.36,
+            "handicap": 26.5
+          },
+          {
+            "id": "10688163441",
+            "name": "Peste 27.5",
+            "price": 3.05,
+            "handicap": 27.5
+          },
+          {
+            "id": "10688163442",
+            "name": "Sub 27.5",
+            "price": 1.33,
+            "handicap": 27.5
+          },
+          {
+            "id": "10688163445",
+            "name": "Peste 28.5",
+            "price": 3.3,
+            "handicap": 28.5
+          },
+          {
+            "id": "10688163446",
+            "name": "Sub 28.5",
+            "price": 1.29,
+            "handicap": 28.5
+          },
+          {
+            "id": "10688163447",
+            "name": "Peste 29.5",
+            "price": 3.6,
+            "handicap": 29.5
+          },
+          {
+            "id": "10688163448",
+            "name": "Sub 29.5",
+            "price": 1.25,
+            "handicap": 29.5
+          },
+          {
+            "id": "10688163449",
+            "name": "Peste 30.5",
+            "price": 4,
+            "handicap": 30.5
+          },
+          {
+            "id": "10688163450",
+            "name": "Sub 30.5",
+            "price": 1.21,
+            "handicap": 30.5
+          },
+          {
+            "id": "10688164813",
+            "name": "Peste 31.5",
+            "price": 4.65,
+            "handicap": 31.5
+          },
+          {
+            "id": "10688164814",
+            "name": "Sub 31.5",
+            "price": 1.15,
+            "handicap": 31.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119719",
+        "type": "FSTO",
+        "typeId": 1512,
+        "name": "Game-uri totale set (Set 1)",
+        "handicap": 7.5,
+        "selections": [
+          {
+            "id": "10687335224",
+            "name": "Peste 7.5",
+            "price": 1.06,
+            "handicap": 7.5
+          },
+          {
+            "id": "10687335225",
+            "name": "Sub 7.5",
+            "price": 8,
+            "handicap": 7.5
+          },
+          {
+            "id": "10687335228",
+            "name": "Peste 8.5",
+            "price": 1.19,
+            "handicap": 8.5
+          },
+          {
+            "id": "10687335229",
+            "name": "Sub 8.5",
+            "price": 4.3,
+            "handicap": 8.5
+          },
+          {
+            "id": "10687335232",
+            "name": "Peste 9.5",
+            "price": 1.65,
+            "handicap": 9.5
+          },
+          {
+            "id": "10687335233",
+            "name": "Sub 9.5",
+            "price": 2.15,
+            "handicap": 9.5
+          },
+          {
+            "id": "10687335236",
+            "name": "Peste 10.5",
+            "price": 2.8,
+            "handicap": 10.5
+          },
+          {
+            "id": "10687335237",
+            "name": "Sub 10.5",
+            "price": 1.4,
+            "handicap": 10.5
+          },
+          {
+            "id": "10687335244",
+            "name": "Peste 12.5",
+            "price": 3.55,
+            "handicap": 12.5
+          },
+          {
+            "id": "10687335245",
+            "name": "Sub 12.5",
+            "price": 1.27,
+            "handicap": 12.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358337",
+        "type": "OUG1",
+        "typeId": 1445,
+        "name": "Karen Khachanov Total game-uri câștigate",
+        "handicap": 6.5,
+        "selections": [
+          {
+            "id": "10688163395",
+            "name": "Peste 6.5",
+            "price": 1.23,
+            "handicap": 6.5
+          },
+          {
+            "id": "10688163396",
+            "name": "Sub 6.5",
+            "price": 3.85,
+            "handicap": 6.5
+          },
+          {
+            "id": "10688163389",
+            "name": "Peste 7.5",
+            "price": 1.42,
+            "handicap": 7.5
+          },
+          {
+            "id": "10688163390",
+            "name": "Sub 7.5",
+            "price": 2.77,
+            "handicap": 7.5
+          },
+          {
+            "id": "10688163385",
+            "name": "Peste 8.5",
+            "price": 1.65,
+            "handicap": 8.5
+          },
+          {
+            "id": "10688163386",
+            "name": "Sub 8.5",
+            "price": 2.15,
+            "handicap": 8.5
+          },
+          {
+            "id": "10688163387",
+            "name": "Peste 9.5",
+            "price": 1.9,
+            "handicap": 9.5
+          },
+          {
+            "id": "10688163388",
+            "name": "Sub 9.5",
+            "price": 1.83,
+            "handicap": 9.5
+          },
+          {
+            "id": "10688163391",
+            "name": "Peste 10.5",
+            "price": 2.15,
+            "handicap": 10.5
+          },
+          {
+            "id": "10688163392",
+            "name": "Sub 10.5",
+            "price": 1.65,
+            "handicap": 10.5
+          },
+          {
+            "id": "10688163393",
+            "name": "Peste 11.5",
+            "price": 2.35,
+            "handicap": 11.5
+          },
+          {
+            "id": "10688163394",
+            "name": "Sub 11.5",
+            "price": 1.55,
+            "handicap": 11.5
+          },
+          {
+            "id": "10688163397",
+            "name": "Peste 12.5",
+            "price": 2.8,
+            "handicap": 12.5
+          },
+          {
+            "id": "10688163398",
+            "name": "Sub 12.5",
+            "price": 1.4,
+            "handicap": 12.5
+          },
+          {
+            "id": "10688163401",
+            "name": "Peste 13.5",
+            "price": 3.5,
+            "handicap": 13.5
+          },
+          {
+            "id": "10688163402",
+            "name": "Sub 13.5",
+            "price": 1.28,
+            "handicap": 13.5
+          },
+          {
+            "id": "10688166183",
+            "name": "Peste 14.5",
+            "price": 4.25,
+            "handicap": 14.5
+          },
+          {
+            "id": "10688166184",
+            "name": "Sub 14.5",
+            "price": 1.2,
+            "handicap": 14.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358349",
+        "type": "OUG2",
+        "typeId": 1476,
+        "name": "Carlos Alcaraz Total game-uri câștigate",
+        "handicap": 10.5,
+        "selections": [
+          {
+            "id": "10688163419",
+            "name": "Peste 10.5",
+            "price": 1.05,
+            "handicap": 10.5
+          },
+          {
+            "id": "10688163420",
+            "name": "Sub 10.5",
+            "price": 8.75,
+            "handicap": 10.5
+          },
+          {
+            "id": "10688163417",
+            "name": "Peste 11.5",
+            "price": 1.06,
+            "handicap": 11.5
+          },
+          {
+            "id": "10688163418",
+            "name": "Sub 11.5",
+            "price": 8,
+            "handicap": 11.5
+          },
+          {
+            "id": "10688163405",
+            "name": "Peste 12.5",
+            "price": 1.62,
+            "handicap": 12.5
+          },
+          {
+            "id": "10688163406",
+            "name": "Sub 12.5",
+            "price": 2.22,
+            "handicap": 12.5
+          },
+          {
+            "id": "10688163407",
+            "name": "Peste 13.5",
+            "price": 2.62,
+            "handicap": 13.5
+          },
+          {
+            "id": "10688163408",
+            "name": "Sub 13.5",
+            "price": 1.45,
+            "handicap": 13.5
+          },
+          {
+            "id": "10688163409",
+            "name": "Peste 14.5",
+            "price": 3.1,
+            "handicap": 14.5
+          },
+          {
+            "id": "10688163410",
+            "name": "Sub 14.5",
+            "price": 1.34,
+            "handicap": 14.5
+          },
+          {
+            "id": "10688163411",
+            "name": "Peste 15.5",
+            "price": 3.65,
+            "handicap": 15.5
+          },
+          {
+            "id": "10688163412",
+            "name": "Sub 15.5",
+            "price": 1.26,
+            "handicap": 15.5
+          },
+          {
+            "id": "10688163413",
+            "name": "Peste 16.5",
+            "price": 4.7,
+            "handicap": 16.5
+          },
+          {
+            "id": "10688163414",
+            "name": "Sub 16.5",
+            "price": 1.17,
+            "handicap": 16.5
+          },
+          {
+            "id": "10688163415",
+            "name": "Peste 17.5",
+            "price": 6,
+            "handicap": 17.5
+          },
+          {
+            "id": "10688163416",
+            "name": "Sub 17.5",
+            "price": 1.11,
+            "handicap": 17.5
+          },
+          {
+            "id": "10688166185",
+            "name": "Peste 18.5",
+            "price": 9.25,
+            "handicap": 18.5
+          },
+          {
+            "id": "10688166186",
+            "name": "Sub 18.5",
+            "price": 1.04,
+            "handicap": 18.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358688",
+        "type": "P1FO",
+        "typeId": 1435,
+        "name": "Karen Khachanov Game-uri în primul set",
+        "handicap": 4.5,
+        "selections": [
+          {
+            "id": "10688164809",
+            "name": "Peste 4.5",
+            "price": 2.07,
+            "handicap": 4.5
+          },
+          {
+            "id": "10688164810",
+            "name": "Sub 4.5",
+            "price": 1.67,
+            "handicap": 4.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358689",
+        "type": "P2FO",
+        "typeId": 1466,
+        "name": "Carlos Alcaraz Game-uri în primul set",
+        "handicap": 6.5,
+        "selections": [
+          {
+            "id": "10688164811",
+            "name": "Peste 6.5",
+            "price": 3.8,
+            "handicap": 6.5
+          },
+          {
+            "id": "10688164812",
+            "name": "Sub 6.5",
+            "price": 1.23,
+            "handicap": 6.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029358310",
+        "type": "TSIM",
+        "typeId": 1408,
+        "name": "Seturi totale în meci (Peste/Sub)",
+        "handicap": 2.5,
+        "selections": [
+          {
+            "id": "10688163301",
+            "name": "Peste 2.5",
+            "price": 2.77,
+            "handicap": 2.5
+          },
+          {
+            "id": "10688163302",
+            "name": "Sub 2.5",
+            "price": 1.42,
+            "handicap": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119714",
+        "type": "P1WS",
+        "typeId": 1439,
+        "name": "Karen Khachanov să câștige un set",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335210",
+            "name": "Da",
+            "price": 2.3,
+            "handicap": 0
+          },
+          {
+            "id": "10687335211",
+            "name": "Nu",
+            "price": 1.57,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119713",
+        "type": "P2WS",
+        "typeId": 1470,
+        "name": "Carlos Alcaraz să câștige un set",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335208",
+            "name": "Da",
+            "price": 1.06,
+            "handicap": 0
+          },
+          {
+            "id": "10687335209",
+            "name": "Nu",
+            "price": 10.5,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119712",
+        "type": "P1W2",
+        "typeId": 1438,
+        "name": "Karen Khachanov să câștige 2 seturi",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335206",
+            "name": "Da",
+            "price": 5.2,
+            "handicap": 0
+          },
+          {
+            "id": "10687335207",
+            "name": "Nu",
+            "price": 1.16,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119711",
+        "type": "P2W2",
+        "typeId": 1469,
+        "name": "Carlos Alcaraz să câștige 2 seturi",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335204",
+            "name": "Da",
+            "price": 1.16,
+            "handicap": 0
+          },
+          {
+            "id": "10687335205",
+            "name": "Nu",
+            "price": 5.2,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119691",
+        "type": "SF60",
+        "typeId": 1359,
+        "name": "Oricare set se încheie 6:0 sau 0:6",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335160",
+            "name": "Da",
+            "price": 11.75,
+            "handicap": 0
+          },
+          {
+            "id": "10687335161",
+            "name": "Nu",
+            "price": 1.015,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119710",
+        "type": "BPWS",
+        "typeId": 1361,
+        "name": "Ambii jucători să câștige un set",
+        "handicap": 0,
+        "selections": [
+          {
+            "id": "10687335202",
+            "name": "Da",
+            "price": 2.77,
+            "handicap": 0
+          },
+          {
+            "id": "10687335203",
+            "name": "Nu",
+            "price": 1.42,
+            "handicap": 0
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94620478",
+        "sportId": "TENN",
+        "name": "Karen Khachanov - Carlos Alcaraz",
+        "participants": [
+          {
+            "name": "Karen Khachanov",
+            "color": "",
+            "id": "18894033"
+          },
+          {
+            "name": "Carlos Alcaraz",
+            "color": "",
+            "id": "19122492"
+          }
+        ],
+        "startTime": 1793016000000,
+        "leagueId": "16881",
+        "regionId": "11307",
+        "betRadarId": 75989914
+      },
+      "market": {
+        "id": "3029119739",
+        "type": "X244",
+        "typeId": 3876,
+        "name": "Total tie-break-uri",
+        "handicap": 0.5,
+        "selections": [
+          {
+            "id": "10687335258",
+            "name": "Peste 0.5",
+            "price": 2.05,
+            "handicap": 0.5
+          },
+          {
+            "id": "10687335259",
+            "name": "Sub 0.5",
+            "price": 1.72,
+            "handicap": 0.5
+          },
+          {
+            "id": "10687335260",
+            "name": "Peste 1.5",
+            "price": 6.6,
+            "handicap": 1.5
+          },
+          {
+            "id": "10687335261",
+            "name": "Sub 1.5",
+            "price": 1.09,
+            "handicap": 1.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029644632",
+        "type": "X150",
+        "typeId": 1424,
+        "name": "Total ași",
+        "handicap": 15.5,
+        "selections": [
+          {
+            "id": "10689139169",
+            "name": "Peste 15.5",
+            "price": 1.67,
+            "handicap": 15.5
+          },
+          {
+            "id": "10689139170",
+            "name": "Sub 15.5",
+            "price": 2.02,
+            "handicap": 15.5
+          },
+          {
+            "id": "10689137670",
+            "name": "Peste 16.5",
+            "price": 1.87,
+            "handicap": 16.5
+          },
+          {
+            "id": "10689137671",
+            "name": "Sub 16.5",
+            "price": 1.8,
+            "handicap": 16.5
+          },
+          {
+            "id": "10689136565",
+            "name": "Peste 17.5",
+            "price": 2.1,
+            "handicap": 17.5
+          },
+          {
+            "id": "10689136566",
+            "name": "Sub 17.5",
+            "price": 1.62,
+            "handicap": 17.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029642652",
+        "type": "P1TA",
+        "typeId": 1440,
+        "name": "Daniil Medvedev Ași",
+        "handicap": 10.5,
+        "selections": [
+          {
+            "id": "10689133967",
+            "name": "Peste 10.5",
+            "price": 1.6,
+            "handicap": 10.5
+          },
+          {
+            "id": "10689133968",
+            "name": "Sub 10.5",
+            "price": 2.15,
+            "handicap": 10.5
+          },
+          {
+            "id": "10689141387",
+            "name": "Peste 11.5",
+            "price": 1.85,
+            "handicap": 11.5
+          },
+          {
+            "id": "10689141388",
+            "name": "Sub 11.5",
+            "price": 1.82,
+            "handicap": 11.5
+          },
+          {
+            "id": "10689141389",
+            "name": "Peste 12.5",
+            "price": 2.15,
+            "handicap": 12.5
+          },
+          {
+            "id": "10689141390",
+            "name": "Sub 12.5",
+            "price": 1.6,
+            "handicap": 12.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029645514",
+        "type": "P2TA",
+        "typeId": 1471,
+        "name": "Nikoloz Basilashvili Ași",
+        "handicap": 3.5,
+        "selections": [
+          {
+            "id": "10689141391",
+            "name": "Peste 3.5",
+            "price": 1.36,
+            "handicap": 3.5
+          },
+          {
+            "id": "10689141392",
+            "name": "Sub 3.5",
+            "price": 2.82,
+            "handicap": 3.5
+          },
+          {
+            "id": "10689139171",
+            "name": "Peste 4.5",
+            "price": 1.7,
+            "handicap": 4.5
+          },
+          {
+            "id": "10689139172",
+            "name": "Sub 4.5",
+            "price": 2,
+            "handicap": 4.5
+          },
+          {
+            "id": "10689137672",
+            "name": "Peste 5.5",
+            "price": 2.22,
+            "handicap": 5.5
+          },
+          {
+            "id": "10689137673",
+            "name": "Sub 5.5",
+            "price": 1.57,
+            "handicap": 5.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029644556",
+        "type": "X193",
+        "typeId": 1531,
+        "name": "Ași - Primul set",
+        "handicap": 6.5,
+        "selections": [
+          {
+            "id": "10689138980",
+            "name": "Peste 6.5",
+            "price": 1.65,
+            "handicap": 6.5
+          },
+          {
+            "id": "10689138981",
+            "name": "Sub 6.5",
+            "price": 2.07,
+            "handicap": 6.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029642525",
+        "type": "X300",
+        "typeId": 1441,
+        "name": "Daniil Medvedev Total ași - Primul set",
+        "handicap": 4.5,
+        "selections": [
+          {
+            "id": "10689133647",
+            "name": "Peste 4.5",
+            "price": 1.65,
+            "handicap": 4.5
+          },
+          {
+            "id": "10689133648",
+            "name": "Sub 4.5",
+            "price": 2.07,
+            "handicap": 4.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029644860",
+        "type": "X301",
+        "typeId": 1472,
+        "name": "Nikoloz Basilashvili Total ași - Primul set",
+        "handicap": 1.5,
+        "selections": [
+          {
+            "id": "10689139829",
+            "name": "Peste 1.5",
+            "price": 1.52,
+            "handicap": 1.5
+          },
+          {
+            "id": "10689139830",
+            "name": "Sub 1.5",
+            "price": 2.32,
+            "handicap": 1.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029641263",
+        "type": "TDBF",
+        "typeId": 1534,
+        "name": "Duble greșeli",
+        "handicap": 5.5,
+        "selections": [
+          {
+            "id": "10689130357",
+            "name": "Peste 5.5",
+            "price": 1.67,
+            "handicap": 5.5
+          },
+          {
+            "id": "10689130358",
+            "name": "Sub 5.5",
+            "price": 2.05,
+            "handicap": 5.5
+          },
+          {
+            "id": "10689132226",
+            "name": "Peste 6.5",
+            "price": 2.12,
+            "handicap": 6.5
+          },
+          {
+            "id": "10689132227",
+            "name": "Sub 6.5",
+            "price": 1.62,
+            "handicap": 6.5
+          },
+          {
+            "id": "10689142056",
+            "name": "Peste 7.5",
+            "price": 2.77,
+            "handicap": 7.5
+          },
+          {
+            "id": "10689142057",
+            "name": "Sub 7.5",
+            "price": 1.37,
+            "handicap": 7.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029641261",
+        "type": "P1DF",
+        "typeId": 1431,
+        "name": "Daniil Medvedev Duble greșeli",
+        "handicap": 1.5,
+        "selections": [
+          {
+            "id": "10689130353",
+            "name": "Peste 1.5",
+            "price": 1.34,
+            "handicap": 1.5
+          },
+          {
+            "id": "10689130354",
+            "name": "Sub 1.5",
+            "price": 2.92,
+            "handicap": 1.5
+          },
+          {
+            "id": "10689132224",
+            "name": "Peste 2.5",
+            "price": 1.87,
+            "handicap": 2.5
+          },
+          {
+            "id": "10689132225",
+            "name": "Sub 2.5",
+            "price": 1.8,
+            "handicap": 2.5
+          },
+          {
+            "id": "10689142050",
+            "name": "Peste 3.5",
+            "price": 2.82,
+            "handicap": 3.5
+          },
+          {
+            "id": "10689142051",
+            "name": "Sub 3.5",
+            "price": 1.36,
+            "handicap": 3.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029645786",
+        "type": "P2DF",
+        "typeId": 1462,
+        "name": "Nikoloz Basilashvili Duble greșeli",
+        "handicap": 2.5,
+        "selections": [
+          {
+            "id": "10689142054",
+            "name": "Peste 2.5",
+            "price": 1.42,
+            "handicap": 2.5
+          },
+          {
+            "id": "10689142055",
+            "name": "Sub 2.5",
+            "price": 2.57,
+            "handicap": 2.5
+          },
+          {
+            "id": "10689128717",
+            "name": "Peste 3.5",
+            "price": 1.98,
+            "handicap": 3.5
+          },
+          {
+            "id": "10689128718",
+            "name": "Sub 3.5",
+            "price": 1.72,
+            "handicap": 3.5
+          },
+          {
+            "id": "10689142052",
+            "name": "Peste 4.5",
+            "price": 2.92,
+            "handicap": 4.5
+          },
+          {
+            "id": "10689142053",
+            "name": "Sub 4.5",
+            "price": 1.34,
+            "handicap": 4.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029641264",
+        "type": "X198",
+        "typeId": 1535,
+        "name": "Duble greșeli - Primul set",
+        "handicap": 2.5,
+        "selections": [
+          {
+            "id": "10689130359",
+            "name": "Peste 2.5",
+            "price": 1.88,
+            "handicap": 2.5
+          },
+          {
+            "id": "10689130360",
+            "name": "Sub 2.5",
+            "price": 1.8,
+            "handicap": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029641262",
+        "type": "X313",
+        "typeId": 1444,
+        "name": "Daniil Medvedev Total  duble greșeli - Primul set",
+        "handicap": 0.5,
+        "selections": [
+          {
+            "id": "10689130355",
+            "name": "Peste 0.5",
+            "price": 1.42,
+            "handicap": 0.5
+          },
+          {
+            "id": "10689130356",
+            "name": "Sub 0.5",
+            "price": 2.6,
+            "handicap": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029640570",
+        "type": "X314",
+        "typeId": 1475,
+        "name": "Nikoloz Basilashvili Total  duble greșeli - Primul set",
+        "handicap": 1.5,
+        "selections": [
+          {
+            "id": "10689128719",
+            "name": "Peste 1.5",
+            "price": 2.07,
+            "handicap": 1.5
+          },
+          {
+            "id": "10689128720",
+            "name": "Sub 1.5",
+            "price": 1.65,
+            "handicap": 1.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029406828",
+        "type": "X229",
+        "typeId": 1551,
+        "name": "Total break-uri",
+        "handicap": 3.5,
+        "selections": [
+          {
+            "id": "10688338346",
+            "name": "Peste 3.5",
+            "price": 1.75,
+            "handicap": 3.5
+          },
+          {
+            "id": "10688338347",
+            "name": "Sub 3.5",
+            "price": 1.98,
+            "handicap": 3.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029406826",
+        "type": "P1SB",
+        "typeId": 1454,
+        "name": "Daniil Medvedev Total break-uri",
+        "handicap": 2.5,
+        "selections": [
+          {
+            "id": "10688338342",
+            "name": "Peste 2.5",
+            "price": 1.7,
+            "handicap": 2.5
+          },
+          {
+            "id": "10688338343",
+            "name": "Sub 2.5",
+            "price": 2.02,
+            "handicap": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "94624543",
+        "sportId": "TENN",
+        "name": "Daniil Medvedev - Nikoloz Basilashvili",
+        "participants": [
+          {
+            "name": "Daniil Medvedev",
+            "color": "",
+            "id": "18898484"
+          },
+          {
+            "name": "Nikoloz Basilashvili",
+            "color": "",
+            "id": "1004541"
+          }
+        ],
+        "startTime": 1792922400000,
+        "leagueId": "203758",
+        "regionId": "11307",
+        "betRadarId": 75620030
+      },
+      "market": {
+        "id": "3029406827",
+        "type": "P2SB",
+        "typeId": 1486,
+        "name": "Nikoloz Basilashvili Total break-uri",
+        "handicap": 0.5,
+        "selections": [
+          {
+            "id": "10688338344",
+            "name": "Peste 0.5",
+            "price": 1.47,
+            "handicap": 0.5
+          },
+          {
+            "id": "10688338345",
+            "name": "Sub 0.5",
+            "price": 2.5,
+            "handicap": 0.5
+          }
+        ]
+      }
+    }
+  ],
+  "live": [
+    {
+      "version": 679,
+      "event": {
+        "id": 94600354,
+        "sportId": "TENN",
+        "isLive": true,
+        "participants": [
+          {
+            "name": "Alan Magadan / Rodrigo Pacheco Mendez",
+            "isHome": true,
+            "playerIds": [
+              18957775,
+              19182290
+            ]
+          },
+          {
+            "name": "Federico Zeballos / Marcelo Zormann",
+            "playerIds": [
+              1008066,
+              19182887
+            ]
+          }
+        ],
+        "startTime": 1792877400000,
+        "leagueId": 183891,
+        "zoneId": 11402,
+        "betradarMatchId": 75653924,
+        "isTennisDoubles": true,
+        "liveData": {
+          "score": {
+            "home": "0",
+            "away": "0"
+          },
+          "clock": {
+            "secondsSinceStart": 2179,
+            "clockStopped": true
+          },
+          "results": {
+            "totalSets": 3,
+            "currentPeriodNumber": 1,
+            "totalTennisGamesHome": 5,
+            "totalTennisGamesAway": 5,
+            "gamesHome": "5",
+            "gamesAway": "5",
+            "liveInfoHomeScore": "0",
+            "liveInfoAwayScore": "0",
+            "acesScore": {
+              "home": "1",
+              "away": "0"
+            },
+            "doubleFaultsScore": {
+              "home": "1",
+              "away": "1"
+            },
+            "breaksScore": {
+              "home": "1",
+              "away": "1"
+            },
+            "breakPointsScore": {
+              "home": "2",
+              "away": "3"
+            },
+            "recentGames": [
+              {
+                "gamesScore": {
+                  "home": "4",
+                  "away": "2"
+                },
+                "winner": 0,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "4",
+                  "away": "3"
+                },
+                "winner": 1,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "4",
+                  "away": "4"
+                },
+                "winner": 1,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "4",
+                  "away": "5"
+                },
+                "winner": 1,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "5",
+                  "away": "5"
+                },
+                "winner": 0,
+                "set": 1
+              }
+            ],
+            "serverAway": true,
+            "currentTennisGame": 11,
+            "setScoreList": [
+              {
+                "home": "5",
+                "away": "5"
+              }
+            ],
+            "completedSetsGamesScore": {
+              "home": "0",
+              "away": "0"
+            },
+            "currentSetGamesScore": {
+              "home": "5",
+              "away": "5"
+            },
+            "currentSet": "Set 1",
+            "currentGame": "Game 11",
+            "tieBreakScoreNeeded": 7,
+            "sportId": 3
+          },
+          "periodDescription": "Game 11"
+        },
+        "marketIdList": [
+          3030120732,
+          3030045571,
+          3028438363,
+          3028438362,
+          3028438361,
+          3030065844,
+          3030120940
+        ]
+      },
+      "markets": {
+        "3028438361": {
+          "selectionIdList": [
+            10684696861,
+            10684696862
+          ],
+          "type": "BPWS",
+          "typeId": 1361,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 195,
+          "id": 3028438361,
+          "name": "Ambii jucători să câștige un set"
+        },
+        "3028438362": {
+          "selectionIdList": [
+            10684696863,
+            10684696864
+          ],
+          "type": "P2WS",
+          "typeId": 1470,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 180,
+          "id": 3028438362,
+          "name": "Marcelo Zormann / Federico Zeballos să câștige un set"
+        },
+        "3028438363": {
+          "selectionIdList": [
+            10684696865,
+            10684696866
+          ],
+          "type": "P1WS",
+          "typeId": 1439,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 175,
+          "id": 3028438363,
+          "name": "Rodrigo Pacheco Mendez / Alan Magadan să câștige un set"
+        },
+        "3030045571": {
+          "selectionIdList": [
+            10690589313,
+            10690589314
+          ],
+          "type": "TGHC",
+          "typeId": 162,
+          "handicap": -0.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 60,
+          "id": 3030045571,
+          "name": "Total Game-uri Handicap"
+        },
+        "3030065844": {
+          "selectionIdList": [
+            10690662021,
+            10690662022
+          ],
+          "type": "P1FO",
+          "typeId": 1435,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 200,
+          "id": 3030065844,
+          "name": "Rodrigo Pacheco Mendez / Alan Magadan Game-uri în primul set"
+        },
+        "3030120732": {
+          "selectionIdList": [
+            10690877025,
+            10690877026
+          ],
+          "type": "FTGO",
+          "typeId": 1541,
+          "handicap": 22.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 44,
+          "id": 3030120732,
+          "name": "Game-uri"
+        },
+        "3030120940": {
+          "selectionIdList": [
+            10690877515,
+            10690877516
+          ],
+          "type": "P2FO",
+          "typeId": 1466,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 205,
+          "id": 3030120940,
+          "name": "Marcelo Zormann / Federico Zeballos Game-uri în primul set"
+        }
+      },
+      "selections": {
+        "10690877025": {
+          "price": 1.57,
+          "handicap": 22.5,
+          "typeId": 4039,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10690877025,
+          "name": "Peste 22.5",
+          "fullName": "Peste"
+        },
+        "10690877026": {
+          "price": 2.22,
+          "handicap": 22.5,
+          "typeId": 4040,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10690877026,
+          "name": "Sub 22.5",
+          "fullName": "Sub"
+        },
+        "10690589313": {
+          "price": 1.78,
+          "handicap": -0.5,
+          "typeId": 459,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10690589313,
+          "name": "Rodrigo Pacheco Mendez / Alan Magadan -0.5",
+          "fullName": "Rodrigo Pacheco Mendez / Alan Magadan",
+          "shortName": "-0.5"
+        },
+        "10690589314": {
+          "price": 1.93,
+          "handicap": 0.5,
+          "typeId": 460,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10690589314,
+          "name": "Marcelo Zormann / Federico Zeballos +0.5",
+          "fullName": "Marcelo Zormann / Federico Zeballos",
+          "shortName": "+0.5"
+        },
+        "10684696865": {
+          "price": 1.24,
+          "typeId": 3845,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10684696865,
+          "name": "Da",
+          "fullName": "Da"
+        },
+        "10684696866": {
+          "price": 3.8,
+          "typeId": 3846,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10684696866,
+          "name": "Nu",
+          "fullName": "Nu"
+        },
+        "10684696863": {
+          "price": 1.39,
+          "typeId": 3847,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10684696863,
+          "name": "Da",
+          "fullName": "Da"
+        },
+        "10684696864": {
+          "price": 2.82,
+          "typeId": 3848,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10684696864,
+          "name": "Nu",
+          "fullName": "Nu"
+        },
+        "10684696861": {
+          "price": 2.05,
+          "typeId": 3888,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10684696861,
+          "name": "Da",
+          "fullName": "Da"
+        },
+        "10684696862": {
+          "price": 1.72,
+          "typeId": 3889,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10684696862,
+          "name": "Nu",
+          "fullName": "Nu"
+        },
+        "10690662021": {
+          "price": 1.75,
+          "handicap": 6.5,
+          "typeId": 3909,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10690662021,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10690662022": {
+          "price": 2,
+          "handicap": 6.5,
+          "typeId": 3910,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10690662022,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        },
+        "10690877515": {
+          "price": 2,
+          "handicap": 6.5,
+          "typeId": 3911,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10690877515,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10690877516": {
+          "price": 1.75,
+          "handicap": 6.5,
+          "typeId": 3912,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10690877516,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        }
+      }
+    },
+    {
+      "version": 1191,
+      "event": {
+        "id": 94618531,
+        "sportId": "TENN",
+        "isLive": true,
+        "participants": [
+          {
+            "name": "Yuta Kikuchi",
+            "isHome": true,
+            "playerIds": [
+              18929386
+            ]
+          },
+          {
+            "name": "Dimitris Sakellaridis",
+            "playerIds": [
+              19160120
+            ]
+          }
+        ],
+        "startTime": 1792916400000,
+        "leagueId": 187739,
+        "zoneId": 11402,
+        "betradarMatchId": 75985918,
+        "liveData": {
+          "score": {
+            "home": "0",
+            "away": "0"
+          },
+          "clock": {
+            "secondsSinceStart": 2309
+          },
+          "results": {
+            "totalSets": 3,
+            "currentPeriodNumber": 2,
+            "totalTennisGamesHome": 7,
+            "totalTennisGamesAway": 1,
+            "liveInfoHomeScore": "1",
+            "liveInfoAwayScore": "0",
+            "acesScore": {
+              "home": "2",
+              "away": "0"
+            },
+            "doubleFaultsScore": {
+              "home": "2",
+              "away": "0"
+            },
+            "breaksScore": {
+              "home": "3",
+              "away": "0"
+            },
+            "breakPointsScore": {
+              "home": "7",
+              "away": "7"
+            },
+            "recentGames": [
+              {
+                "gamesScore": {
+                  "home": "3",
+                  "away": "1"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "4",
+                  "away": "1"
+                },
+                "winner": 0,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "5",
+                  "away": "1"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "6",
+                  "away": "1"
+                },
+                "winner": 0,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "1",
+                  "away": "0"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 2
+              }
+            ],
+            "serverHome": true,
+            "currentTennisGame": 9,
+            "setScoreList": [
+              {
+                "home": "6",
+                "away": "1"
+              },
+              {
+                "home": "1",
+                "away": "0"
+              }
+            ],
+            "completedSetsGamesScore": {
+              "home": "1",
+              "away": "0"
+            },
+            "currentSetGamesScore": {
+              "home": "1",
+              "away": "0"
+            },
+            "currentSet": "Set 2",
+            "currentGame": "Game 2",
+            "tieBreakScoreNeeded": 7,
+            "sportId": 3
+          },
+          "periodDescription": "Game 9"
+        },
+        "marketIdList": [
+          3030798232,
+          3029037735,
+          3029037728,
+          3029037731,
+          3029037733,
+          3029037737,
+          3029037741,
+          3030752119,
+          3030752116,
+          3030752117,
+          3030752118,
+          3030752120,
+          3030752122,
+          3030798031,
+          3029037747,
+          3030757223,
+          3030798231
+        ]
+      },
+      "markets": {
+        "3029037728": {
+          "selectionIdList": [
+            10687027786,
+            10687027787
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037728,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037731": {
+          "selectionIdList": [
+            10687027790,
+            10687027791
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037731,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037733": {
+          "selectionIdList": [
+            10687027794,
+            10687027795
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 8.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037733,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037735": {
+          "selectionIdList": [
+            10687027798,
+            10687027799
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 9.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037735,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037737": {
+          "selectionIdList": [
+            10687027802,
+            10687027803
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 10.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037737,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037741": {
+          "selectionIdList": [
+            10687027810,
+            10687027811
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 12.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029037741,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029037747": {
+          "selectionIdList": [
+            10687027820,
+            10687027821
+          ],
+          "type": "X244",
+          "typeId": 3876,
+          "handicap": 0.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 96,
+          "id": 3029037747,
+          "name": "Total tie-break-uri"
+        },
+        "3030752116": {
+          "selectionIdList": [
+            10693367666,
+            10693367667
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030752116,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030752117": {
+          "selectionIdList": [
+            10693367668,
+            10693367669
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030752117,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030752118": {
+          "selectionIdList": [
+            10693367670,
+            10693367671
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 8.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030752118,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030752119": {
+          "selectionIdList": [
+            10693367672,
+            10693367673
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 9.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "isBalanced": true,
+          "displayOrder": 45,
+          "id": 3030752119,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030752120": {
+          "selectionIdList": [
+            10693367674,
+            10693367675
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 10.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030752120,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030752122": {
+          "selectionIdList": [
+            10693367678,
+            10693367679
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 12.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030752122,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030757223": {
+          "selectionIdList": [
+            10693385101,
+            10693385102
+          ],
+          "type": "OUG1",
+          "typeId": 1445,
+          "handicap": 12.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 210,
+          "id": 3030757223,
+          "name": "Yuta Kikuchi Total game-uri câștigate"
+        },
+        "3030798031": {
+          "selectionIdList": [
+            10693556576,
+            10693556577
+          ],
+          "type": "TGHC",
+          "typeId": 162,
+          "handicap": -7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 60,
+          "id": 3030798031,
+          "name": "Total Game-uri Handicap"
+        },
+        "3030798231": {
+          "selectionIdList": [
+            10693557083,
+            10693557084
+          ],
+          "type": "OUG2",
+          "typeId": 1476,
+          "handicap": 4.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 211,
+          "id": 3030798231,
+          "name": "Dimitris Sakellaridis Total game-uri câștigate"
+        },
+        "3030798232": {
+          "selectionIdList": [
+            10693557085,
+            10693557086
+          ],
+          "type": "FTGO",
+          "typeId": 1541,
+          "handicap": 16.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 44,
+          "id": 3030798232,
+          "name": "Game-uri"
+        }
+      },
+      "selections": {
+        "10693557085": {
+          "price": 1.7,
+          "handicap": 16.5,
+          "typeId": 4039,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693557085,
+          "name": "Peste 16.5",
+          "fullName": "Peste"
+        },
+        "10693557086": {
+          "price": 2.05,
+          "handicap": 16.5,
+          "typeId": 4040,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693557086,
+          "name": "Sub 16.5",
+          "fullName": "Sub"
+        },
+        "10687027798": {
+          "price": 2.05,
+          "handicap": 9.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027798,
+          "name": "Peste 9.5",
+          "fullName": "Peste"
+        },
+        "10687027799": {
+          "price": 1.67,
+          "handicap": 9.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027799,
+          "name": "Sub 9.5",
+          "fullName": "Sub"
+        },
+        "10687027786": {
+          "price": 1.03,
+          "handicap": 6.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027786,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10687027787": {
+          "price": 8.25,
+          "handicap": 6.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027787,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        },
+        "10687027790": {
+          "price": 1.13,
+          "handicap": 7.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027790,
+          "name": "Peste 7.5",
+          "fullName": "Peste"
+        },
+        "10687027791": {
+          "price": 4.9,
+          "handicap": 7.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027791,
+          "name": "Sub 7.5",
+          "fullName": "Sub"
+        },
+        "10687027794": {
+          "price": 1.5,
+          "handicap": 8.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027794,
+          "name": "Peste 8.5",
+          "fullName": "Peste"
+        },
+        "10687027795": {
+          "price": 2.4,
+          "handicap": 8.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027795,
+          "name": "Sub 8.5",
+          "fullName": "Sub"
+        },
+        "10687027802": {
+          "price": 4,
+          "handicap": 10.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027802,
+          "name": "Peste 10.5",
+          "fullName": "Peste"
+        },
+        "10687027803": {
+          "price": 1.19,
+          "handicap": 10.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027803,
+          "name": "Sub 10.5",
+          "fullName": "Sub"
+        },
+        "10687027810": {
+          "price": 6.4,
+          "handicap": 12.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027810,
+          "name": "Peste 12.5",
+          "fullName": "Peste"
+        },
+        "10687027811": {
+          "price": 1.07,
+          "handicap": 12.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027811,
+          "name": "Sub 12.5",
+          "fullName": "Sub"
+        },
+        "10693367672": {
+          "price": 1.88,
+          "handicap": 9.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367672,
+          "name": "Peste 9.5",
+          "fullName": "Peste"
+        },
+        "10693367673": {
+          "price": 1.8,
+          "handicap": 9.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367673,
+          "name": "Sub 9.5",
+          "fullName": "Sub"
+        },
+        "10693367666": {
+          "price": 1.015,
+          "handicap": 6.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367666,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10693367667": {
+          "price": 9.5,
+          "handicap": 6.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367667,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        },
+        "10693367668": {
+          "price": 1.09,
+          "handicap": 7.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367668,
+          "name": "Peste 7.5",
+          "fullName": "Peste"
+        },
+        "10693367669": {
+          "price": 5.9,
+          "handicap": 7.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367669,
+          "name": "Sub 7.5",
+          "fullName": "Sub"
+        },
+        "10693367670": {
+          "price": 1.32,
+          "handicap": 8.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367670,
+          "name": "Peste 8.5",
+          "fullName": "Peste"
+        },
+        "10693367671": {
+          "price": 3,
+          "handicap": 8.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367671,
+          "name": "Sub 8.5",
+          "fullName": "Sub"
+        },
+        "10693367674": {
+          "price": 3.45,
+          "handicap": 10.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367674,
+          "name": "Peste 10.5",
+          "fullName": "Peste"
+        },
+        "10693367675": {
+          "price": 1.25,
+          "handicap": 10.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367675,
+          "name": "Sub 10.5",
+          "fullName": "Sub"
+        },
+        "10693367678": {
+          "price": 5.6,
+          "handicap": 12.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693367678,
+          "name": "Peste 12.5",
+          "fullName": "Peste"
+        },
+        "10693367679": {
+          "price": 1.1,
+          "handicap": 12.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693367679,
+          "name": "Sub 12.5",
+          "fullName": "Sub"
+        },
+        "10693556576": {
+          "price": 1.98,
+          "handicap": -7.5,
+          "typeId": 459,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693556576,
+          "name": "Yuta Kikuchi -7.5",
+          "fullName": "Yuta Kikuchi",
+          "shortName": "-7.5"
+        },
+        "10693556577": {
+          "price": 1.72,
+          "handicap": 7.5,
+          "typeId": 460,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693556577,
+          "name": "Dimitris Sakellaridis +7.5",
+          "fullName": "Dimitris Sakellaridis",
+          "shortName": "+7.5"
+        },
+        "10687027820": {
+          "price": 5.7,
+          "handicap": 0.5,
+          "typeId": 10098,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10687027820,
+          "name": "Peste 0.5",
+          "fullName": "Peste"
+        },
+        "10687027821": {
+          "price": 1.12,
+          "handicap": 0.5,
+          "typeId": 10099,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10687027821,
+          "name": "Sub 0.5",
+          "fullName": "Sub"
+        },
+        "10693385101": {
+          "price": 2.72,
+          "handicap": 12.5,
+          "typeId": 3859,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693385101,
+          "name": "Peste 12.5",
+          "fullName": "Peste"
+        },
+        "10693385102": {
+          "price": 1.42,
+          "handicap": 12.5,
+          "typeId": 3860,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693385102,
+          "name": "Sub 12.5",
+          "fullName": "Sub"
+        },
+        "10693557083": {
+          "price": 1.72,
+          "handicap": 4.5,
+          "typeId": 3861,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693557083,
+          "name": "Peste 4.5",
+          "fullName": "Peste"
+        },
+        "10693557084": {
+          "price": 2.05,
+          "handicap": 4.5,
+          "typeId": 3862,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693557084,
+          "name": "Sub 4.5",
+          "fullName": "Sub"
+        }
+      }
+    },
+    {
+      "version": 1043,
+      "event": {
+        "id": 94628939,
+        "sportId": "TENN",
+        "isLive": true,
+        "participants": [
+          {
+            "name": "Tereza Valentova",
+            "isHome": true,
+            "playerIds": [
+              19152826
+            ]
+          },
+          {
+            "name": "Shuai Zhang",
+            "playerIds": [
+              1008078
+            ]
+          }
+        ],
+        "startTime": 1792915500000,
+        "leagueId": 188717,
+        "zoneId": 10003,
+        "betradarMatchId": 75992876,
+        "liveData": {
+          "score": {
+            "home": "30",
+            "away": "0"
+          },
+          "clock": {
+            "secondsSinceStart": 2996
+          },
+          "results": {
+            "totalSets": 3,
+            "currentPeriodNumber": 2,
+            "totalTennisGamesHome": 8,
+            "totalTennisGamesAway": 5,
+            "liveInfoHomeScore": "1",
+            "liveInfoAwayScore": "0",
+            "acesScore": {
+              "home": "3",
+              "away": "1"
+            },
+            "doubleFaultsScore": {
+              "home": "0",
+              "away": "2"
+            },
+            "breaksScore": {
+              "home": "3",
+              "away": "1"
+            },
+            "breakPointsScore": {
+              "home": "5",
+              "away": "3"
+            },
+            "recentGames": [
+              {
+                "gamesScore": {
+                  "home": "5",
+                  "away": "4"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "5",
+                  "away": "5"
+                },
+                "winner": 1,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "6",
+                  "away": "5"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "7",
+                  "away": "5"
+                },
+                "winner": 0,
+                "set": 1
+              },
+              {
+                "gamesScore": {
+                  "home": "1",
+                  "away": "0"
+                },
+                "winner": 0,
+                "isBreak": true,
+                "set": 2
+              }
+            ],
+            "serverHome": true,
+            "currentTennisGame": 14,
+            "setScoreList": [
+              {
+                "home": "7",
+                "away": "5"
+              },
+              {
+                "home": "1",
+                "away": "0"
+              }
+            ],
+            "completedSetsGamesScore": {
+              "home": "1",
+              "away": "0"
+            },
+            "currentSetGamesScore": {
+              "home": "1",
+              "away": "0"
+            },
+            "currentSet": "Set 2",
+            "currentGame": "Game 2",
+            "tieBreakScoreNeeded": 7,
+            "sportId": 3
+          },
+          "periodDescription": "Game 14"
+        },
+        "marketIdList": [
+          3029659823,
+          3029515945,
+          3029515941,
+          3029515943,
+          3029515947,
+          3029515949,
+          3029515953,
+          3030729604,
+          3030729601,
+          3030729602,
+          3030729603,
+          3030729605,
+          3030729607,
+          3030796786,
+          3029515957,
+          3030767360,
+          3030796787
+        ]
+      },
+      "markets": {
+        "3029515941": {
+          "selectionIdList": [
+            10688721570,
+            10688721571
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515941,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515943": {
+          "selectionIdList": [
+            10688721574,
+            10688721575
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515943,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515945": {
+          "selectionIdList": [
+            10688721578,
+            10688721579
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 8.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515945,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515947": {
+          "selectionIdList": [
+            10688721582,
+            10688721583
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 9.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515947,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515949": {
+          "selectionIdList": [
+            10688721586,
+            10688721587
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 10.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515949,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515953": {
+          "selectionIdList": [
+            10688721594,
+            10688721595
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 12.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "2",
+          "displayOrder": 45,
+          "id": 3029515953,
+          "name": "Game-uri totale set (Set 2)"
+        },
+        "3029515957": {
+          "selectionIdList": [
+            10688721601,
+            10688721602
+          ],
+          "type": "X244",
+          "typeId": 3876,
+          "handicap": 0.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 96,
+          "id": 3029515957,
+          "name": "Total tie-break-uri"
+        },
+        "3029659823": {
+          "selectionIdList": [
+            10689185821,
+            10689185822
+          ],
+          "type": "FTGO",
+          "typeId": 1541,
+          "handicap": 20.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 41,
+          "id": 3029659823,
+          "name": "Game-uri"
+        },
+        "3030729601": {
+          "selectionIdList": [
+            10693292529,
+            10693292530
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 6.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030729601,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030729602": {
+          "selectionIdList": [
+            10693292531,
+            10693292532
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030729602,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030729603": {
+          "selectionIdList": [
+            10693292533,
+            10693292534
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 8.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030729603,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030729604": {
+          "selectionIdList": [
+            10693292535,
+            10693292536
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 9.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "isBalanced": true,
+          "displayOrder": 45,
+          "id": 3030729604,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030729605": {
+          "selectionIdList": [
+            10693292537,
+            10693292538
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 10.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030729605,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030729607": {
+          "selectionIdList": [
+            10693292541,
+            10693292542
+          ],
+          "type": "FSTO",
+          "typeId": 1512,
+          "handicap": 12.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "extra": "3",
+          "matchComboExclude": true,
+          "displayOrder": 45,
+          "id": 3030729607,
+          "name": "Game-uri totale set (Set 3)"
+        },
+        "3030767360": {
+          "selectionIdList": [
+            10693419568,
+            10693419571
+          ],
+          "type": "OUG1",
+          "typeId": 1445,
+          "handicap": 13.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 210,
+          "id": 3030767360,
+          "name": "Tereza Valentova Total game-uri câștigate"
+        },
+        "3030796786": {
+          "selectionIdList": [
+            10693551897,
+            10693551898
+          ],
+          "type": "TGHC",
+          "typeId": 162,
+          "handicap": -5.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 63,
+          "id": 3030796786,
+          "name": "Total Game-uri Handicap"
+        },
+        "3030796787": {
+          "selectionIdList": [
+            10693551899,
+            10693551900
+          ],
+          "type": "OUG2",
+          "typeId": 1476,
+          "handicap": 7.5,
+          "marketCloseTimeMillis": 0,
+          "renderingLayout": 2,
+          "displayOrder": 211,
+          "id": 3030796787,
+          "name": "Shuai Zhang Total game-uri câștigate"
+        }
+      },
+      "selections": {
+        "10689185821": {
+          "price": 2.15,
+          "handicap": 20.5,
+          "typeId": 4039,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10689185821,
+          "name": "Peste 20.5",
+          "fullName": "Peste"
+        },
+        "10689185822": {
+          "price": 1.62,
+          "handicap": 20.5,
+          "typeId": 4040,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10689185822,
+          "name": "Sub 20.5",
+          "fullName": "Sub"
+        },
+        "10688721578": {
+          "price": 2.15,
+          "handicap": 8.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721578,
+          "name": "Peste 8.5",
+          "fullName": "Peste"
+        },
+        "10688721579": {
+          "price": 1.62,
+          "handicap": 8.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721579,
+          "name": "Sub 8.5",
+          "fullName": "Sub"
+        },
+        "10688721570": {
+          "price": 1.11,
+          "handicap": 6.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721570,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10688721571": {
+          "price": 5.5,
+          "handicap": 6.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721571,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        },
+        "10688721574": {
+          "price": 1.37,
+          "handicap": 7.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721574,
+          "name": "Peste 7.5",
+          "fullName": "Peste"
+        },
+        "10688721575": {
+          "price": 2.85,
+          "handicap": 7.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721575,
+          "name": "Sub 7.5",
+          "fullName": "Sub"
+        },
+        "10688721582": {
+          "price": 3.05,
+          "handicap": 9.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721582,
+          "name": "Peste 9.5",
+          "fullName": "Peste"
+        },
+        "10688721583": {
+          "price": 1.33,
+          "handicap": 9.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721583,
+          "name": "Sub 9.5",
+          "fullName": "Sub"
+        },
+        "10688721586": {
+          "price": 6.4,
+          "handicap": 10.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721586,
+          "name": "Peste 10.5",
+          "fullName": "Peste"
+        },
+        "10688721587": {
+          "price": 1.08,
+          "handicap": 10.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721587,
+          "name": "Sub 10.5",
+          "fullName": "Sub"
+        },
+        "10688721594": {
+          "price": 8.5,
+          "handicap": 12.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721594,
+          "name": "Peste 12.5",
+          "fullName": "Peste"
+        },
+        "10688721595": {
+          "price": 1.04,
+          "handicap": 12.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721595,
+          "name": "Sub 12.5",
+          "fullName": "Sub"
+        },
+        "10693292535": {
+          "price": 1.88,
+          "handicap": 9.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292535,
+          "name": "Peste 9.5",
+          "fullName": "Peste"
+        },
+        "10693292536": {
+          "price": 1.82,
+          "handicap": 9.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292536,
+          "name": "Sub 9.5",
+          "fullName": "Sub"
+        },
+        "10693292529": {
+          "price": 1.015,
+          "handicap": 6.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292529,
+          "name": "Peste 6.5",
+          "fullName": "Peste"
+        },
+        "10693292530": {
+          "price": 10.5,
+          "handicap": 6.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292530,
+          "name": "Sub 6.5",
+          "fullName": "Sub"
+        },
+        "10693292531": {
+          "price": 1.09,
+          "handicap": 7.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292531,
+          "name": "Peste 7.5",
+          "fullName": "Peste"
+        },
+        "10693292532": {
+          "price": 6.1,
+          "handicap": 7.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292532,
+          "name": "Sub 7.5",
+          "fullName": "Sub"
+        },
+        "10693292533": {
+          "price": 1.32,
+          "handicap": 8.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292533,
+          "name": "Peste 8.5",
+          "fullName": "Peste"
+        },
+        "10693292534": {
+          "price": 3.1,
+          "handicap": 8.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292534,
+          "name": "Sub 8.5",
+          "fullName": "Sub"
+        },
+        "10693292537": {
+          "price": 3.5,
+          "handicap": 10.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292537,
+          "name": "Peste 10.5",
+          "fullName": "Peste"
+        },
+        "10693292538": {
+          "price": 1.26,
+          "handicap": 10.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292538,
+          "name": "Sub 10.5",
+          "fullName": "Sub"
+        },
+        "10693292541": {
+          "price": 5.6,
+          "handicap": 12.5,
+          "typeId": 4037,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693292541,
+          "name": "Peste 12.5",
+          "fullName": "Peste"
+        },
+        "10693292542": {
+          "price": 1.11,
+          "handicap": 12.5,
+          "typeId": 4038,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693292542,
+          "name": "Sub 12.5",
+          "fullName": "Sub"
+        },
+        "10693551897": {
+          "price": 1.6,
+          "handicap": -5.5,
+          "typeId": 459,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693551897,
+          "name": "Tereza Valentova -5.5",
+          "fullName": "Tereza Valentova",
+          "shortName": "-5.5"
+        },
+        "10693551898": {
+          "price": 2.12,
+          "handicap": 5.5,
+          "typeId": 460,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693551898,
+          "name": "Shuai Zhang +5.5",
+          "fullName": "Shuai Zhang",
+          "shortName": "+5.5"
+        },
+        "10688721601": {
+          "price": 8.75,
+          "handicap": 0.5,
+          "typeId": 10098,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10688721601,
+          "name": "Peste 0.5",
+          "fullName": "Peste"
+        },
+        "10688721602": {
+          "price": 1.05,
+          "handicap": 0.5,
+          "typeId": 10099,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10688721602,
+          "name": "Sub 0.5",
+          "fullName": "Sub"
+        },
+        "10693419568": {
+          "price": 4.75,
+          "handicap": 13.5,
+          "typeId": 3859,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693419568,
+          "name": "Peste 13.5",
+          "fullName": "Peste"
+        },
+        "10693419571": {
+          "price": 1.16,
+          "handicap": 13.5,
+          "typeId": 3860,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693419571,
+          "name": "Sub 13.5",
+          "fullName": "Sub"
+        },
+        "10693551899": {
+          "price": 2.15,
+          "handicap": 7.5,
+          "typeId": 3861,
+          "renderingLayout": 2,
+          "columnIndex": 0,
+          "displayOrder": 1,
+          "id": 10693551899,
+          "name": "Peste 7.5",
+          "fullName": "Peste"
+        },
+        "10693551900": {
+          "price": 1.65,
+          "handicap": 7.5,
+          "typeId": 3862,
+          "renderingLayout": 2,
+          "columnIndex": 1,
+          "displayOrder": 2,
+          "id": 10693551900,
+          "name": "Sub 7.5",
+          "fullName": "Sub"
+        }
+      }
+    }
+  ]
+}

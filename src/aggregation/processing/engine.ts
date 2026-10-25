@@ -7,6 +7,7 @@ import { teamSimilarity } from "../matching/names.js";
 import type { AggregationOptions } from "../model/config.interfaces.js";
 import type {
   AggregationEvent,
+  AggregationMatchedEvent,
   AggregationMatchingSummary,
   AggregationObservedPair,
 } from "../model/matching.interfaces.js";
@@ -19,8 +20,16 @@ import type {
   AggregationEventIdentity,
   AggregationProvider,
 } from "../model/wire.interfaces.js";
-import { WireError } from "../protocol/wire.js";
+import { WireError, lineCode } from "../protocol/wire.js";
 import { superbetFootballMarkets } from "../../providers/superbet/football-markets.config.js";
+import { superbetTennisMarkets } from "../../providers/superbet/tennis-markets.config.js";
+import { tennisMarketMapping } from "../tennis-mapping.config.js";
+import type {
+  AggregationSport,
+  AggregationTennisContext,
+} from "../model/tennis.interfaces.js";
+import type { AggregationCatalogDefinition } from "../model/mapping.interfaces.js";
+import { tennisNameSimilarity } from "../matching/tennis-names.js";
 import { Detector } from "./detector.js";
 import type { MarketInfo } from "./detector.js";
 import { EventRegistry } from "./events.js";
@@ -34,24 +43,34 @@ const fallbackBucketMs = 15 * 60_000;
 // Name-only candidates need stronger names than an ID pair, because nothing else vouches for them.
 const fallbackSimilarity = 0.7;
 const maxPendingReports = 10_000;
+const tennisCodes = new Set(
+  tennisMarketMapping
+    .filter((row) => row.enabled !== false)
+    .map((row) => row.code),
+);
 
 export interface AggregationEngineHandlers {
   onRecord(report: AggregationReport): void;
 }
 
 export interface AggregationEngineStats {
+  activeMatches: number;
   matching: AggregationMatchingSummary;
   opportunities: AggregationOpportunityStats;
   droppedReports: number;
 }
 
 // Labels come from the Superbet side of each mapping row; T rows read over/under there.
-function marketInfo(): Map<number, MarketInfo> {
-  const catalog = new Map(
-    superbetFootballMarkets.map((definition) => [definition.id, definition]),
+function marketInfo(sport: AggregationSport): Map<number, MarketInfo> {
+  const definitions =
+    sport === "tennis" ? superbetTennisMarkets : superbetFootballMarkets;
+  const catalog = new Map<number, AggregationCatalogDefinition>(
+    definitions.map((definition) => [definition.id, definition]),
   );
   const markets = new Map<number, MarketInfo>();
-  for (const row of footballMarketMapping) {
+  for (const row of sport === "tennis"
+    ? tennisMarketMapping
+    : footballMarketMapping) {
     const roles = catalog.get(row.superbet)?.outcomes.map((o) => o.role) ?? [];
     const a = roles.find(isRoleA) ?? "A";
     const b = roles.find((role) => role !== a) ?? "B";
@@ -75,15 +94,18 @@ export class AggregationEngine {
   private droppedReports = 0;
   private now = 0;
   private lastSweep = 0;
+  private matchesChanged = true;
+  private matchSignature: string | null = null;
 
   constructor(
     private readonly options: AggregationOptions,
     private readonly tables: LearnedTables,
     private readonly handlers: AggregationEngineHandlers,
+    private readonly sport: AggregationSport = "football",
   ) {
     this.registries = {
-      superbet: new EventRegistry("superbet", options.maxEvents),
-      betano: new EventRegistry("betano", options.maxEvents),
+      superbet: new EventRegistry("superbet", options.maxEvents, sport),
+      betano: new EventRegistry("betano", options.maxEvents, sport),
     };
     this.books = {
       superbet: new QuoteBook(options.maxLines),
@@ -93,22 +115,34 @@ export class AggregationEngine {
       options,
       { book: this.books.superbet, registry: this.registries.superbet },
       { book: this.books.betano, registry: this.registries.betano },
-      marketInfo(),
+      marketInfo(sport),
       this.lag,
       {
-        onReport: (report) =>
-          this.report({ ...report, type: "opportunity" }),
+        onReport: (report) => this.report({ ...report, type: "opportunity" }),
       },
+      sport,
     );
     this.linker = new LineLinker(this.books.superbet, this.books.betano, {
       onLinked: (line) => this.detector.mark(line),
-      onUnlinked: (line) => this.detector.close(line, this.now, "unlinked"),
+      onUnlinked: (line, cause) =>
+        this.detector.close(line, this.now, "unlinked", cause),
     });
-    this.matcher = new EventMatcher(options, tables, {
-      onConfirmed: (pair) => this.linker.link(pair),
-      onUnconfirmed: (pair) => this.linker.unlink(pair),
-      onReport: (report) => this.report(report),
-    });
+    this.matcher = new EventMatcher(
+      options,
+      tables,
+      {
+        onConfirmed: (pair) => {
+          this.matchesChanged = true;
+          this.linker.link(pair);
+        },
+        onUnconfirmed: (pair) => {
+          this.matchesChanged = true;
+          this.linker.unlink(pair);
+        },
+        onReport: (report) => this.report(report),
+      },
+      sport,
+    );
   }
 
   sink(provider: AggregationProvider): AggregationProviderSink {
@@ -183,6 +217,33 @@ export class AggregationEngine {
     this.observed = next;
   }
 
+  // Publish authoritative membership only; quote changes and transient re-pairing do not repeat the table.
+  takeMatchedEvents(): AggregationMatchedEvent[] | null {
+    if (!this.matchesChanged) return null;
+    this.matchesChanged = false;
+    const matches = [...this.matcher.pairs]
+      .filter((pair) => pair.state === "confirmed")
+      .map((pair) => ({
+        sport: this.sport,
+        betradarId: pair.betradarId,
+        superbetEventId: pair.superbet.identity.eventId,
+        betanoEventId: pair.betano.identity.eventId,
+        superbetMatch: `${pair.superbet.identity.home} - ${pair.superbet.identity.away}`,
+        betanoMatch: `${pair.betano.identity.home} - ${pair.betano.identity.away}`,
+      }))
+      .sort(
+        (a, b) =>
+          a.superbetEventId - b.superbetEventId ||
+          a.betanoEventId - b.betanoEventId,
+      );
+    const signature = matches
+      .map((match) => `${match.superbetEventId}:${match.betanoEventId}`)
+      .join(",");
+    if (signature === this.matchSignature) return null;
+    this.matchSignature = signature;
+    return matches;
+  }
+
   takeReports(): AggregationReport[] {
     const reports = this.reports;
     this.reports = [];
@@ -196,8 +257,13 @@ export class AggregationEngine {
 
   getStats(resetWindow = false): AggregationEngineStats {
     let linked = 0;
-    for (const pair of this.matcher.pairs) linked += pair.links.size;
+    let activeMatches = 0;
+    for (const pair of this.matcher.pairs) {
+      linked += pair.links.size;
+      if (this.detector.canCompare(pair, this.now)) activeMatches++;
+    }
     return {
+      activeMatches,
       matching: this.matcher.summary(
         {
           superbet: this.registries.superbet.all(),
@@ -252,7 +318,23 @@ export class AggregationEngine {
 
   release(provider: AggregationProvider, handle: number): void {
     const event = this.registries[provider].release(handle);
-    if (event) this.matcher.removed(event, this.now);
+    if (event) {
+      if (event.pair)
+        this.linker.unlink(event.pair, { kind: "event-withdrawn", provider });
+      this.matcher.removed(event, this.now);
+    }
+  }
+
+  tennis(
+    provider: AggregationProvider,
+    handle: number,
+    context: AggregationTennisContext,
+  ): void {
+    if (this.sport !== "tennis")
+      throw new WireError("Tennis context on a football channel.");
+    const event = this.registries[provider].get(handle)!;
+    event.tennis = context;
+    if (event.pair) this.detector.markPair(event.pair);
   }
 
   defineLine(
@@ -262,6 +344,8 @@ export class AggregationEngine {
     key: number,
   ): void {
     const event = this.registries[provider].get(handle)!;
+    if (this.sport === "tennis" && !tennisCodes.has(lineCode(key)))
+      throw new WireError("Unknown or disabled tennis market code.");
     if (event.lines.has(key))
       throw new WireError("Line key is already defined for this event.");
     event.lines.set(key, line);
@@ -298,8 +382,11 @@ export class AggregationEngine {
   }
 
   clear(provider: AggregationProvider): void {
-    for (const event of this.registries[provider].all())
+    for (const event of this.registries[provider].all()) {
+      if (event.pair)
+        this.linker.unlink(event.pair, { kind: "provider-cleared", provider });
       this.matcher.removed(event, this.now);
+    }
     this.registries[provider].clear();
     this.books[provider].clear();
     this.lag[provider] = 0;
@@ -316,6 +403,11 @@ export class AggregationEngine {
   }
 
   private similarity(a: AggregationEvent, b: AggregationEvent): number {
+    if (this.sport === "tennis")
+      return Math.min(
+        tennisNameSimilarity(a.home, b.home),
+        tennisNameSimilarity(a.away, b.away),
+      );
     const aliases = this.tables.aliases;
     return (
       Math.round(
@@ -327,12 +419,17 @@ export class AggregationEngine {
     );
   }
 
-  private candidate(superbet: AggregationEvent, betano: AggregationEvent): boolean {
+  private candidate(
+    superbet: AggregationEvent,
+    betano: AggregationEvent,
+  ): boolean {
     const left = superbet.identity;
     const right = betano.identity;
     // Two different IDs are two different matches, whatever the names say.
     if (left.betradarId > 0 && right.betradarId > 0) return false;
-    if (Math.abs(left.startsAt - right.startsAt) > this.options.startToleranceMs)
+    if (
+      Math.abs(left.startsAt - right.startsAt) > this.options.startToleranceMs
+    )
       return false;
     if (
       superbet.home.markers !== betano.home.markers ||
@@ -350,6 +447,7 @@ export class AggregationEngine {
   }
 
   private report(report: AggregationReport): void {
+    report = { ...report, sport: this.sport };
     this.handlers.onRecord(report);
     this.reports.push(report);
     if (this.reports.length > maxPendingReports) {
@@ -398,6 +496,9 @@ class ProviderSink implements AggregationProviderSink {
   }
   eventRelease(event: number): void {
     this.engine.release(this.provider, event);
+  }
+  eventTennis(event: number, context: AggregationTennisContext): void {
+    this.engine.tennis(this.provider, event, context);
   }
   lineDefine(line: number, event: number, key: number): void {
     this.engine.defineLine(this.provider, line, event, key);

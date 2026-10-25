@@ -1,3 +1,5 @@
+import type { AggregationTennisContext } from "./tennis.interfaces.js";
+
 export interface AggregationOutboxHandlers {
   // Re-emit every event and line from the provider projection after attach or reset.
   onResync?(): void;
@@ -12,6 +14,7 @@ export interface AggregationOutboxEvent {
   homeScore: number;
   awayScore: number;
   clockSeconds: number;
+  tennis?: AggregationTennisContext;
 }
 
 export interface AggregationOutboxStats {

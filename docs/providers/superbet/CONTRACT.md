@@ -1,6 +1,6 @@
 # Contract Superbet — evenimente, SSE și actualizări de cote
 
-[Ansamblu](../../README.md) · [Arhitectura providerilor](../PROVIDERS.md) · [Contract Betano](BETANO.md)
+[Ansamblu](../../../README.md) · [Arhitectura providerilor](../../architecture/PROVIDERS.md) · [Contract Betano](../betano/CONTRACT.md)
 
 Acest document descrie contractul tehnic folosit de implementarea noastră: endpointurile Superbet, forma evenimentelor și regulile de actualizare a stării locale. API-ul este nedocumentat public; regulile de mai jos descriu comportamentul implementat, fără a reprezenta o specificație oficială Superbet.
 
@@ -78,7 +78,7 @@ Versiunea aparține unui meci Superbet. Nu se compară cu versiunea altui meci s
 
 ## 4. Baza completă a cotelor
 
-Contractul de aici descrie starea vendor completă. [Modelul filtrat de fotbal](../SUPERBET-FOOTBALL.md) este o proiecție separată, aplicată după sincronizare: catalog explicit și exact două rezultate per linie. Nu modifică semantica patchurilor sau API-ul snapshotului brut.
+Contractul de aici descrie starea vendor completă. Modelele filtrate de [fotbal](FOOTBALL.md) și [tenis](TENNIS.md) sunt proiecții separate, aplicate după sincronizare: catalog explicit și exact două rezultate per linie. Nu modifică semantica patchurilor sau API-ul snapshotului brut. `getTennisSnapshot/onTennisSnapshot/onTennisUpdate` expun tenisul prin același processing worker; invalidarea temporară blochează folosirea cotelor, iar eliminarea șterge proiecția.
 
 ```json
 {
@@ -259,10 +259,10 @@ ACK-ul dintre processing worker și network worker confirmă **consumul fragment
 
 ## 8. Unde se verifică acest contract
 
-- [Modelul datelor](../../src/providers/superbet/model/state.interfaces.ts): eveniment, piață, odd și snapshot local.
-- [SSE și gzip](../../src/providers/superbet/protocol/sse.ts): reasamblare, encoding-uri și limite.
-- [Feed](../../src/providers/superbet/processing/feed.ts): requesturi, filtrare, abonări și recuperare.
-- [Store](../../src/providers/superbet/processing/state.ts): regulile de înlocuire, patch, zero ofertă și versiuni.
-- [Teste de stare](../../test/superbet-state.test.mjs) și [de protocol](../../test/superbet-protocol.test.mjs): exemple executabile ale regulilor implementate.
+- [Modelul datelor](../../../src/providers/superbet/model/state.interfaces.ts): eveniment, piață, odd și snapshot local.
+- [SSE și gzip](../../../src/providers/superbet/protocol/sse.ts): reasamblare, encoding-uri și limite.
+- [Feed](../../../src/providers/superbet/processing/feed.ts): requesturi, filtrare, abonări și recuperare.
+- [Store](../../../src/providers/superbet/processing/state.ts): regulile de înlocuire, patch, zero ofertă și versiuni.
+- [Teste de stare](../../../test/superbet-state.test.mjs) și [de protocol](../../../test/superbet-protocol.test.mjs): exemple executabile ale regulilor implementate.
 
-Regulile de conectare HTTP/2 și controlul fluxului sunt în [Network](../NETWORK.md). Configurările de concurență, credit, retry și timeout sunt în [Providers](../PROVIDERS.md#configurări-care-contează).
+Regulile de conectare HTTP/2 și controlul fluxului sunt în [Network](../../architecture/NETWORK.md). Configurările de concurență, credit, retry și timeout sunt în [Providers](../../architecture/PROVIDERS.md#configurări-care-contează).

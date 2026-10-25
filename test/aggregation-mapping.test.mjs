@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { footballLineKey } from "../dist/aggregation/adapter/football.js";
+import { aggregationConfig } from "../dist/aggregation/config.js";
 import { footballMarketMapping } from "../dist/aggregation/mapping.config.js";
 import { mappingIndex, validateMapping } from "../dist/aggregation/mapping.js";
 import { lineCode, lineKey, lineQuarters } from "../dist/aggregation/protocol/wire.js";
@@ -42,13 +43,24 @@ test("inconsistent rows are reported instead of silently mapped", () => {
 });
 
 test("only rows whose conditions are all enabled are indexed", () => {
-  const index = mappingIndex("superbet", ["D", "T"]);
+  const index = mappingIndex("superbet", aggregationConfig.enabledConditions);
   const rows = [...index.values()].flat();
-  assert.equal(rows.length, 27);
-  assert.ok(rows.every((entry) => entry.conditions.every((c) => c === "D" || c === "T")));
-  // Each-team cards (T + P) stays out until statistic rules are confirmed.
-  assert.equal(index.has(231045), false);
-  assert.equal(mappingIndex("betano", ["D", "T", "P"]).get(4151)?.[0].threshold, 0.5);
+  assert.equal(rows.length, 73);
+  assert.ok(rows.every((entry) => entry.conditions.every((c) => aggregationConfig.enabledConditions.includes(c))));
+  // Statistics and each-team card thresholds are enabled; intervals and Asian rows stay excluded.
+  for (const type of [704, 690, 201590, 200690, 200714, 230900, 230933])
+    assert.ok(index.has(type), `Missing statistic market: ${type}`);
+  assert.deepEqual(index.get(231045)?.map((entry) => entry.threshold), [0.5, 1.5]);
+  assert.equal(index.has(729), false);
+  assert.equal(index.has(711), false);
+  assert.equal(index.has(529), false);
+  assert.equal(index.has(530), false);
+  const betanoIndex = mappingIndex("betano", aggregationConfig.enabledConditions);
+  assert.equal([...betanoIndex.values()].flat().length, 73);
+  for (const type of [34, 65, 4159, 4629, 351, 460, 643])
+    assert.ok(betanoIndex.has(type), `Missing statistic market: ${type}`);
+  assert.equal(betanoIndex.get(4151)?.[0].threshold, 0.5);
+  assert.equal(mappingIndex("superbet", ["D", "T"]).has(231045), false);
   assert.equal(mappingIndex("betano", []).size, 0);
 });
 

@@ -100,6 +100,7 @@ export class SuperbetFootballProjection {
       if (lines.size) groups.set(footballMarketKey(market), lines);
     }
     this.events.set(event.id, {
+      synchronized: true,
       event,
       sourceVersion: snapshot.increment_id,
       projectedAt,
@@ -191,14 +192,18 @@ export class SuperbetFootballProjection {
     return change;
   }
 
-  getSnapshot(eventId: number): SuperbetFootballSnapshot | null {
+  getSnapshot(
+    eventId: number,
+    includeStale = false,
+  ): SuperbetFootballSnapshot | null {
     const state = this.events.get(eventId);
-    return state
+    return state && (state.synchronized || includeStale)
       ? {
           provider: "superbet",
           event: state.event,
           sourceVersion: state.sourceVersion,
           projectedAt: state.projectedAt,
+          synchronized: state.synchronized,
           lines: [...state.groups.values()].flatMap((group) => [
             ...group.values(),
           ]),
@@ -206,7 +211,26 @@ export class SuperbetFootballProjection {
       : null;
   }
 
-  // Discard the view on stale, removal, or shutdown; recovery installs a fresh baseline.
+  // Retain identity and lines, but block quotes until a complete baseline arrives.
+  invalidate(eventId: number, projectedAt = Date.now()): void {
+    const state = this.events.get(eventId);
+    if (!state || !state.synchronized) return;
+    state.synchronized = false;
+    this.handlers.onUpdate?.({
+      kind: "invalidate",
+      eventId,
+      sourceVersion: state.sourceVersion,
+      projectedAt,
+      upserts: [],
+      removed: [],
+    });
+  }
+
+  // Internal replay includes retained identities with an explicit synchronization flag.
+  *snapshots(): IterableIterator<SuperbetFootballSnapshot> {
+    for (const id of this.events.keys()) yield this.getSnapshot(id, true)!;
+  }
+
   remove(
     eventId: number,
     sourceVersion?: number,
@@ -216,7 +240,7 @@ export class SuperbetFootballProjection {
     if (!state) return;
     this.events.delete(eventId);
     this.handlers.onUpdate?.({
-      kind: "invalidate",
+      kind: "remove",
       eventId,
       sourceVersion: sourceVersion ?? state.sourceVersion,
       projectedAt,

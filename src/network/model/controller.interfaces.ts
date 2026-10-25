@@ -27,6 +27,7 @@ export interface NetworkLoopOptions extends Omit<
 
 // Define how the application receives raw responses and request failures.
 export interface NetworkControllerHandlers {
+  onReady?(threadId: number): void;
   onFailure?(error: Error): void;
   onResponse?(message: NetworkLoopResponseMessage): void;
   onError?(message: NetworkLoopErrorMessage): void;

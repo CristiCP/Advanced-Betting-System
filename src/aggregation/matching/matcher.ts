@@ -12,6 +12,8 @@ import type {
 } from "../model/wire.interfaces.js";
 import type { LearnedTables } from "./learning.js";
 import { teamSimilarity } from "./names.js";
+import type { AggregationSport } from "../model/tennis.interfaces.js";
+import { tennisNameSimilarity } from "./tennis-names.js";
 
 /**
  * @file Pairs events by Betradar ID and keeps every pair under continuous cross-checks.
@@ -42,7 +44,10 @@ export function clockAt(event: AggregationEvent, now: number): number {
 }
 
 export class EventMatcher {
-  private readonly index: Record<AggregationProvider, Map<number, AggregationEvent[]>> = {
+  private readonly index: Record<
+    AggregationProvider,
+    Map<number, AggregationEvent[]>
+  > = {
     superbet: new Map(),
     betano: new Map(),
   };
@@ -55,6 +60,7 @@ export class EventMatcher {
     private readonly options: AggregationOptions,
     private readonly tables: LearnedTables,
     private readonly handlers: EventMatcherHandlers,
+    private readonly sport: AggregationSport = "football",
   ) {}
 
   identityChanged(
@@ -93,9 +99,10 @@ export class EventMatcher {
     for (const pair of this.pairs) {
       this.evaluate(pair, now);
       if (
+        this.sport === "football" &&
         pair.state === "confirmed" &&
         !this.learned.has(pair) &&
-        now - pair.createdAt >= learnAfterMs
+        now - pair.confirmedSince >= learnAfterMs
       ) {
         this.learned.add(pair);
         this.tables.learn(pair);
@@ -187,6 +194,7 @@ export class EventMatcher {
       reasons: ["unverified"],
       similarity: 0,
       createdAt: now,
+      confirmedSince: NaN,
       scoreMismatchSince: NaN,
       links: new Set(),
       settleUntil: 0,
@@ -222,24 +230,47 @@ export class EventMatcher {
     )
       reasons.push("markers");
     const straight = Math.min(
-      teamSimilarity(superbet.home, betano.home, aliases),
-      teamSimilarity(superbet.away, betano.away, aliases),
+      this.sport === "tennis"
+        ? tennisNameSimilarity(superbet.home, betano.home)
+        : teamSimilarity(superbet.home, betano.home, aliases),
+      this.sport === "tennis"
+        ? tennisNameSimilarity(superbet.away, betano.away)
+        : teamSimilarity(superbet.away, betano.away, aliases),
     );
     const swapped = Math.min(
-      teamSimilarity(superbet.home, betano.away, aliases),
-      teamSimilarity(superbet.away, betano.home, aliases),
+      this.sport === "tennis"
+        ? tennisNameSimilarity(superbet.home, betano.away)
+        : teamSimilarity(superbet.home, betano.away, aliases),
+      this.sport === "tennis"
+        ? tennisNameSimilarity(superbet.away, betano.home)
+        : teamSimilarity(superbet.away, betano.home, aliases),
     );
     pair.similarity = Math.round(straight * 100) / 100;
     if (swapped >= nameEvidence && swapped > straight + swapMargin)
       reasons.push("orientation");
+    if (this.sport === "tennis" && straight < 0.8) reasons.push("unverified");
+    const synchronized = superbet.synchronized && betano.synchronized;
+    if (!synchronized) {
+      // A transport gap does not undo established identity, or count toward learning.
+      pair.confirmedSince = NaN;
+      pair.scoreMismatchSince = NaN;
+      if (reasons.length === 0) {
+        if (created) this.handlers.onReport(this.report(pair, pair.state, now));
+        return;
+      }
+    }
     const clockDifference = Math.abs(
       clockAt(superbet, now) - clockAt(betano, now),
     );
     const clockKnown =
-      superbet.live && betano.live && Number.isFinite(clockDifference);
+      synchronized &&
+      superbet.live &&
+      betano.live &&
+      Number.isFinite(clockDifference);
     if (clockKnown && clockDifference > this.options.clockToleranceSeconds)
       reasons.push("clock");
     if (
+      synchronized &&
       superbet.scoreKnown &&
       betano.scoreKnown &&
       (superbet.homeScore !== betano.homeScore ||
@@ -251,8 +282,15 @@ export class EventMatcher {
     } else pair.scoreMismatchSince = NaN;
     // Without name evidence, the start and the clock must both corroborate the ID.
     if (
+      synchronized &&
+      this.sport === "football" &&
       straight < nameEvidence &&
-      !(startKnown && clockKnown && !reasons.includes("start") && !reasons.includes("clock"))
+      !(
+        startKnown &&
+        clockKnown &&
+        !reasons.includes("start") &&
+        !reasons.includes("clock")
+      )
     )
       reasons.push("unverified");
     const state = reasons.length ? "suspect" : "confirmed";
@@ -261,6 +299,11 @@ export class EventMatcher {
       reasons.length !== pair.reasons.length ||
       reasons.some((reason, index) => reason !== pair.reasons[index]);
     const previous = pair.state;
+    if (
+      state !== previous ||
+      (state === "confirmed" && Number.isNaN(pair.confirmedSince))
+    )
+      pair.confirmedSince = state === "confirmed" ? now : NaN;
     pair.reasons = reasons;
     pair.state = state;
     if (previous === "confirmed" && state !== "confirmed")

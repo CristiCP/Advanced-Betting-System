@@ -1,0 +1,1982 @@
+{
+  "capturedAt": "2026-10-25T08:45:14.774Z",
+  "source": "Superbet public REST event snapshots; reduced to one complete line per approved market type.",
+  "cases": [
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 1002,
+        "name": "Total game-uri",
+        "odds": [
+          {
+            "uuid": "2ab90816-a77a-5fe8-9fc8-7cdaeac28e8e",
+            "price": 2.75,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4262,
+              "market_line_uuid": "f27a88e9-eaf7-5fa8-be03-0049b4c38e3e",
+              "offer_state_id": 1,
+              "name": "Sub 18.5",
+              "specifiers": {
+                "total": "18.5"
+              }
+            }
+          },
+          {
+            "uuid": "ec6630ac-9991-5087-9198-48cf5a44b5a4",
+            "price": 1.39,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4263,
+              "market_line_uuid": "f27a88e9-eaf7-5fa8-be03-0049b4c38e3e",
+              "offer_state_id": 1,
+              "name": "Peste 18.5",
+              "specifiers": {
+                "total": "18.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 518,
+        "name": "Minim 1 set Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "5c55f124-11af-5de2-ba36-b7f233d93f77",
+            "price": 1.14,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1323,
+              "market_line_uuid": "ea566493-0a91-5a23-aaa7-98805499fc43",
+              "offer_state_id": 1,
+              "name": "Da"
+            }
+          },
+          {
+            "uuid": "91ebbe66-4b7d-5100-88ae-7a0ba3854bc7",
+            "price": 5.3,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1324,
+              "market_line_uuid": "ea566493-0a91-5a23-aaa7-98805499fc43",
+              "offer_state_id": 1,
+              "name": "Nu"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 522,
+        "name": "Minim 1 set Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "247a10fb-b9b6-5418-98b5-1d0f8e6b444e",
+            "price": 1.88,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1331,
+              "market_line_uuid": "c5a3b93e-09c7-5ee2-8b84-61f5f8ee7f6f",
+              "offer_state_id": 1,
+              "name": "Da"
+            }
+          },
+          {
+            "uuid": "07a12b84-0945-520d-8452-639d5cbc1819",
+            "price": 1.87,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1332,
+              "market_line_uuid": "c5a3b93e-09c7-5ee2-8b84-61f5f8ee7f6f",
+              "offer_state_id": 1,
+              "name": "Nu"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 520,
+        "name": "Handicap game-uri",
+        "odds": [
+          {
+            "uuid": "c1fa9328-4b7d-539b-a8a2-123fb4a810f8",
+            "price": 5.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1327,
+              "market_line_uuid": "7c4e1fff-55e2-54f0-adc2-c77b062bc7aa",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-7.5)",
+              "specifiers": {
+                "hcp": "-7.5"
+              }
+            }
+          },
+          {
+            "uuid": "9e34f0e9-7c06-5037-bc59-6587181cc80d",
+            "price": 1.11,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1328,
+              "market_line_uuid": "7c4e1fff-55e2-54f0-adc2-c77b062bc7aa",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (7.5)",
+              "specifiers": {
+                "hcp": "-7.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 2392,
+        "name": "Total seturi",
+        "odds": [
+          {
+            "uuid": "755bcd43-170a-568d-9256-87eb62411cfa",
+            "price": 1.44,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 6016,
+              "market_line_uuid": "043b5ea8-9b9a-5f30-b607-e7d7a003a542",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "11d7f552-314b-503b-8188-2f0ff7fe9f66",
+            "price": 2.62,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 6017,
+              "market_line_uuid": "043b5ea8-9b9a-5f30-b607-e7d7a003a542",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 524,
+        "name": "Setul 1 - Total game-uri",
+        "odds": [
+          {
+            "uuid": "fad9a987-d60f-5dbc-a366-c26aed14e637",
+            "price": 21,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1335,
+              "market_line_uuid": "ba0127dc-9776-57e2-a0da-6a2ab9bbea5f",
+              "offer_state_id": 1,
+              "name": "Sub 6.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "6.5"
+              }
+            }
+          },
+          {
+            "uuid": "118f0674-20b7-578e-9d74-02d001da0788",
+            "price": 1.01,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1336,
+              "market_line_uuid": "ba0127dc-9776-57e2-a0da-6a2ab9bbea5f",
+              "offer_state_id": 1,
+              "name": "Peste 6.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "6.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 200776,
+        "name": "Handicap seturi",
+        "odds": [
+          {
+            "uuid": "397cf01d-70ff-59dc-932a-1e56cbe53f20",
+            "price": 1.85,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 152184,
+              "market_line_uuid": "08873524-3dd0-5af1-8c93-191d5c0f521b",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-1.5)",
+              "specifiers": {
+                "hcp": "-1.5"
+              }
+            }
+          },
+          {
+            "uuid": "77989b23-dbeb-5e04-ac77-3ab4487af663",
+            "price": 1.87,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 152185,
+              "market_line_uuid": "08873524-3dd0-5af1-8c93-191d5c0f521b",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (1.5)",
+              "specifiers": {
+                "hcp": "-1.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 999,
+        "name": "Total game-uri Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "84b26902-ac7d-5ba6-926f-71baea270239",
+            "price": 5.15,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4253,
+              "market_line_uuid": "d0479456-30b9-5f67-a876-3f29f029d715",
+              "offer_state_id": 1,
+              "name": "Sub 10.5",
+              "specifiers": {
+                "total": "10.5"
+              }
+            }
+          },
+          {
+            "uuid": "cbbaa340-bea2-586d-ae0d-25175cf597a3",
+            "price": 1.13,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4254,
+              "market_line_uuid": "d0479456-30b9-5f67-a876-3f29f029d715",
+              "offer_state_id": 1,
+              "name": "Peste 10.5",
+              "specifiers": {
+                "total": "10.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 996,
+        "name": "Total game-uri Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "31dab5c0-9df3-55f5-a93e-10cfc5cd312c",
+            "price": 2.17,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4244,
+              "market_line_uuid": "e201f984-c684-5c07-8955-7552bb49765d",
+              "offer_state_id": 1,
+              "name": "Sub 8.5",
+              "specifiers": {
+                "total": "8.5"
+              }
+            }
+          },
+          {
+            "uuid": "f527b1ae-854f-51ca-a059-0643a9493b47",
+            "price": 1.63,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4245,
+              "market_line_uuid": "e201f984-c684-5c07-8955-7552bb49765d",
+              "offer_state_id": 1,
+              "name": "Peste 8.5",
+              "specifiers": {
+                "total": "8.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230656,
+        "name": "Setul 1 - Total game-uri Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "cd29143c-c235-594e-af16-4779708aa437",
+            "price": 9.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203979,
+              "market_line_uuid": "d1750e7b-9290-5d26-aa7d-0847302f39c7",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "ffb3527e-0410-5091-aaed-21c3153c3322",
+            "price": 1.04,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203980,
+              "market_line_uuid": "d1750e7b-9290-5d26-aa7d-0847302f39c7",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230663,
+        "name": "Setul 1 - Total game-uri Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "47b0235f-be93-5a17-9560-29b61aec44b7",
+            "price": 3.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204004,
+              "market_line_uuid": "3f9e1dd8-1fc9-5d2b-8bdd-719f3e002931",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "0f483b74-38c1-5d3c-ac82-9d8d3b7bacae",
+            "price": 1.24,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204005,
+              "market_line_uuid": "3f9e1dd8-1fc9-5d2b-8bdd-719f3e002931",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 1003,
+        "name": "Setul 1 - Handicap game-uri",
+        "odds": [
+          {
+            "uuid": "9af59fc3-c13f-547a-9dbe-7e1c6fcab4cc",
+            "price": 6.8,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4264,
+              "market_line_uuid": "ac3d9209-0425-5033-91bc-1f97b9417b2e",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-4.5)",
+              "specifiers": {
+                "hcp": "-4.5",
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "eebc5013-1063-51c9-916f-b2a36a503ed9",
+            "price": 1.08,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4265,
+              "market_line_uuid": "ac3d9209-0425-5033-91bc-1f97b9417b2e",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (4.5)",
+              "specifiers": {
+                "hcp": "-4.5",
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 548,
+        "name": "Orice set la zero",
+        "odds": [
+          {
+            "uuid": "52b31c45-4a79-5994-a895-e783b807cfed",
+            "price": 8.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1473,
+              "market_line_uuid": "8fee0c8e-0cb7-5ef3-9c39-021ed3c2eaba",
+              "offer_state_id": 1,
+              "name": "Da"
+            }
+          },
+          {
+            "uuid": "4d130ab9-c580-58b5-92cf-b86f95dd9053",
+            "price": 1.04,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1474,
+              "market_line_uuid": "8fee0c8e-0cb7-5ef3-9c39-021ed3c2eaba",
+              "offer_state_id": 1,
+              "name": "Nu"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230641,
+        "name": "Total tiebreak-uri",
+        "odds": [
+          {
+            "uuid": "2ed2933f-9f44-5252-b9a8-044ff4f91f41",
+            "price": 1.32,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203929,
+              "market_line_uuid": "16663608-7f0a-56da-b4b5-f4e5d22abbb3",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "9f38c095-78d1-56f1-b05b-0bb57cf911bc",
+            "price": 3.05,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203930,
+              "market_line_uuid": "16663608-7f0a-56da-b4b5-f4e5d22abbb3",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 602,
+        "name": "Setul X - Va fi tiebreak?",
+        "odds": [
+          {
+            "uuid": "9e1bb131-f1d8-52d4-a011-71280c6dffd6",
+            "price": 5.65,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1653,
+              "market_line_uuid": "5b3dcb7e-2efd-5a15-84c1-4cb4a3b26915",
+              "offer_state_id": 1,
+              "name": "Setul 1 - Da",
+              "specifiers": {
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "e87333c4-e996-5c90-8d65-6c979cddd473",
+            "price": 1.11,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1654,
+              "market_line_uuid": "5b3dcb7e-2efd-5a15-84c1-4cb4a3b26915",
+              "offer_state_id": 1,
+              "name": "Setul 1 - Nu",
+              "specifiers": {
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230649,
+        "name": "Va fi tiebreak sau super tiebreak în setul decisiv?",
+        "odds": [
+          {
+            "uuid": "80fe163e-8288-5bf4-ab2f-c0886af0cdbc",
+            "price": 13,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203954,
+              "market_line_uuid": "c14bbd23-171a-5732-a73e-1232adb88503",
+              "offer_state_id": 1,
+              "name": "Da"
+            }
+          },
+          {
+            "uuid": "d0619474-d5f0-5154-9d34-bf0efad42de9",
+            "price": 1.02,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203955,
+              "market_line_uuid": "c14bbd23-171a-5732-a73e-1232adb88503",
+              "offer_state_id": 1,
+              "name": "Nu"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 232690,
+        "name": "Se va juca setul 3",
+        "odds": [
+          {
+            "uuid": "62ba9a67-09fa-5903-8dd6-2a0423f32660",
+            "price": 2.6,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209718,
+              "market_line_uuid": "4a143f5a-0237-5af7-bcb3-db0fef8c296f",
+              "offer_state_id": 1,
+              "name": "Da",
+              "specifiers": {
+                "setnr": "3"
+              }
+            }
+          },
+          {
+            "uuid": "d9425b0b-73d5-5ab3-a186-7add1ccff0a0",
+            "price": 1.43,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209719,
+              "market_line_uuid": "4a143f5a-0237-5af7-bcb3-db0fef8c296f",
+              "offer_state_id": 1,
+              "name": "Nu",
+              "specifiers": {
+                "setnr": "3"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 235336,
+        "name": "Total ași",
+        "odds": [
+          {
+            "uuid": "a7c15ee4-d70d-57fa-86e4-497b2b7db124",
+            "price": 3.05,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 10998,
+              "market_line_uuid": "a0fa2503-802f-547e-8299-cfbf11de0aef",
+              "offer_state_id": 1,
+              "name": "Sub 6.5",
+              "specifiers": {
+                "total": "6.5"
+              }
+            }
+          },
+          {
+            "uuid": "94b92b93-e094-5503-9118-fa06f8ca28bf",
+            "price": 1.27,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 10999,
+              "market_line_uuid": "a0fa2503-802f-547e-8299-cfbf11de0aef",
+              "offer_state_id": 1,
+              "name": "Peste 6.5",
+              "specifiers": {
+                "total": "6.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 232681,
+        "name": "Total ași Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "a2c0e6fd-b131-5da6-b61f-9b0303c42657",
+            "price": 3.25,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209693,
+              "market_line_uuid": "ee239011-c622-56d4-a835-1d285085792d",
+              "offer_state_id": 1,
+              "name": "Sub 4.5",
+              "specifiers": {
+                "total": "4.5"
+              }
+            }
+          },
+          {
+            "uuid": "0f3d3d1d-ab70-558d-a32f-094d7f7ed924",
+            "price": 1.24,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209694,
+              "market_line_uuid": "ee239011-c622-56d4-a835-1d285085792d",
+              "offer_state_id": 1,
+              "name": "Peste 4.5",
+              "specifiers": {
+                "total": "4.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 232682,
+        "name": "Total ași Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "5680b053-af31-5aae-bc43-1a3393b9c7dc",
+            "price": 4.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209695,
+              "market_line_uuid": "0c44e0b1-b6e9-50cb-89ef-5f231d54b02d",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "8fddc8c3-98e1-5c08-aeb0-a0159ec6a447",
+            "price": 1.1,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209696,
+              "market_line_uuid": "0c44e0b1-b6e9-50cb-89ef-5f231d54b02d",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230678,
+        "name": "Setul 1 - Total ași",
+        "odds": [
+          {
+            "uuid": "f111404e-a1eb-5064-bf5a-5284759ef25a",
+            "price": 3.05,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204080,
+              "market_line_uuid": "4665b7e9-a8c5-584b-8c2a-573c46d190b5",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "00b400f0-3e30-5b7e-8737-c4b98faeb056",
+            "price": 1.27,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204081,
+              "market_line_uuid": "4665b7e9-a8c5-584b-8c2a-573c46d190b5",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230679,
+        "name": "Setul 1 - Total ași Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "5ff82891-337e-5b08-9490-483cc9d00767",
+            "price": 3.5,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204082,
+              "market_line_uuid": "79cf0aed-cff7-52ff-8bdc-83ecb6009baa",
+              "offer_state_id": 1,
+              "name": "Sub 1.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "1.5"
+              }
+            }
+          },
+          {
+            "uuid": "40596c8c-8341-532d-a51c-450fcb923cb8",
+            "price": 1.2,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204083,
+              "market_line_uuid": "79cf0aed-cff7-52ff-8bdc-83ecb6009baa",
+              "offer_state_id": 1,
+              "name": "Peste 1.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "1.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230680,
+        "name": "Setul 1 - Total ași Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "95e98fde-54b5-5af2-9d06-e9c5b714d912",
+            "price": 2.27,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204084,
+              "market_line_uuid": "8e311b3a-de49-55aa-9748-9f20c66f6cd7",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "5c299523-0e9b-5d43-948b-cb0e09d49ab3",
+            "price": 1.53,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204085,
+              "market_line_uuid": "8e311b3a-de49-55aa-9748-9f20c66f6cd7",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 235337,
+        "name": "Handicap ași",
+        "odds": [
+          {
+            "uuid": "72522e10-d2da-5431-943c-0df9b055b79b",
+            "price": 1.92,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11007,
+              "market_line_uuid": "b0273c1e-d547-50ea-9201-e5ac0879c2e1",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-4.5)",
+              "specifiers": {
+                "hcp": "-4.5"
+              }
+            }
+          },
+          {
+            "uuid": "74dce2a7-1ad7-516e-a3a6-f98849dc2344",
+            "price": 1.77,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11008,
+              "market_line_uuid": "b0273c1e-d547-50ea-9201-e5ac0879c2e1",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (4.5)",
+              "specifiers": {
+                "hcp": "-4.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230682,
+        "name": "Setul 1 - Handicap ași",
+        "odds": [
+          {
+            "uuid": "b4cc5a41-cb40-5fb1-a285-8815d6765c07",
+            "price": 1.63,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204089,
+              "market_line_uuid": "212defc9-2970-59d1-a8f8-d23cae859efb",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-1.5)",
+              "specifiers": {
+                "hcp": "-1.5",
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "0c3b74eb-15b8-59c0-a7ea-c4765e46b215",
+            "price": 2.07,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204090,
+              "market_line_uuid": "212defc9-2970-59d1-a8f8-d23cae859efb",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (1.5)",
+              "specifiers": {
+                "hcp": "-1.5",
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 235338,
+        "name": "Total duble greșeli",
+        "odds": [
+          {
+            "uuid": "cda8d213-6ec6-5f97-a1fb-197e11a7af64",
+            "price": 2.67,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11020,
+              "market_line_uuid": "d0770ff4-f028-58fc-a50f-6fc82bd83461",
+              "offer_state_id": 1,
+              "name": "Sub 7.5",
+              "specifiers": {
+                "total": "7.5"
+              }
+            }
+          },
+          {
+            "uuid": "b71da251-fb0e-564a-8281-b3522b265e04",
+            "price": 1.36,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11021,
+              "market_line_uuid": "d0770ff4-f028-58fc-a50f-6fc82bd83461",
+              "offer_state_id": 1,
+              "name": "Peste 7.5",
+              "specifiers": {
+                "total": "7.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 233658,
+        "name": "Total duble greșeli Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "9d9ff127-7c2d-5eff-9663-0016b1950e03",
+            "price": 3.5,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 7475,
+              "market_line_uuid": "4ac4aece-f71c-543c-ba04-e9ce7caf211f",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "2eea9dec-5f71-5fe6-a669-1141a798a9f7",
+            "price": 1.2,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 7476,
+              "market_line_uuid": "4ac4aece-f71c-543c-ba04-e9ce7caf211f",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 233659,
+        "name": "Total duble greșeli Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "1c9db577-753e-560e-9159-f6d86569507e",
+            "price": 4.75,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 7477,
+              "market_line_uuid": "709fd260-d063-53d4-becd-f3bafaedc3d8",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "db65f9e6-0be0-5cb8-99ad-83380ad136df",
+            "price": 1.1,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 7478,
+              "market_line_uuid": "709fd260-d063-53d4-becd-f3bafaedc3d8",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230683,
+        "name": "Setul 1 - Total duble greșeli",
+        "odds": [
+          {
+            "uuid": "aa15c2ac-12c0-5f94-ab72-ca99c8079939",
+            "price": 3.35,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204091,
+              "market_line_uuid": "ac084e52-6f83-538f-abb1-f5e49cb28732",
+              "offer_state_id": 1,
+              "name": "Sub 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          },
+          {
+            "uuid": "2e4a1c5f-025f-52f9-90f0-cbb859b0a479",
+            "price": 1.22,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204092,
+              "market_line_uuid": "ac084e52-6f83-538f-abb1-f5e49cb28732",
+              "offer_state_id": 1,
+              "name": "Peste 2.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "2.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230684,
+        "name": "Setul 1 - Total duble greșeli Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "5da13696-2f6f-5990-a273-73c7436d8847",
+            "price": 4.35,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204093,
+              "market_line_uuid": "4f4c2dad-048c-5dff-b360-a5710969d5b7",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "582fb556-15b1-513c-a525-97f0ed52aae9",
+            "price": 1.12,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204094,
+              "market_line_uuid": "4f4c2dad-048c-5dff-b360-a5710969d5b7",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230685,
+        "name": "Setul 1 - Total duble greșeli Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "febfc707-568c-5cee-82b7-d36e17630d6e",
+            "price": 2.4,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204095,
+              "market_line_uuid": "b1ec3816-e3bd-50f1-8f3e-a9b11909609e",
+              "offer_state_id": 1,
+              "name": "Sub 1.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "1.5"
+              }
+            }
+          },
+          {
+            "uuid": "23fb3f81-3010-51e4-9572-c3d0659b8891",
+            "price": 1.46,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204096,
+              "market_line_uuid": "b1ec3816-e3bd-50f1-8f3e-a9b11909609e",
+              "offer_state_id": 1,
+              "name": "Peste 1.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "1.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 235344,
+        "name": "Handicap duble greșeli",
+        "odds": [
+          {
+            "uuid": "922eda09-0b76-5617-8a72-792693c82f03",
+            "price": 1.88,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11056,
+              "market_line_uuid": "15ef46f2-6d22-596b-85bb-6588e2502a03",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (0.5)",
+              "specifiers": {
+                "hcp": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "68d1a10b-5cb6-53e2-9678-8f8997b75688",
+            "price": 1.8,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 11057,
+              "market_line_uuid": "15ef46f2-6d22-596b-85bb-6588e2502a03",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (-0.5)",
+              "specifiers": {
+                "hcp": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230687,
+        "name": "Setul 1  -  Handicap Duble greșeli",
+        "odds": [
+          {
+            "uuid": "eed39a95-9594-5991-b17c-28116427eea7",
+            "price": 1.68,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204100,
+              "market_line_uuid": "8cdf0d66-7ebc-5f7e-9f50-8cf349a8057b",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (0.5)",
+              "specifiers": {
+                "hcp": "0.5",
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "7ca46fbe-0eac-537c-8233-3bf17149a3b6",
+            "price": 2.02,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4204101,
+              "market_line_uuid": "8cdf0d66-7ebc-5f7e-9f50-8cf349a8057b",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (-0.5)",
+              "specifiers": {
+                "hcp": "0.5",
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 240072,
+        "name": "Total puncte câștigate Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "0a1035e4-050d-51a8-8a8a-f91db76cb480",
+            "price": 1.87,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 9656,
+              "market_line_uuid": "9aa1c748-7511-5a07-ac5f-6413557ff4d3",
+              "offer_state_id": 1,
+              "name": "Sub 72.5",
+              "specifiers": {
+                "total": "72.5"
+              }
+            }
+          },
+          {
+            "uuid": "f536561a-9918-524b-8a60-77192e840a63",
+            "price": 1.82,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 9657,
+              "market_line_uuid": "9aa1c748-7511-5a07-ac5f-6413557ff4d3",
+              "offer_state_id": 1,
+              "name": "Peste 72.5",
+              "specifiers": {
+                "total": "72.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 240073,
+        "name": "Total puncte câștigate Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "b80fc588-aa6d-59ec-9f17-ebf9c279ddd4",
+            "price": 2,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 9658,
+              "market_line_uuid": "1bb51685-4093-5f52-a15c-975ff43127fb",
+              "offer_state_id": 1,
+              "name": "Sub 64.5",
+              "specifiers": {
+                "total": "64.5"
+              }
+            }
+          },
+          {
+            "uuid": "cb93a1c9-a1e6-5359-83fc-71e25a4c3d94",
+            "price": 1.71,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 9659,
+              "market_line_uuid": "1bb51685-4093-5f52-a15c-975ff43127fb",
+              "offer_state_id": 1,
+              "name": "Peste 64.5",
+              "specifiers": {
+                "total": "64.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 231480,
+        "name": "Setul 1 - Total puncte câștigate",
+        "odds": [
+          {
+            "uuid": "cd00b1e8-1546-564a-9f1f-165c9d23e08c",
+            "price": 1.8,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207004,
+              "market_line_uuid": "8664462b-1119-5625-9626-bc90a51e18db",
+              "offer_state_id": 1,
+              "name": "Sub 60.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "60.5"
+              }
+            }
+          },
+          {
+            "uuid": "b252cb53-96f3-5c45-9513-7cc81fd9823e",
+            "price": 1.88,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207005,
+              "market_line_uuid": "8664462b-1119-5625-9626-bc90a51e18db",
+              "offer_state_id": 1,
+              "name": "Peste 60.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "60.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 231481,
+        "name": "Setul 1 - Total puncte Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "c5656bfa-134f-54bd-a10c-918eaa6a4fb6",
+            "price": 1.63,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207006,
+              "market_line_uuid": "bb7e81a0-eb67-5059-bcb3-c40eae932083",
+              "offer_state_id": 1,
+              "name": "Sub 33.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "33.5"
+              }
+            }
+          },
+          {
+            "uuid": "b62f3cb0-a5e9-5cd1-acd0-49e4f7234c60",
+            "price": 2.12,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207007,
+              "market_line_uuid": "bb7e81a0-eb67-5059-bcb3-c40eae932083",
+              "offer_state_id": 1,
+              "name": "Peste 33.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "33.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 231482,
+        "name": "Setul 1 - Total puncte Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "ef09df49-3344-5d62-a6b5-392c1f511e50",
+            "price": 1.72,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207008,
+              "market_line_uuid": "dc21bf9f-6d83-5dad-b67e-eb7a9b54c3da",
+              "offer_state_id": 1,
+              "name": "Sub 30.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "30.5"
+              }
+            }
+          },
+          {
+            "uuid": "bdaebac6-f2f7-5fe3-b8fc-3a92b4fd7ab9",
+            "price": 2,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207009,
+              "market_line_uuid": "dc21bf9f-6d83-5dad-b67e-eb7a9b54c3da",
+              "offer_state_id": 1,
+              "name": "Peste 30.5",
+              "specifiers": {
+                "setnr": "1",
+                "total": "30.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 231484,
+        "name": "Setul 1 - Handicap puncte câștigate",
+        "odds": [
+          {
+            "uuid": "5d1fb5e1-2c69-5291-8667-e4c94f82efc3",
+            "price": 1.88,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207013,
+              "market_line_uuid": "b12b943e-f50e-50c0-bc75-9e324944c2c8",
+              "offer_state_id": 1,
+              "name": "Elena Rybakina (-5.5)",
+              "specifiers": {
+                "hcp": "-5.5",
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "38a8de83-14b3-5629-98e9-99e7324289b6",
+            "price": 1.8,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4207014,
+              "market_line_uuid": "b12b943e-f50e-50c0-bc75-9e324944c2c8",
+              "offer_state_id": 1,
+              "name": "Leylah Fernandez (5.5)",
+              "specifiers": {
+                "hcp": "-5.5",
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 240761,
+        "name": "Total puncte servite",
+        "odds": [
+          {
+            "uuid": "5eb7a00d-c1a4-53bd-a9aa-5db66b0df617",
+            "price": 1.88,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19062,
+              "market_line_uuid": "af2162f4-5e14-57dd-b55a-bd5c75988e73",
+              "offer_state_id": 1,
+              "name": "Sub 135.5",
+              "specifiers": {
+                "total": "135.5"
+              }
+            }
+          },
+          {
+            "uuid": "052f86a4-9ae9-54ff-b449-0a494fab848c",
+            "price": 1.8,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19063,
+              "market_line_uuid": "af2162f4-5e14-57dd-b55a-bd5c75988e73",
+              "offer_state_id": 1,
+              "name": "Peste 135.5",
+              "specifiers": {
+                "total": "135.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 240762,
+        "name": "Total puncte servite Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "93d33818-fa17-5553-9531-a2dbca182d5e",
+            "price": 2.07,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19064,
+              "market_line_uuid": "5006e0c6-db11-57bd-bb88-b5f584bca73b",
+              "offer_state_id": 1,
+              "name": "Sub 64.5",
+              "specifiers": {
+                "total": "64.5"
+              }
+            }
+          },
+          {
+            "uuid": "6bce5eb6-f629-55df-9848-e559b479ada1",
+            "price": 1.65,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19065,
+              "market_line_uuid": "5006e0c6-db11-57bd-bb88-b5f584bca73b",
+              "offer_state_id": 1,
+              "name": "Peste 64.5",
+              "specifiers": {
+                "total": "64.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 240763,
+        "name": "Total puncte servite Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "049255bb-1bb2-5393-af60-38d815cd7294",
+            "price": 1.73,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19066,
+              "market_line_uuid": "8f9b0c25-0e2b-5cb4-ad99-7d9ce91fe1b1",
+              "offer_state_id": 1,
+              "name": "Sub 72.5",
+              "specifiers": {
+                "total": "72.5"
+              }
+            }
+          },
+          {
+            "uuid": "468df349-9342-5a7d-b970-4f475667c611",
+            "price": 1.97,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 19067,
+              "market_line_uuid": "8f9b0c25-0e2b-5cb4-ad99-7d9ce91fe1b1",
+              "offer_state_id": 1,
+              "name": "Peste 72.5",
+              "specifiers": {
+                "total": "72.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 232687,
+        "name": "Total seturi Elena Rybakina",
+        "odds": [
+          {
+            "uuid": "09eac2cc-0aa5-536c-b305-ec5bcee63c6e",
+            "price": 3.05,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209708,
+              "market_line_uuid": "4603cc45-dc77-5da2-b04b-49a154fce94d",
+              "offer_state_id": 1,
+              "name": "Sub 1.5",
+              "specifiers": {
+                "total": "1.5"
+              }
+            }
+          },
+          {
+            "uuid": "a608414d-5ce6-5d58-bae5-039b6e59a00c",
+            "price": 1.32,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209709,
+              "market_line_uuid": "4603cc45-dc77-5da2-b04b-49a154fce94d",
+              "offer_state_id": 1,
+              "name": "Peste 1.5",
+              "specifiers": {
+                "total": "1.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 232688,
+        "name": "Total seturi Leylah Fernandez",
+        "odds": [
+          {
+            "uuid": "3017b00a-baa9-59ab-81af-03e2caaa835b",
+            "price": 1.83,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209710,
+              "market_line_uuid": "26114b3e-959b-5f98-b816-7f7c3abf287d",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "73261f24-3418-5ca7-af67-d424ee9f0cc8",
+            "price": 1.85,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4209711,
+              "market_line_uuid": "26114b3e-959b-5f98-b816-7f7c3abf287d",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15617251,
+      "eventName": "Elena Rybakina·Leylah Fernandez",
+      "phase": "NOT_STARTED",
+      "market": {
+        "id": 230648,
+        "name": "Total seturi câștigate la 0 (6-0)",
+        "odds": [
+          {
+            "uuid": "fedec693-22a5-50a0-9233-6b09349e1543",
+            "price": 1.04,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203952,
+              "market_line_uuid": "faf594dc-1b00-5b2f-8434-b5b0bfe45b3e",
+              "offer_state_id": 1,
+              "name": "Sub 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          },
+          {
+            "uuid": "fdab7cb3-701f-537e-afd8-533ced4a92f7",
+            "price": 8.7,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4203953,
+              "market_line_uuid": "faf594dc-1b00-5b2f-8434-b5b0bfe45b3e",
+              "offer_state_id": 1,
+              "name": "Peste 0.5",
+              "specifiers": {
+                "total": "0.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15619838,
+      "eventName": "Tereza Valentova·Shuai Zhang",
+      "phase": "STARTED",
+      "market": {
+        "id": 200504,
+        "name": "Setul 1 - Game-ul 9 - Total puncte",
+        "odds": [
+          {
+            "uuid": "2710fba0-4a67-5196-bbe1-bffe30610cab",
+            "price": 7.5,
+            "status": 2,
+            "display": true,
+            "metadata": {
+              "outcome_id": 151110,
+              "market_line_uuid": "0ea7c947-a917-5078-a2d2-b4c509bd6fd6",
+              "offer_state_id": 2,
+              "name": "Sub 4.5",
+              "specifiers": {
+                "gamenr": "9",
+                "setnr": "1",
+                "total": "4.5"
+              }
+            }
+          },
+          {
+            "uuid": "61c43840-1ab1-5870-bfb5-95b73b4f6231",
+            "price": 1.05,
+            "status": 2,
+            "display": true,
+            "metadata": {
+              "outcome_id": 151109,
+              "market_line_uuid": "0ea7c947-a917-5078-a2d2-b4c509bd6fd6",
+              "offer_state_id": 2,
+              "name": "Peste 4.5",
+              "specifiers": {
+                "gamenr": "9",
+                "setnr": "1",
+                "total": "4.5"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15619838,
+      "eventName": "Tereza Valentova·Shuai Zhang",
+      "phase": "STARTED",
+      "market": {
+        "id": 1000,
+        "name": "Setul 1 - Game-ul X - Game la avantaj",
+        "odds": [
+          {
+            "uuid": "5b5a4f5d-8277-590a-961f-ba640f476756",
+            "price": 2.65,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4255,
+              "market_line_uuid": "f3559735-7860-5a8b-8b46-56ead79ce689",
+              "offer_state_id": 2,
+              "name": "Game-ul 9 - Da",
+              "specifiers": {
+                "gamenr": "9",
+                "setnr": "1"
+              }
+            }
+          },
+          {
+            "uuid": "395c2666-3432-5dcb-919f-842ede961299",
+            "price": 1.4,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 4256,
+              "market_line_uuid": "f3559735-7860-5a8b-8b46-56ead79ce689",
+              "offer_state_id": 2,
+              "name": "Game-ul 9 - Nu",
+              "specifiers": {
+                "gamenr": "9",
+                "setnr": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eventId": 15619838,
+      "eventName": "Tereza Valentova·Shuai Zhang",
+      "phase": "STARTED",
+      "market": {
+        "id": 519,
+        "name": "Va fi un tiebreak?",
+        "odds": [
+          {
+            "uuid": "32ff135b-8bc6-528a-aa77-c04b32286ccb",
+            "price": 2.07,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1325,
+              "market_line_uuid": "15903b41-65e4-5400-93b8-c38575a64913",
+              "offer_state_id": 2,
+              "name": "Da"
+            }
+          },
+          {
+            "uuid": "1362d7f6-724c-5f1c-bf0e-58a011e8cc46",
+            "price": 1.65,
+            "status": 1,
+            "display": true,
+            "metadata": {
+              "outcome_id": 1326,
+              "market_line_uuid": "15903b41-65e4-5400-93b8-c38575a64913",
+              "offer_state_id": 2,
+              "name": "Nu"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

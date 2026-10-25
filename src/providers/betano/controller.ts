@@ -11,6 +11,7 @@ import type {
 import type { BetanoStats } from "./model/feed.interfaces.js";
 import type { BetanoEvent, BetanoSnapshot } from "./model/state.interfaces.js";
 import type { BetanoFootballSnapshot } from "./model/football-projection.interfaces.js";
+import type { BetanoTennisSnapshot } from "./model/tennis-projection.interfaces.js";
 import type {
   BetanoQueryCommand,
   BetanoWorkerCommand,
@@ -38,6 +39,7 @@ export class BetanoController implements BetanoProvider {
     private readonly handlers: BetanoHandlers = {},
     // Optional direct port to the aggregation worker; transferred to processing at start.
     private readonly aggregationPort: MessagePort | null = null,
+    private readonly tennisAggregationPort: MessagePort | null = null,
   ) {
     this.options = { ...betanoConfig, ...options };
     if (
@@ -69,6 +71,9 @@ export class BetanoController implements BetanoProvider {
       workerData: {
         options: this.options,
         networkPort: channel.port1,
+        ...(this.tennisAggregationPort === null
+          ? {}
+          : { tennisAggregationPort: this.tennisAggregationPort }),
         ...(this.aggregationPort === null
           ? {}
           : { aggregationPort: this.aggregationPort }),
@@ -77,11 +82,14 @@ export class BetanoController implements BetanoProvider {
         publishFootballSnapshots:
           this.handlers.onFootballSnapshot !== undefined,
         publishFootballUpdates: this.handlers.onFootballUpdate !== undefined,
+        publishTennisSnapshots: this.handlers.onTennisSnapshot !== undefined,
+        publishTennisUpdates: this.handlers.onTennisUpdate !== undefined,
       } satisfies BetanoWorkerData,
-      transferList:
-        this.aggregationPort === null
-          ? [channel.port1]
-          : [channel.port1, this.aggregationPort],
+      transferList: [
+        channel.port1,
+        ...(this.aggregationPort ? [this.aggregationPort] : []),
+        ...(this.tennisAggregationPort ? [this.tennisAggregationPort] : []),
+      ],
     });
     this.worker = worker;
     this.exit = new Promise((resolve) =>
@@ -107,6 +115,7 @@ export class BetanoController implements BetanoProvider {
         try {
           if (message.type === "ready") {
             this.ready = true;
+            console.log(`[Thread ${worker.threadId}] Betano processing ready.`);
             resolve();
           } else if (message.type === "fatal") {
             reject(new Error(message.error));
@@ -142,6 +151,8 @@ export class BetanoController implements BetanoProvider {
         ],
       },
       {
+        onReady: (threadId) =>
+          console.log(`[Thread ${threadId}] Betano network ready.`),
         onFailure: (error) => {
           this.handlers.onError?.(error.message);
           void this.stop().catch((failure: unknown) =>
@@ -187,6 +198,12 @@ export class BetanoController implements BetanoProvider {
       case "football-update":
         this.handlers.onFootballUpdate?.(message.change);
         break;
+      case "tennis-snapshot":
+        this.handlers.onTennisSnapshot?.(message.snapshot);
+        break;
+      case "tennis-update":
+        this.handlers.onTennisUpdate?.(message.change);
+        break;
       case "removed":
         this.handlers.onRemove?.(message.eventId);
         break;
@@ -228,6 +245,15 @@ export class BetanoController implements BetanoProvider {
   }
   async reconnect(): Promise<void> {
     await this.query("reconnect");
+  }
+
+  getTennisSnapshot(eventId: number): Promise<BetanoTennisSnapshot | null> {
+    if (!Number.isSafeInteger(eventId) || eventId <= 0)
+      return Promise.reject(new Error("Invalid Betano event ID."));
+    return this.query(
+      "tennis-snapshot",
+      eventId,
+    ) as Promise<BetanoTennisSnapshot | null>;
   }
 
   private query(

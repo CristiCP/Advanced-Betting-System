@@ -2,6 +2,10 @@ import type {
   AggregationEventIdentity,
   AggregationProvider,
 } from "./wire.interfaces.js";
+import type {
+  AggregationSport,
+  AggregationTennisContext,
+} from "./tennis.interfaces.js";
 
 export interface NormalizedTeam {
   // Significant tokens after removing accents, punctuation, legal forms, and markers.
@@ -17,6 +21,7 @@ export interface AggregationEvent {
   identity: AggregationEventIdentity;
   home: NormalizedTeam;
   away: NormalizedTeam;
+  synchronized: boolean;
   live: boolean;
   suspended: boolean;
   scoreKnown: boolean;
@@ -33,17 +38,13 @@ export interface AggregationEvent {
   lines: Map<number, number>;
   pair: AggregationPair | null;
   conflict: boolean;
+  tennis?: AggregationTennisContext;
 }
 
 export type AggregationPairState = "confirmed" | "suspect";
 
 export type AggregationPairReason =
-  | "start"
-  | "markers"
-  | "orientation"
-  | "clock"
-  | "score"
-  | "unverified";
+  "start" | "markers" | "orientation" | "clock" | "score" | "unverified";
 
 export interface AggregationPair {
   id: number;
@@ -55,6 +56,8 @@ export interface AggregationPair {
   // Name evidence in the provider orientation, 0..1 per side.
   similarity: number;
   createdAt: number;
+  // Start of the current uninterrupted confirmation period; NaN while suspect.
+  confirmedSince: number;
   // NaN while both scores agree.
   scoreMismatchSince: number;
   // Superbet line handles currently linked to a Betano line of this pair.
@@ -64,6 +67,7 @@ export interface AggregationPair {
 }
 
 export interface AggregationPairReport {
+  sport?: AggregationSport;
   kind: "pair";
   at: number;
   betradarId: number;
@@ -76,7 +80,17 @@ export interface AggregationPairReport {
   similarity: number;
 }
 
+export interface AggregationMatchedEvent {
+  sport?: AggregationSport;
+  betradarId: number;
+  superbetEventId: number;
+  betanoEventId: number;
+  superbetMatch: string;
+  betanoMatch: string;
+}
+
 export interface AggregationObservedPair {
+  sport?: AggregationSport;
   kind: "observed";
   at: number;
   superbetEventId: number;

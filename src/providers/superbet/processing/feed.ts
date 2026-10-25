@@ -5,6 +5,7 @@ import type {
 } from "../../../network/model/worker.interfaces.js";
 import type { SuperbetOptions } from "../model/config.interfaces.js";
 import type { SuperbetFootballSnapshot } from "../model/football-projection.interfaces.js";
+import type { SuperbetTennisSnapshot } from "../model/tennis-projection.interfaces.js";
 import type {
   SuperbetFeedHandlers,
   SuperbetStats,
@@ -19,6 +20,7 @@ import { SuperbetStore, isRecord, isUpdate, isLive } from "./state.js";
 import { SuperbetSseDecoder, decodeJson } from "../protocol/sse.js";
 import { SuperbetHttpError } from "../protocol/http-error.js";
 import { SuperbetFootballProjection } from "./football-projection.js";
+import { SuperbetTennisProjection } from "./tennis-projection.js";
 
 /**
  * @file Discovers Superbet live events and synchronizes one independent SSE per match.
@@ -27,6 +29,7 @@ import { SuperbetFootballProjection } from "./football-projection.js";
 export class SuperbetFeed {
   readonly store: SuperbetStore;
   private readonly football: SuperbetFootballProjection;
+  private readonly tennis: SuperbetTennisProjection;
   private readonly subscriptions = new Map<number, SuperbetSubscriptionState>();
   private readonly queued = new Set<number>();
   private readonly loading = new Set<number>();
@@ -65,25 +68,37 @@ export class SuperbetFeed {
         ? { onUpdate: handlers.onFootballUpdate }
         : {}),
     });
+    this.tennis = new SuperbetTennisProjection({
+      ...(handlers.onTennisSnapshot
+        ? { onSnapshot: handlers.onTennisSnapshot }
+        : {}),
+      ...(handlers.onTennisUpdate ? { onUpdate: handlers.onTennisUpdate } : {}),
+    });
     this.store = new SuperbetStore(options.maxBufferedUpdates, {
       onSnapshot: (snapshot) => {
         this.counters.snapshots++;
         this.clearSynchronizationTimer(snapshot.event_id);
         this.football.install(snapshot);
+        this.tennis.install(snapshot);
         handlers.onSnapshot(snapshot);
       },
       onUpdate: (update) => {
         this.counters.appliedUpdates++;
         const snapshot = this.store.getSnapshot(update.event_id);
-        if (snapshot) this.football.update(snapshot, update);
+        if (snapshot) {
+          this.football.update(snapshot, update);
+          this.tennis.update(snapshot, update);
+        }
         handlers.onUpdate(update);
       },
       onStale: (eventId, reason) => {
-        this.football.remove(eventId);
+        this.football.invalidate(eventId);
+        this.tennis.invalidate(eventId);
         handlers.onStatus({ kind: "event-stale", eventId, reason });
       },
       onRemove: (id) => {
         this.football.remove(id);
+        this.tennis.remove(id);
         this.detach(id);
       },
     });
@@ -124,6 +139,20 @@ export class SuperbetFeed {
 
   getFootballSnapshot(id: number): SuperbetFootballSnapshot | null {
     return this.getSnapshot(id) ? this.football.getSnapshot(id) : null;
+  }
+
+  // Replay retained identities without exposing stale snapshots to public queries.
+  getTennisSnapshots(): Iterable<SuperbetTennisSnapshot> {
+    return this.tennis.snapshots();
+  }
+
+  // Replay retained football identities with their synchronization flag.
+  getFootballSnapshots(): Iterable<SuperbetFootballSnapshot> {
+    return this.football.snapshots();
+  }
+
+  getTennisSnapshot(id: number): SuperbetTennisSnapshot | null {
+    return this.getSnapshot(id) ? this.tennis.getSnapshot(id) : null;
   }
 
   getStats(): SuperbetStats {
@@ -635,6 +664,7 @@ export class SuperbetFeed {
     ]);
     this.subscriptions.clear();
     this.football.clear();
+    this.tennis.clear();
     const errors = results.flatMap((result) =>
       result.status === "rejected" ? [result.reason] : [],
     );

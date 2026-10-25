@@ -1,6 +1,6 @@
 # Fotbal — corespondențe Superbet și Betano
 
-[Superbet: catalog și model](SUPERBET-FOOTBALL.md) · [Betano: catalog și model](BETANO-FOOTBALL.md) · [Providers](PROVIDERS.md)
+[Superbet: catalog și model](../providers/superbet/FOOTBALL.md) · [Betano: catalog și model](../providers/betano/FOOTBALL.md) · [Providers](../architecture/PROVIDERS.md)
 
 ## 1. Ce reprezintă aceste corespondențe
 
@@ -37,7 +37,7 @@ flowchart TB
     class SKIP reject
 ```
 
-Diagrama descrie verificările aplicate de [agregator](AGGREGATOR.md). Tabelul din secțiunea 3 este sursa fișierului `src/aggregation/mapping.config.ts`, validat la pornire față de ambele cataloage.
+Diagrama descrie verificările aplicate de [agregator](../architecture/AGGREGATOR.md). Tabelul din secțiunea 3 este sursa fișierului `src/aggregation/mapping.config.ts`, validat la pornire față de ambele cataloage.
 
 ## 2. Condițiile de asociere
 
@@ -60,7 +60,7 @@ La handicap, valoarea liniei este orientată spre gazde în ambele proiecții, i
 
 ## 3. Perechile identificate
 
-Șabloanele Superbet din tabel ajută citirea; numele și codurile exacte Betano sunt în [catalogul Betano](BETANO-FOOTBALL.md#5-catalog-verificat). Abrevierile de echipă din cele două configurații reprezintă același rol, nu aceeași denumire textuală obligatorie între siteuri.
+Șabloanele Superbet din tabel ajută citirea; numele și codurile exacte Betano sunt în [catalogul Betano](../providers/betano/FOOTBALL.md#5-catalog-verificat). Abrevierile de echipă din cele două configurații reprezintă același rol, nu aceeași denumire textuală obligatorie între siteuri.
 
 | Betano typeId | Superbet ID | Concept / șablon Superbet                                            | Condiție   |
 | ------------- | ----------- | -------------------------------------------------------------------- | ---------- |
@@ -163,7 +163,7 @@ O conversie suplimentară posibilă este Betano `84` total goluri gazde la **0,5
 
 **Intervalele.** Betano `130` are intervale de 15 minute, dar unele se încheie la `45:00` sau `90:00`; Superbet `729` folosește limite cu `:59`. Perechile cu limite sau reguli diferite rămân neasociate până la confirmare. La `48 ↔ 711` și `293 ↔ 695` sunt necesare aceleași verificări pentru intervalele de zece minute.
 
-**Cartonașele și statisticile.** Un nume apropiat și un prag identic nu confirmă dacă se includ rezervele, stafful, cartonașele după fluier sau corecțiile furnizorului de statistici. Păstrăm aceste perechi în inventarul conceptual, cu marcajul P.
+**Cartonașele și statisticile.** Perechile cu marcajul P sunt activate în agregatorul actual, conform configurației proiectului. Sunt comparate numai tipurile explicit mapate, pe același prag, perioadă și subiect. Activarea nu constituie o verificare nouă a includerii rezervelor, staffului, cartonașelor după fluier sau corecțiilor furnizorului de statistici. Rândurile P care cer și I rămân excluse cât timp intervalele sunt dezactivate.
 
 ## 4. Tipuri Betano fără pereche verificată în catalogul Superbet
 
@@ -186,10 +186,10 @@ O conversie suplimentară posibilă este Betano `84` total goluri gazde la **0,5
 
 Lipsa unei perechi aici nu afirmă că piața nu există pe site. Înseamnă că nu avem o definiție compatibilă verificată în **catalogul implementat**. Nu compunem artificial o piață din mai multe alte piețe.
 
-În sens invers, Superbet are tipuri fără corespondent verificat în catalogul Betano: de exemplu totaluri de deposedări, mai multe piețe pe R2, intervale de un minut, handicapuri de șuturi/faulturi și totaluri pe primele X minute. Inventarul complet rămâne în [documentul Superbet](SUPERBET-FOOTBALL.md#5-catalogul-verificat).
+În sens invers, Superbet are tipuri fără corespondent verificat în catalogul Betano: de exemplu totaluri de deposedări, mai multe piețe pe R2, intervale de un minut, handicapuri de șuturi/faulturi și totaluri pe primele X minute. Inventarul complet rămâne în [documentul Superbet](../providers/superbet/FOOTBALL.md#5-catalogul-verificat).
 
 ## 5. Limita implementării actuale
 
-Configurațiile fixe identifică fiecare piață în propriul provider; proiecțiile livrează baze, upserturi de perechi și invalidări. Documentul este inventarul pentru normalizarea următoare. Nu există încă mapare automată între siteuri, asociere de evenimente sau presupunerea că două timestampuri locale măsoară simultaneitatea cotelor la sursă.
+Configurațiile fixe identifică fiecare piață în propriul provider; proiecțiile livrează baze, upserturi de perechi și invalidări. [Agregatorul](../architecture/AGGREGATOR.md) aplică maparea explicită și asociază evenimentele. Configurația implicită activează D, P și T: **73 de rânduri din 80**, inclusiv statisticile mapate și conversiile T + P. A, H și I rămân oprite; două timestampuri locale nu confirmă simultaneitatea cotelor la sursă.
 
 Corespondențele se verifică din nou când se adaugă un tip, se schimbă numele/structura lui sau se confirmă reguli de decontare. Necunoscut înseamnă exclus până la verificare, nu potrivire aproximativă după text.

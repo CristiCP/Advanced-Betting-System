@@ -1,4 +1,5 @@
 import type {
+  AggregationMatchedEvent,
   AggregationObservedPair,
   AggregationPairReport,
 } from "./matching.interfaces.js";
@@ -7,6 +8,7 @@ import type { AggregationProvider } from "./wire.interfaces.js";
 import type { AggregationStats, AggregationStatus } from "./worker.interfaces.js";
 
 export interface AggregationHandlers {
+  onMatches?(matches: AggregationMatchedEvent[]): void;
   onOpportunity?(report: AggregationOpportunityReport): void;
   onPair?(report: AggregationPairReport): void;
   onObserved?(report: AggregationObservedPair): void;
