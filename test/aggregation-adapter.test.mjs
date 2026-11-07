@@ -127,7 +127,7 @@ test("a Superbet snapshot becomes identity, live state, and canonical lines", as
   ]);
   t.after(() => aggregator.close());
   const calls = await next();
-  assert.deepEqual(calls.map(([name]) => name), ["reset", "identity", "live", "define", "value"]);
+  assert.deepEqual(calls.map(([name]) => name), ["reset", "identity", "live", "define", "selections", "value"]);
   const [, , identity] = calls[1];
   assert.deepEqual(
     [identity.eventId, identity.betradarId, identity.startsAt, identity.competitionId],
@@ -136,7 +136,8 @@ test("a Superbet snapshot becomes identity, live state, and canonical lines", as
   assert.deepEqual(calls[2], ["live", 0, running, 1, 0, 2_880]);
   assert.deepEqual(calls[3], ["define", 0, 0, lineKey(1, 10)]);
   // Role A is over, regardless of the vendor's selection order.
-  assert.deepEqual(calls[4], ["value", 0, 2.1, 1.8, 3]);
+  assert.deepEqual(calls[4], ["selections", 0, 200734, "goals-o", "goals-u"]);
+  assert.deepEqual(calls[5], ["value", 0, 2.1, 1.8, 3]);
   assert.deepEqual(adapter.getStats(), { events: 1, lines: 1, rejectedEvents: 0, ambiguousLines: 0 });
 });
 
@@ -250,7 +251,7 @@ test("updates, removals, identity changes, and invalidation reach the outbox in 
   });
   assert.deepEqual(
     (await next()).map(([name, ...rest]) => (name === "live" ? [name, rest[2]] : [name])),
-    [["live", 2], ["line-release"], ["define"], ["value"]],
+    [["live", 2], ["line-release"], ["define"], ["selections"], ["value"]],
   );
   adapter.update({
     kind: "update",
@@ -281,15 +282,18 @@ test("replacement baselines preserve canonical handles even when vendor line IDs
   await next();
   await until(() => !outbox.getStats().inFlight);
   const batches = outbox.getStats().batches;
-  // Identical canonical prices with a new vendor UUID require no wire operations.
+  // Identical prices still publish a new selection UUID for placement.
   adapter.install({ event: superbetEvent(), lines: [superbetLine(200734, 2.5, "new")] });
-  await tick(10);
-  assert.equal(outbox.getStats().batches, batches);
+  assert.deepEqual(await next(), [["selections", 0, 200734, "new-o", "new-u"]]);
+  assert.equal(outbox.getStats().batches, batches + 1);
   adapter.install({
     event: superbetEvent(),
     lines: [superbetLine(200734, 2.5, "newer", {}, [1.8, 2.2])],
   });
-  assert.deepEqual(await next(), [["value", 0, 2.2, 1.8, 3]]);
+  assert.deepEqual(await next(), [
+    ["selections", 0, 200734, "newer-o", "newer-u"],
+    ["value", 0, 2.2, 1.8, 3],
+  ]);
   // A delta using the new vendor key still owns the original canonical handle.
   adapter.update({ kind: "update", eventId: 11, upserts: [], removed: ["200734:2:newer"] });
   assert.deepEqual(await next(), [["line-release", 0]]);
@@ -304,7 +308,11 @@ test("recovery replaces missing lines while keeping surviving handles and exclud
   adapter.update({ kind: "invalidate", eventId: 11, upserts: [], removed: [] });
   assert.deepEqual(await next(), [["live", 0, running | liveFlags.stale, 1, 0, 2_880]]);
   adapter.install({ event: superbetEvent(), lines: [superbetLine(200734, 2.5, "new")] });
-  assert.deepEqual(await next(), [["line-release", 1], ["live", 0, running, 1, 0, 2_880]]);
+  assert.deepEqual(await next(), [
+    ["line-release", 1],
+    ["selections", 0, 200734, "new-o", "new-u"],
+    ["live", 0, running, 1, 0, 2_880],
+  ]);
   adapter.install({
     event: superbetEvent(),
     lines: [superbetLine(200734, 2.5, "first"), superbetLine(200734, 2.5, "second")],
@@ -339,6 +347,7 @@ test("a recovery buffered behind an ACK preserves handles and orders fresh value
   aggregator.postMessage({ type: "ack", generation: 1, sequence: first.sequence, buffer: first.buffer }, [first.buffer]);
   assert.deepEqual(await next(), [
     ["live", 0, running | liveFlags.stale, 1, 0, 2_880],
+    ["selections", 0, 200734, "new-o", "new-u"],
     ["value", 0, 2.3, 1.8, 3],
     ["live", 0, running, 1, 0, 2_880],
   ]);

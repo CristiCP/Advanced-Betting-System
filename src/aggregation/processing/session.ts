@@ -245,6 +245,17 @@ export class AggregationSession implements AggregationBatchSink {
     this.downstream?.lineDefine(line, event, key);
   }
 
+  lineSelections(
+    line: number,
+    marketId: number,
+    selectionA: string | null,
+    selectionB: string | null,
+  ): void {
+    this.operation();
+    this.requireLine(line);
+    this.downstream?.lineSelections(line, marketId, selectionA, selectionB);
+  }
+
   lineRelease(line: number): void {
     this.operation();
     const event = this.requireLine(line);

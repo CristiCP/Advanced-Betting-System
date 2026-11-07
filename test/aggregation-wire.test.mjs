@@ -21,6 +21,7 @@ function sample(writer = new BatchWriter()) {
   writer.eventIdentity(3, identity());
   writer.eventLive(3, liveFlags.live | liveFlags.score | liveFlags.clock, 1, 0, 1_234);
   writer.lineDefine(9, 3, key);
+  writer.lineSelections(9, 65, "10679419158", "10679419159");
   writer.value(9, 1.85, 2.05, valueFlags.usableA | valueFlags.usableB);
   // An operation after values must open a second segment.
   writer.lineRelease(9);
@@ -46,6 +47,7 @@ test("batch round trip keeps operation order, names, and values", () => {
     ["identity", 3, identity()],
     ["live", 3, 13, 1, 0, 1_234],
     ["define", 9, 3, key],
+    ["selections", 9, 65, "10679419158", "10679419159"],
     ["value", 9, 1.85, 2.05, 3],
     ["line-release", 9],
     ["event-release", 3],

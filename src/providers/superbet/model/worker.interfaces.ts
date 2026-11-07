@@ -17,7 +17,13 @@ import type {
   SuperbetSnapshot,
 } from "./state.interfaces.js";
 
+import type {
+  UiQuoteMessage,
+  UiWatchCommand,
+} from "../../../ui/model/ui.interfaces.js";
+
 export interface SuperbetWorkerData extends SuperbetFeedConfiguration {
+  observeUi?: boolean;
   networkPort: MessagePort;
   aggregationPort?: MessagePort;
   tennisAggregationPort?: MessagePort;
@@ -36,9 +42,15 @@ export interface SuperbetQueryCommand {
   eventId?: number;
 }
 
-export type SuperbetWorkerCommand = SuperbetQueryCommand | "start" | "stop";
+export type SuperbetWorkerCommand =
+  | SuperbetQueryCommand
+  | UiWatchCommand
+  | { type: "ui-ack" }
+  | "start"
+  | "stop";
 
 export type SuperbetWorkerMessage =
+  | UiQuoteMessage
   | { type: "ready" }
   | { type: "events"; events: SuperbetEvent[] }
   | { type: "snapshot"; snapshot: SuperbetSnapshot }

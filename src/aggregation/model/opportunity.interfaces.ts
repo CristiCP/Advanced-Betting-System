@@ -25,6 +25,9 @@ export interface AggregationUnlinkCause {
 
 export interface AggregationOpportunityLeg {
   provider: AggregationProvider;
+  // Vendor market and selection identities carried from the provider projection.
+  marketId: number;
+  selectionId: string | null;
   // A is over/home/yes, B is under/away/no; label gives the market's own wording.
   outcome: "A" | "B";
   label: string;

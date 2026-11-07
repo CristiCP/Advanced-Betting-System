@@ -22,6 +22,8 @@ const epoch = (value: string | null): number => {
   const parsed = value === null ? NaN : Date.parse(value);
   return Number.isFinite(parsed) ? parsed : NaN;
 };
+const selectionId = (value: string): string | null =>
+  /^[1-9]\d*$/.test(value) ? value : null;
 
 export const betanoFootballCodec: ProjectionCodec<
   BetanoFootballEvent,
@@ -81,5 +83,7 @@ export const betanoFootballCodec: ProjectionCodec<
     quote.priceB = b.price ?? NaN;
     quote.usableA = !a.isSuspended && !line.isSuspended;
     quote.usableB = !b.isSuspended && !line.isSuspended;
+    quote.selectionA = selectionId(a.id);
+    quote.selectionB = selectionId(b.id);
   },
 };

@@ -1,4 +1,5 @@
 import { MessageChannel, Worker } from "node:worker_threads";
+import type { UiWatchCommand } from "../../ui/model/ui.interfaces.js";
 import type { MessagePort } from "node:worker_threads";
 import { NetworkWorkerController } from "../../network/controller.js";
 import { superbetConfig } from "./config.js";
@@ -71,6 +72,7 @@ export class SuperbetController implements SuperbetProvider {
     const worker = new Worker(new URL("./workers/worker.js", import.meta.url), {
       workerData: {
         options: this.options,
+        observeUi: this.handlers.onUiQuotes !== undefined,
         networkPort: channel.port1,
         ...(this.tennisAggregationPort === null
           ? {}
@@ -189,6 +191,15 @@ export class SuperbetController implements SuperbetProvider {
 
   private handle(message: SuperbetWorkerMessage): void {
     switch (message.type) {
+      case "ui-quotes":
+        try {
+          this.handlers.onUiQuotes?.(message);
+        } finally {
+          this.worker?.postMessage({
+            type: "ui-ack",
+          } satisfies SuperbetWorkerCommand);
+        }
+        break;
       case "events":
         this.handlers.onEvents?.(message.events);
         break;
@@ -228,6 +239,11 @@ export class SuperbetController implements SuperbetProvider {
         break;
       }
     }
+  }
+
+  // UI commands never invoke vendor requests or alter the provider store.
+  watchUi(command: UiWatchCommand): void {
+    if (this.ready && this.stopping === null) this.worker?.postMessage(command);
   }
 
   getEvents(): Promise<SuperbetEvent[]> {

@@ -29,6 +29,8 @@ export interface ProjectionQuote {
   priceB: number;
   usableA: boolean;
   usableB: boolean;
+  selectionA: string | null;
+  selectionB: string | null;
 }
 
 // The provider-specific translation from a filtered sport projection to canonical aggregation values.

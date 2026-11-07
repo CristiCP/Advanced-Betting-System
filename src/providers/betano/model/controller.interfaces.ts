@@ -13,7 +13,10 @@ import type {
   BetanoFootballSnapshot,
 } from "./football-projection.interfaces.js";
 
+import type { UiQuoteMessage } from "../../../ui/model/ui.interfaces.js";
+
 export interface BetanoHandlers {
+  onUiQuotes?(message: UiQuoteMessage): void;
   onEvents?(events: BetanoEvent[]): void;
   onSnapshot?(snapshot: BetanoSnapshot): void;
   onUpdate?(diff: BetanoDiff): void;

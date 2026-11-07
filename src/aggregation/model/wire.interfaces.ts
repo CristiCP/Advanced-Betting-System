@@ -61,6 +61,12 @@ export interface AggregationBatchSink {
   eventRelease(event: number): void;
   eventTennis?(event: number, context: AggregationTennisContext): void;
   lineDefine(line: number, event: number, key: number): void;
+  lineSelections(
+    line: number,
+    marketId: number,
+    selectionA: string | null,
+    selectionB: string | null,
+  ): void;
   lineRelease(line: number): void;
   value(line: number, priceA: number, priceB: number, flags: number): void;
 }

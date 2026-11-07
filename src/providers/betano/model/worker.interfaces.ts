@@ -17,7 +17,13 @@ import type {
   BetanoSnapshot,
 } from "./state.interfaces.js";
 
+import type {
+  UiQuoteMessage,
+  UiWatchCommand,
+} from "../../../ui/model/ui.interfaces.js";
+
 export interface BetanoWorkerData extends BetanoFeedConfiguration {
+  observeUi?: boolean;
   networkPort: MessagePort;
   aggregationPort?: MessagePort;
   tennisAggregationPort?: MessagePort;
@@ -36,9 +42,15 @@ export interface BetanoQueryCommand {
   eventId?: number;
 }
 
-export type BetanoWorkerCommand = BetanoQueryCommand | "start" | "stop";
+export type BetanoWorkerCommand =
+  | BetanoQueryCommand
+  | UiWatchCommand
+  | { type: "ui-ack" }
+  | "start"
+  | "stop";
 
 export type BetanoWorkerMessage =
+  | UiQuoteMessage
   | { type: "ready" }
   | { type: "events"; events: BetanoEvent[] }
   | { type: "snapshot"; snapshot: BetanoSnapshot }

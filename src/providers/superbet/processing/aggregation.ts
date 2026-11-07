@@ -89,5 +89,7 @@ export const superbetFootballCodec: ProjectionCodec<
     quote.priceB = b.price ?? NaN;
     quote.usableA = a.status === 1 && a.display;
     quote.usableB = b.status === 1 && b.display;
+    quote.selectionA = a.id;
+    quote.selectionB = b.id;
   },
 };

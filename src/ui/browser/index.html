@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live observatory</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header class="masthead">
+        <div>
+          <span class="eyebrow">ADVANCED BETTING SYSTEM / OBSERVABILITY</span>
+          <h1>Live observatory<span class="accent">.</span></h1>
+          <p>
+            O singură vedere asupra meciurilor, cotelor și fluxului de
+            oportunități.
+          </p>
+        </div>
+        <div class="connection">
+          <span id="connection" class="badge muted">Conectare…</span
+          ><small id="updated">Aștept datele aplicației</small>
+        </div>
+      </header>
+      <section class="overview" aria-label="Număr de meciuri">
+        <article class="metric">
+          <span>SUPERBET</span><strong id="superbet-total">—</strong>
+          <p id="superbet-sports">Aștept discovery</p>
+        </article>
+        <article class="metric">
+          <span>BETANO</span><strong id="betano-total">—</strong>
+          <p id="betano-sports">Aștept discovery</p>
+        </article>
+        <article class="metric">
+          <span>PERECHI CONFIRMATE</span><strong id="matched-total">—</strong>
+          <p id="matched-sports">Fotbal și tenis</p>
+        </article>
+        <article class="metric">
+          <span>COMPARABILE ACUM</span><strong id="active-total">—</strong>
+          <p id="active-sports">Cu verificările de disponibilitate trecute</p>
+        </article>
+      </section>
+      <nav class="tabs" aria-label="Navigare">
+        <button data-tab="matches" aria-selected="true">
+          01 <span>Meciuri & matching</span></button
+        ><button data-tab="quotes" aria-selected="false">
+          02 <span>Cotele meciului</span></button
+        ><button data-tab="opportunities" aria-selected="false">
+          03 <span>Oportunități</span>
+        </button>
+      </nav>
+      <section id="matches" class="panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Meciurile urmărite</h2>
+            <p>Identități descoperite și perechi confirmate între siteuri.</p>
+          </div>
+          <span id="match-count" class="badge muted">—</span>
+        </div>
+        <div class="toolbar">
+          <label class="search"
+            ><span>Caută</span
+            ><input
+              id="search"
+              type="search"
+              placeholder="Echipă, jucător sau ID meci…"
+              maxlength="250" /></label
+          ><label
+            >Sport<select id="sport">
+              <option value="all">Toate sporturile</option>
+              <option value="football">Fotbal</option>
+              <option value="tennis">Tenis</option>
+              <option value="basketball">Baschet</option>
+            </select></label
+          ><label
+            >Listă<select id="mode">
+              <option value="matched">Perechi confirmate</option>
+              <option value="all">Toate meciurile</option>
+              <option value="superbet">Superbet</option>
+              <option value="betano">Betano</option>
+            </select></label
+          >
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Meci</th>
+                <th>Sport</th>
+                <th>Site / Superbet ID</th>
+                <th>Betano ID</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="match-rows"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <p id="match-empty">Aștept primele liste de meciuri…</p>
+          <div>
+            <button id="previous">← Înapoi</button><span id="page">1</span
+            ><button id="next">Înainte →</button>
+          </div>
+        </div>
+        <p class="note">
+          „Confirmat” descrie asocierea meciurilor. „Comparabil acum” include
+          verificările de sincronizare și context. Baschetul are doar colectare
+          brută.
+        </p>
+      </section>
+      <section id="quotes" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <h2 id="quote-title">Selectează un meci</h2>
+            <p>
+              Se publică numai cotele meciului deschis. Max. 4 actualizări pe
+              secundă.
+            </p>
+          </div>
+          <button id="close-match">Închide meciul ×</button>
+        </div>
+        <div id="quote-status" class="source-status">
+          Deschide un meci din primul tab.
+        </div>
+        <div class="toolbar">
+          <label class="search"
+            ><span>Filtru market</span
+            ><input
+              id="market-search"
+              type="search"
+              placeholder="Goluri, handicap, game-uri…"
+              maxlength="250" /></label
+          ><span id="quote-count" class="badge muted">0 linii</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Market</th>
+                <th rowspan="2">Linie / context</th>
+                <th colspan="2">Superbet</th>
+                <th colspan="2">Betano</th>
+              </tr>
+              <tr>
+                <th>Selecția 1</th>
+                <th>Selecția 2</th>
+                <th>Selecția 1</th>
+                <th>Selecția 2</th>
+              </tr>
+            </thead>
+            <tbody id="quote-rows"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <p id="quote-empty">Niciun meci selectat.</p>
+          <div>
+            <button id="quote-previous">← Înapoi</button
+            ><span id="quote-page">1</span
+            ><button id="quote-next">Înainte →</button>
+          </div>
+        </div>
+        <p class="note">
+          Un rând reprezintă același market și aceeași linie pe ambele siteuri,
+          folosind mapările configurate și contextul setului sau intervalului.
+          Liniile fără corespondent sunt excluse. Asocierea nu confirmă
+          eligibilitatea pentru comparație; verificările detectorului rămân
+          separate.
+        </p>
+      </section>
+      <section id="opportunities" class="panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <h2>Fluxul de oportunități</h2>
+            <p>
+              Evenimentele detectorului, în aceeași ordine și cu aceleași culori
+              ca în consolă.
+            </p>
+          </div>
+          <span id="history-count" class="badge muted">0 evenimente</span>
+        </div>
+        <div class="toolbar">
+          <label class="search"
+            ><span>Caută în evenimente</span
+            ><input
+              id="opportunity-search"
+              type="search"
+              placeholder="Meci sau market…"
+              maxlength="250" /></label
+          ><label
+            >Sport<select id="opportunity-sport">
+              <option value="all">Toate sporturile</option>
+              <option value="football">Fotbal</option>
+              <option value="tennis">Tenis</option>
+            </select></label
+          >
+        </div>
+        <div id="opportunity-rows" class="feed"></div>
+        <p id="opportunity-empty" class="note">
+          Aștept evenimente de la detector.
+        </p>
+        <div class="table-footer">
+          <p>Istoric limitat la ultimele 500 de evenimente.</p>
+          <div>
+            <button id="opportunity-previous">← Înapoi</button
+            ><span id="opportunity-page">1</span
+            ><button id="opportunity-next">Înainte →</button>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <span>READ-ONLY / LOCAL OBSERVER</span
+        ><span id="diagnostics">UI independent de colectare și procesare</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -361,6 +361,21 @@ export class AggregationEngine {
     book.release(line);
   }
 
+  lineSelections(
+    provider: AggregationProvider,
+    line: number,
+    marketId: number,
+    selectionA: string | null,
+    selectionB: string | null,
+  ): void {
+    this.books[provider].selections(
+      line,
+      marketId,
+      selectionA,
+      selectionB,
+    );
+  }
+
   value(
     provider: AggregationProvider,
     line: number,
@@ -502,6 +517,20 @@ class ProviderSink implements AggregationProviderSink {
   }
   lineDefine(line: number, event: number, key: number): void {
     this.engine.defineLine(this.provider, line, event, key);
+  }
+  lineSelections(
+    line: number,
+    marketId: number,
+    selectionA: string | null,
+    selectionB: string | null,
+  ): void {
+    this.engine.lineSelections(
+      this.provider,
+      line,
+      marketId,
+      selectionA,
+      selectionB,
+    );
   }
   lineRelease(line: number): void {
     this.engine.releaseLine(this.provider, line);

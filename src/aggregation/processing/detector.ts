@@ -461,6 +461,24 @@ export class Detector {
       (provider === "superbet"
         ? this.superbet.book.updatedAt[line]!
         : this.betano.book.updatedAt[peer]!);
+    const selection = (
+      provider: AggregationProvider,
+      outcome: "A" | "B",
+    ): string | null => {
+      const book =
+        provider === "superbet" ? this.superbet.book : this.betano.book;
+      const target = provider === "superbet" ? line : peer;
+      const id =
+        outcome === "A"
+          ? book.selectionA[target]!
+          : book.selectionB[target]!;
+      return id;
+    };
+    const providerMarket = (provider: AggregationProvider): number => {
+      const book =
+        provider === "superbet" ? this.superbet.book : this.betano.book;
+      return book.marketId[provider === "superbet" ? line : peer]!;
+    };
     const { home, away } = pair.superbet.identity;
     const opening = state === undefined;
     const turned = state !== undefined && state.orientation !== orientation;
@@ -484,6 +502,8 @@ export class Detector {
       legs: [
         {
           provider: providerA,
+          marketId: providerMarket(providerA),
+          selectionId: selection(providerA, "A"),
           outcome: "A",
           label: this.label(
             market?.labels[0] ?? "A",
@@ -497,6 +517,8 @@ export class Detector {
         },
         {
           provider: providerB,
+          marketId: providerMarket(providerB),
+          selectionId: selection(providerB, "B"),
           outcome: "B",
           label: this.label(
             market?.labels[1] ?? "B",

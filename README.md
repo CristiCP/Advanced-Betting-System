@@ -5,6 +5,7 @@ Motor de colectare a meciurilor și cotelor live, scris în TypeScript și compi
 Acest document explică ansamblul. Pentru componente și fluxuri detaliate:
 
 - [Index documentație](docs/README.md): arhitectură, provideri/sporturi, mapări și rapoarte.
+- [UI local](docs/architecture/UI.md): meciuri, matching, cotele unui singur meci și evenimentele oportunităților, într-un proces separat.
 - [Network](docs/architecture/NETWORK.md): conexiuni, transporturi, comunicare între workeri și controlul fluxului de date.
 - [Providers](docs/architecture/PROVIDERS.md): descoperirea meciurilor, protocoalele fiecărui site și sincronizarea cotelor.
 - [Superbet fotbal](docs/providers/superbet/FOOTBALL.md): catalogul explicit, filtrarea liniilor cu exact două selecții și modelul de ieșire.
@@ -59,16 +60,18 @@ Diagrama urmărește datele primite. Comenzile de request, abonare și confirmar
 
 Sunt **cinci workeri creați de aplicație și un thread principal**: patru pentru provideri și unul pentru agregare. Fotbalul și tenisul împart workerul de agregare, cu stări izolate. Node.js și bibliotecile native pot folosi și threaduri interne. Numărul de meciuri nu creează automat threaduri noi.
 
-| Componentă        | Responsabilitate                                                               |
-| ----------------- | ------------------------------------------------------------------------------ |
-| Main thread       | Pornește providerii, primește rezultate și expune API-ul aplicației.           |
-| Network worker    | Conexiuni, requesturi, abonări și transferul datelor către procesare.          |
-| Processing worker | Descoperire, decomprimare, parsare, verificarea versiunilor și starea cotelor. |
+| Componentă         | Responsabilitate                                                                 |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Main thread        | Pornește providerii, primește rezultate și expune API-ul aplicației.             |
+| Network worker     | Conexiuni, requesturi, abonări și transferul datelor către procesare.            |
+| Processing worker  | Descoperire, decomprimare, parsare, verificarea versiunilor și starea cotelor.   |
 | Aggregation worker | Asociază meciurile și compară liniile eligibile, separat pentru fotbal și tenis. |
 
 Separarea ține procesarea mesajelor în afara event loop-ului de networking. Concurența requesturilor este asincronă: un meci poate primi date în timp ce altul așteaptă răspunsul serverului. CPU-ul, conexiunile și capacitatea serverului rămân resurse comune.
 
 ## Cum ajungem de la site la cote
+
+UI-ul de observare pornește implicit într-un proces Node separat și este disponibil la **http://127.0.0.1:4310** după `npm run build` și `npm start`. Nu deschide browserul automat. Variabila `UI_ENABLED=0` dezactivează procesul și observarea cotelor; `UI_PORT` schimbă portul. [Documentul UI](docs/architecture/UI.md) descrie costul, limitele și cele trei taburi. Comportamentul celorlalte componente la pornire rămâne cel existent.
 
 1. Providerul cere lista live și selectează sporturile acceptate. Reconcilierea completă se repetă la cinci minute.
 2. Deschide abonările pentru actualizări: **un SSE per meci la Superbet**, respectiv **socketuri cu grupuri de meciuri la Betano**.
@@ -108,7 +111,7 @@ Ambii provideri expun suplimentar `getFootballSnapshot(id)`, `onFootballSnapshot
 | [src/providers](src/providers)                    | Integrarea fiecărui site: controller, worker, protocol, feed și store.                |
 | [src/aggregation](src/aggregation)                | Agregarea: protocolul binar, outboxul și adaptorul, asocierea meciurilor, detectorul. |
 | `model/` în fiecare modul                         | Interfețele și contractele mesajelor; acestea nu creează threaduri.                   |
-| `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite de piețe, separate pe sport. |
+| `config.ts` / `*.config.ts` la rădăcina modulului | Parametri de rulare și cataloage explicite de piețe, separate pe sport.               |
 | [test](test)                                      | Teste pentru protocoale, versiuni, recuperare și controlul fluxului.                  |
 
 Documentele sunt grupate în `docs/architecture`, `docs/providers/<site>`, `docs/mapping` și `docs/reports`; [indexul](docs/README.md) indică rolul și starea fiecărei piese.

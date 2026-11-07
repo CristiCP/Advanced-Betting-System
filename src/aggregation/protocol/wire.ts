@@ -16,17 +16,20 @@ import {
  */
 
 export const wireMagic = 0x41474231;
-export const wireVersion = 3;
+export const wireVersion = 5;
 export const headerBytes = 32;
 export const segmentBytes = 8;
 export const valueBytes = 21;
 export const maxNameLength = 128;
+export const maxSelectionIdLength = 64;
 export const maxPrice = 10_000;
 const maxNameBytes = maxNameLength * 3;
+const maxSelectionIdBytes = maxSelectionIdLength;
 const identityBytes = 45;
 const liveBytes = 14;
 const handleBytes = 5;
 const lineDefineBytes = 13;
+const maxLineSelectionsBytes = 9 + 2 * (2 + maxSelectionIdBytes);
 export const initialBatchBytes = 64 * 1024;
 
 export const operations = {
@@ -37,6 +40,7 @@ export const operations = {
   lineDefine: 4,
   lineRelease: 5,
   eventTennis: 6,
+  lineSelections: 7,
 } as const;
 
 // A running clock advances from the moment it was received; a stopped one stays at its value.
@@ -74,6 +78,15 @@ export function isName(value: unknown): value is string {
     typeof value === "string" &&
     value.length <= maxNameLength &&
     value.trim() !== ""
+  );
+}
+
+export function isSelectionId(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= maxSelectionIdLength &&
+    /^[\x21-\x7e]+$/.test(value)
   );
 }
 
@@ -134,7 +147,8 @@ export function fullStateBytes(maxEvents: number, maxLines: number): number {
         5 +
         tennisContextBytes +
         3 * segmentBytes) +
-    maxLines * (lineDefineBytes + valueBytes + segmentBytes)
+    maxLines *
+      (lineDefineBytes + maxLineSelectionsBytes + valueBytes + segmentBytes)
   );
 }
 
@@ -244,6 +258,24 @@ export class BatchWriter {
     this.view.setUint32(at + 8, key, true);
   }
 
+  lineSelections(
+    line: number,
+    marketId: number,
+    selectionA: string | null,
+    selectionB: string | null,
+  ): void {
+    const at = this.operation(
+      operations.lineSelections,
+      maxLineSelectionsBytes,
+    );
+    this.view.setUint32(at, line, true);
+    this.view.setUint32(at + 4, marketId, true);
+    this.offset = this.selectionId(
+      this.selectionId(at + 8, selectionA),
+      selectionB,
+    );
+  }
+
   lineRelease(line: number): void {
     const at = this.operation(operations.lineRelease, handleBytes);
     this.view.setUint32(at, line, true);
@@ -305,6 +337,19 @@ export class BatchWriter {
     const { written } = encoder.encodeInto(
       value,
       this.bytes.subarray(at + 2, at + 2 + maxNameBytes),
+    );
+    this.view.setUint16(at, written, true);
+    return at + 2 + written;
+  }
+
+  private selectionId(at: number, value: string | null): number {
+    if (value === null) {
+      this.view.setUint16(at, 0, true);
+      return at + 2;
+    }
+    const { written } = encoder.encodeInto(
+      value,
+      this.bytes.subarray(at + 2, at + 2 + maxSelectionIdBytes),
     );
     this.view.setUint16(at, written, true);
     return at + 2 + written;
@@ -379,6 +424,25 @@ export function readBatch(
     }
     offset += length;
     if (!isName(value)) throw new WireError("Invalid team name.");
+    return value;
+  };
+  const selectionId = (): string | null => {
+    need(2);
+    const length = view.getUint16(offset, true);
+    offset += 2;
+    if (length === 0) return null;
+    if (length > maxSelectionIdBytes)
+      throw new WireError("Invalid selection ID length.");
+    need(length);
+    let value: string;
+    try {
+      value = decoder.decode(new Uint8Array(buffer, offset, length));
+    } catch {
+      throw new WireError("Selection ID is not valid UTF-8.");
+    }
+    offset += length;
+    if (!isSelectionId(value))
+      throw new WireError("Invalid selection identity.");
     return value;
   };
   for (let segment = 0; segment < header.segments; segment++) {
@@ -466,6 +530,18 @@ export function readBatch(
           sink.lineRelease(view.getUint32(offset + 1, true));
           offset += handleBytes;
           break;
+        case operations.lineSelections: {
+          need(9);
+          const line = view.getUint32(offset + 1, true);
+          const marketId = view.getUint32(offset + 5, true);
+          offset += 9;
+          const selectionA = selectionId();
+          const selectionB = selectionId();
+          if (marketId === 0)
+            throw new WireError("Invalid provider market identity.");
+          sink.lineSelections(line, marketId, selectionA, selectionB);
+          break;
+        }
         default:
           throw new WireError(`Unknown batch operation ${code}.`);
       }

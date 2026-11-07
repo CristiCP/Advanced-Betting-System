@@ -13,7 +13,10 @@ import type {
   SuperbetFootballSnapshot,
 } from "./football-projection.interfaces.js";
 
+import type { UiQuoteMessage } from "../../../ui/model/ui.interfaces.js";
+
 export interface SuperbetHandlers {
+  onUiQuotes?(message: UiQuoteMessage): void;
   onEvents?(events: SuperbetEvent[]): void;
   onSnapshot?(snapshot: SuperbetSnapshot): void;
   onUpdate?(update: SuperbetUpdate): void;

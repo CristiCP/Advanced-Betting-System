@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-ui-assets.mjs",
     "check": "tsc --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
     "start": "node --enable-source-maps dist/index.js",

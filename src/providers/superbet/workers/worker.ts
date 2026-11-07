@@ -1,4 +1,6 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
+import { UiQuoteObserver } from "../../../ui/observation/quotes.js";
+import { uiConfig } from "../../../ui/config.js";
 import { NetworkPortClient } from "../../../network/workers/port-client.js";
 import { AggregationOutbox } from "../../../aggregation/adapter/outbox.js";
 import { ProjectionAggregationAdapter } from "../../../aggregation/adapter/projection.js";
@@ -31,6 +33,18 @@ const port = parentPort;
 const data: SuperbetWorkerData = workerData;
 const post = (message: SuperbetWorkerMessage): void =>
   port.postMessage(message);
+const ui = data.observeUi
+  ? new UiQuoteObserver(
+      "superbet",
+      (sport, id) =>
+        sport === "football"
+          ? feed.getFootballSnapshot(id)
+          : feed.getTennisSnapshot(id),
+      post,
+      uiConfig.quoteIntervalMs,
+      uiConfig.maxLines,
+    )
+  : null;
 // The adapter turns football projections into canonical lines; without a port the provider runs unchanged.
 let adapter: FootballAggregationAdapter<
   SuperbetFootballEvent,
@@ -109,38 +123,42 @@ const feed = new SuperbetFeed(client, data.options, {
   onUpdate: (update) => {
     if (data.publishUpdates) post({ type: "update", update });
   },
-  ...(data.publishFootballSnapshots || aggregation
+  ...(data.publishFootballSnapshots || aggregation || ui
     ? {
         onFootballSnapshot: (snapshot) => {
           aggregate((target) => target.install(snapshot));
+          ui?.changed("football", snapshot.event.id);
           if (data.publishFootballSnapshots)
             post({ type: "football-snapshot", snapshot });
         },
       }
     : {}),
-  ...(data.publishFootballUpdates || aggregation
+  ...(data.publishFootballUpdates || aggregation || ui
     ? {
         onFootballUpdate: (change) => {
           aggregate((target) => target.update(change));
+          ui?.changed("football", change.eventId);
           if (data.publishFootballUpdates)
             post({ type: "football-update", change });
         },
       }
     : {}),
   onRemove: (eventId) => post({ type: "removed", eventId }),
-  ...(data.publishTennisSnapshots || tennisAggregation
+  ...(data.publishTennisSnapshots || tennisAggregation || ui
     ? {
         onTennisSnapshot: (snapshot) => {
           aggregateTennis((target) => target.install(snapshot));
+          ui?.changed("tennis", snapshot.event.id);
           if (data.publishTennisSnapshots)
             post({ type: "tennis-snapshot", snapshot });
         },
       }
     : {}),
-  ...(data.publishTennisUpdates || tennisAggregation
+  ...(data.publishTennisUpdates || tennisAggregation || ui
     ? {
         onTennisUpdate: (change) => {
           aggregateTennis((target) => target.update(change));
+          ui?.changed("tennis", change.eventId);
           if (data.publishTennisUpdates)
             post({ type: "tennis-update", change });
         },
@@ -172,9 +190,18 @@ let stopping = false;
 
 // Keep query handling independent of ongoing snapshot requests.
 async function handle(command: SuperbetWorkerCommand): Promise<void> {
+  if (typeof command === "object" && command.type === "ui-ack") {
+    ui?.acknowledge();
+    return;
+  }
+  if (typeof command === "object" && command.type === "ui-watch") {
+    if (started && !stopping) ui?.select(command);
+    return;
+  }
   if (command === "stop") {
     if (stopping) return;
     stopping = true;
+    ui?.close();
     try {
       await feed.stop();
     } finally {
@@ -228,6 +255,7 @@ async function handle(command: SuperbetWorkerCommand): Promise<void> {
 
 port.on("message", (command: SuperbetWorkerCommand) => {
   void handle(command).catch(async (error: unknown) => {
+    ui?.close();
     post({ type: "fatal", error: String(error) });
     process.exitCode = 1;
     try {

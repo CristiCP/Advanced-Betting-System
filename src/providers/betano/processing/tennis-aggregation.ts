@@ -17,6 +17,8 @@ import type {
 const catalog = new Map<number, (typeof betanoTennisMarkets)[number]>(
   betanoTennisMarkets.map((m) => [m.typeId, m]),
 );
+const selectionId = (value: string): string | null =>
+  /^[1-9]\d*$/.test(value) ? value : null;
 
 export const betanoTennisCodec: ProjectionCodec<
   BetanoTennisEvent,
@@ -69,5 +71,7 @@ export const betanoTennisCodec: ProjectionCodec<
     quote.priceB = b.price ?? NaN;
     quote.usableA = !line.isSuspended && !a.isSuspended;
     quote.usableB = !line.isSuspended && !b.isSuspended;
+    quote.selectionA = selectionId(a.id);
+    quote.selectionB = selectionId(b.id);
   },
 };

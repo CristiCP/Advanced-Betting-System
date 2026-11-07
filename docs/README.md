@@ -2,15 +2,16 @@
 
 [Ansamblul proiectului](../README.md) explică pornirea, threadurile și fluxul general.
 
-| Folder | Conținut |
-| --- | --- |
-| `architecture/` | Componentele comune, comunicarea și comportamentul la recuperare. |
-| `providers/<site>/` | Contractul extern și proiecțiile fiecărui sport pentru acel site. |
-| `mapping/` | Echivalențele verificate între siteuri și condițiile de comparație. |
-| `reports/` | Rezultate istorice ale măsurătorilor, cu configurația și limitele lor. |
+| Folder              | Conținut                                                               |
+| ------------------- | ---------------------------------------------------------------------- |
+| `architecture/`     | Componentele comune, comunicarea și comportamentul la recuperare.      |
+| `providers/<site>/` | Contractul extern și proiecțiile fiecărui sport pentru acel site.      |
+| `mapping/`          | Echivalențele verificate între siteuri și condițiile de comparație.    |
+| `reports/`          | Rezultate istorice ale măsurătorilor, cu configurația și limitele lor. |
 
 ## Arhitectură
 
+- [UI local](architecture/UI.md): taburi, observare selectivă, proces separat și limite de trafic.
 - [Network](architecture/NETWORK.md): HTTP/2, HTTP/1.1, SSE, WebSocket și controlul fluxului.
 - [Providers](architecture/PROVIDERS.md): discovery, store vendor, proiecții și API.
 - [Aggregator](architecture/AGGREGATOR.md): infrastructura comună și matchingul de fotbal.

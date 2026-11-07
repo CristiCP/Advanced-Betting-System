@@ -43,6 +43,8 @@ export class ProjectionAggregationAdapter<
     priceB: NaN,
     usableA: false,
     usableB: false,
+    selectionA: null,
+    selectionB: null,
   };
   private readonly counters = { rejectedEvents: 0, ambiguousLines: 0 };
 
@@ -182,6 +184,9 @@ export class ProjectionAggregationAdapter<
       this.quote.priceB,
       this.quote.usableA,
       this.quote.usableB,
+      this.codec.marketType(line),
+      this.quote.selectionA,
+      this.quote.selectionB,
     );
   }
 

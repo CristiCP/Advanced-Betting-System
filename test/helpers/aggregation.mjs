@@ -22,6 +22,7 @@ export function recorder() {
     eventTennis: (...args) => calls.push(["tennis", ...args]),
     eventRelease: (event) => calls.push(["event-release", event]),
     lineDefine: (...args) => calls.push(["define", ...args]),
+    lineSelections: (...args) => calls.push(["selections", ...args]),
     lineRelease: (line) => calls.push(["line-release", line]),
     value: (...args) => calls.push(["value", ...args]),
   };

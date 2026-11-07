@@ -21,6 +21,7 @@ import {
   isIdentity,
   isLineKey,
   isPrice,
+  isSelectionId,
   liveFlags,
   valueFlags,
 } from "../protocol/wire.js";
@@ -84,6 +85,9 @@ export class AggregationOutbox {
   // Latest value per line handle; a changed line is listed once until its segment is written.
   private priceA = new Float64Array(0);
   private priceB = new Float64Array(0);
+  private marketId = new Uint32Array(0);
+  private selectionA: Array<string | null> = [];
+  private selectionB: Array<string | null> = [];
   private flags = new Uint8Array(0);
   private marks = new Uint8Array(0);
   private dirtyList = new Uint32Array(0);
@@ -230,32 +234,65 @@ export class AggregationOutbox {
     priceB: number,
     usableA: boolean,
     usableB: boolean,
+    marketId = 1,
+    selectionA: string | null = null,
+    selectionB: string | null = null,
   ): boolean {
     if (!this.active) return false;
     const event = this.events.get(eventId);
-    if (event === undefined || !isLineKey(key)) return this.reject();
+    if (
+      event === undefined ||
+      !isLineKey(key) ||
+      !Number.isSafeInteger(marketId) ||
+      marketId <= 0 ||
+      marketId > 0xffff_ffff ||
+      (selectionA !== null && !isSelectionId(selectionA)) ||
+      (selectionB !== null && !isSelectionId(selectionB))
+    )
+      return this.reject();
     const a = isPrice(priceA) ? priceA : NaN;
     const b = isPrice(priceB) ? priceB : NaN;
     const flags =
       (usableA && !Number.isNaN(a) ? valueFlags.usableA : 0) |
       (usableB && !Number.isNaN(b) ? valueFlags.usableB : 0);
     let line = event.lines.get(key);
+    const isNew = line === undefined;
     if (line === undefined) {
       line = this.lineHandles.acquire();
       if (line < 0) return this.reject();
       event.lines.set(key, line);
       this.writer.lineDefine(line, event.handle, key);
-    } else if (
+    }
+    const hasSelection =
+      selectionA !== null ||
+      selectionB !== null ||
+      this.selectionA[line] !== null ||
+      this.selectionB[line] !== null;
+    const selectionsChanged =
+      hasSelection &&
+      (this.marketId[line] !== marketId ||
+        this.selectionA[line] !== selectionA ||
+        this.selectionB[line] !== selectionB);
+    if (selectionsChanged) {
+      this.marketId[line] = marketId;
+      this.selectionA[line] = selectionA;
+      this.selectionB[line] = selectionB;
+      this.writer.lineSelections(line, marketId, selectionA, selectionB);
+    }
+    if (
+      !isNew &&
       same(this.priceA[line]!, a) &&
       same(this.priceB[line]!, b) &&
       this.flags[line] === flags
-    )
+    ) {
+      if (selectionsChanged) this.written(true);
       return true;
+    }
     this.priceA[line] = a;
     this.priceB[line] = b;
     this.flags[line] = flags;
     this.mark(line);
-    this.written(false);
+    this.written(selectionsChanged);
     return true;
   }
 
@@ -341,6 +378,9 @@ export class AggregationOutbox {
     this.lineHandles = new HandlePool(options.maxLines);
     this.priceA = new Float64Array(options.maxLines);
     this.priceB = new Float64Array(options.maxLines);
+    this.marketId = new Uint32Array(options.maxLines);
+    this.selectionA = new Array<string | null>(options.maxLines).fill(null);
+    this.selectionB = new Array<string | null>(options.maxLines).fill(null);
     this.flags = new Uint8Array(options.maxLines);
     this.marks = new Uint8Array(options.maxLines);
     this.dirtyList = new Uint32Array(options.maxLines);
@@ -387,6 +427,9 @@ export class AggregationOutbox {
   private dropLine(line: number): void {
     if (this.marks[line] === dirty) this.marks[line] = released;
     this.writer.lineRelease(line);
+    this.marketId[line] = 0;
+    this.selectionA[line] = null;
+    this.selectionB[line] = null;
     this.lineHandles.release(line);
   }
 
