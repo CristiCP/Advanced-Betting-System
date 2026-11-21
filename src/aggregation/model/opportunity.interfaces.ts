@@ -11,6 +11,7 @@ export type AggregationGate =
   | "not-live"
   | "suspended"
   | "score"
+  | "statistics"
   | "tennis-context"
   | "settling"
   | "lag";
@@ -69,6 +70,7 @@ export interface AggregationOpportunityState {
   betanoLine: number;
   openedAt: number;
   pausedAt: number | null;
+  pauseReason?: AggregationGate;
   unconfirmedMs: number;
   // 0: Superbet A with Betano B; 1: Betano A with Superbet B.
   orientation: number;

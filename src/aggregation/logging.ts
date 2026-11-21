@@ -26,6 +26,7 @@ const reasons: Record<AggregationCloseReason, string> = {
   "not-live": "meci ieșit din live",
   suspended: "meci suspendat",
   score: "scoruri diferite sau lipsă",
+  statistics: "statistici diferite pentru piață",
   "tennis-context": "context tenis diferit, lipsă sau set încheiat",
   settling: "pauză după schimbarea scorului",
   lag: "batch întârziat",

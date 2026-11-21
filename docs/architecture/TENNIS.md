@@ -56,7 +56,7 @@ Numele sunt normalizate la schimbarea identității, fără eliminarea tokenuril
 
 O orientare inversată a adversarilor este suspectă. Nu inversăm automat numele, handicapurile sau scorul. Fără ID comun, un candidat bazat pe nume poate fi doar observat, niciodată trimis detectorului. Aliasurile și competițiile învățate pentru fotbal nu sunt folosite sau învățate în motorul de tenis.
 
-Asocierea confirmă identitatea, nu disponibilitatea. O deconectare păstrează o pereche cunoscută dacă identitatea nu este contrazisă; cotele sunt blocate separat. Diferențele persistente la scorul seturilor pot face perechea suspectă, ca la fotbal.
+Asocierea confirmă identitatea, nu disponibilitatea. O deconectare păstrează o pereche cunoscută dacă identitatea nu este contrazisă; cotele sunt blocate separat. La tenis, diferențele persistente la scorul seturilor pot face perechea suspectă.
 
 ## 4. Contextul înaintea comparării
 

@@ -1,4 +1,5 @@
 import type { AggregationMatchedEvent } from "../../aggregation/model/matching.interfaces.js";
+import type { FootballMarketChecks } from "../../aggregation/model/football-statistics.interfaces.js";
 import type { AggregationOpportunityReport } from "../../aggregation/model/opportunity.interfaces.js";
 import type { AggregationStats } from "../../aggregation/model/worker.interfaces.js";
 import type { BetanoFootballSnapshot } from "../../providers/betano/model/football-projection.interfaces.js";
@@ -88,6 +89,7 @@ export interface UiFrame {
   selection: UiSelection | null;
   summary?: UiSummary;
   quotes?: UiQuoteMessage[];
+  footballChecks?: FootballMarketChecks;
   opportunities: UiOpportunity[];
   dropped: number;
 }
@@ -150,6 +152,7 @@ export interface UiBrowserUpdate {
   selection: UiSelection | null;
   quotes?: Partial<Record<UiProvider, UiQuoteView>>;
   resetQuotes?: boolean;
+  footballChecks?: FootballMarketChecks;
   history?: UiOpportunity[];
   opportunities?: UiOpportunity[];
   dropped: number;

@@ -94,7 +94,7 @@ export class EventMatcher {
     }
   }
 
-  // Score disagreement only becomes a reason after it persists; learning waits for stability.
+  // Football score disagreement is diagnostic and cannot contribute to learning.
   sweep(now: number): void {
     for (const pair of this.pairs) {
       this.evaluate(pair, now);
@@ -293,13 +293,17 @@ export class EventMatcher {
       )
     )
       reasons.push("unverified");
-    const state = reasons.length ? "suspect" : "confirmed";
+    const state = reasons.some((reason) => this.sport !== "football" || reason !== "score")
+      ? "suspect"
+      : "confirmed";
     const changed =
       state !== pair.state ||
       reasons.length !== pair.reasons.length ||
       reasons.some((reason, index) => reason !== pair.reasons[index]);
     const previous = pair.state;
-    if (
+    if (this.sport === "football" && !Number.isNaN(pair.scoreMismatchSince))
+      pair.confirmedSince = NaN;
+    else if (
       state !== previous ||
       (state === "confirmed" && Number.isNaN(pair.confirmedSince))
     )

@@ -65,7 +65,7 @@ Un singur meci poate fi urmărit global. Dintr-o pereche confirmată se selectea
 
 Asocierea folosește `mappingIndex`, condițiile activate din configurația agregării și funcțiile `lineKey` ale codec-urilor existente. Acestea păstrează pragul, orientarea handicapului și coordonatele setului/intervalului, inclusiv regulile de excludere. Nu se compară numele marketurilor. Selecțiile sunt ordonate semantic A/B, independent de ordinea vendorului; mapările Da/Nu la un prag fix rămân aliniate prin cheia canonică. Liniile ambigue sau sursele trunchiate nu sunt asociate.
 
-Aceasta este o asociere structurală a snapshoturilor UI curente, nu o interogare a legăturilor și stărilor interne ale detectorului. Nu reproduce verificările de scor, context, settling, lag sau istoricul ambiguităților reținut de aggregator.
+Rândurile rezultă din asocierea structurală a snapshoturilor UI. La fotbal, coloana **Statistici** primește pentru meciul deschis starea verificării din agregator, pe cod de piață. **Statistici diferite** indică o diferență de contor, iar **Statistică indisponibilă** include lipsa, expirarea și piețele fără un contor validat. **Statistici egale** arată rezultatul acestei verificări. Eligibilitatea completă ține și de suspendare, prospețimea fluxului, pauza după schimbarea scorului și disponibilitatea cotelor. [Regulile detectorului](AGGREGATOR.md#statistici-de-fotbal-pe-piață)
 
 La selectare se primește un snapshot inițial. Ulterior, observerul grupează modificările și citește cel mult un snapshot filtrat la 250 ms per provider. Nu publică fiecare patch brut. Snapshoturile selectate sunt stări complete, iar procesul UI le transformă în rânduri; browserul schimbă numai celulele diferite.
 

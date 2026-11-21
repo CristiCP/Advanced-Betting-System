@@ -26,6 +26,17 @@ import {
 import type { AggregationSport } from "../model/tennis.interfaces.js";
 import type { EventRegistry } from "./events.js";
 import type { QuoteBook } from "./quotes.js";
+import type {
+  FootballMarketChecks,
+  FootballStatisticsSample,
+} from "../model/football-statistics.interfaces.js";
+import {
+  checksGoals,
+  footballStatisticStatus,
+  footballStatisticsExpires,
+  needsFootballStatistics,
+  supplementaryFootballStatus,
+} from "./football-statistics.js";
 
 /**
  * @file Evaluates linked two-outcome lines incrementally and tracks each opportunity's lifecycle.
@@ -50,6 +61,10 @@ export class Detector {
   private readonly pendingList: Uint32Array;
   private pendingCount = 0;
   private readonly open = new Map<number, AggregationOpportunityState>();
+  private readonly footballStatistics = new Map<
+    AggregationPair,
+    FootballStatisticsSample
+  >();
   private nextId = 1;
   private readonly counters = { opened: 0, closed: 0, suspicious: 0 };
   private compared = 0;
@@ -86,6 +101,70 @@ export class Detector {
     for (const line of pair.links) this.mark(line);
   }
 
+  markGoalLines(pair: AggregationPair): void {
+    for (const line of pair.links)
+      if (checksGoals(lineCode(this.superbet.book.lineKey[line]!)))
+        this.mark(line);
+  }
+
+  needsFootballStatistics(pair: AggregationPair): boolean {
+    for (const line of pair.links)
+      if (needsFootballStatistics(lineCode(this.superbet.book.lineKey[line]!)))
+        return true;
+    return false;
+  }
+
+  forgetFootballStatistics(pair: AggregationPair): void {
+    this.footballStatistics.delete(pair);
+  }
+
+  setFootballStatistics(
+    pair: AggregationPair,
+    sample: FootballStatisticsSample,
+    now: number,
+  ): void {
+    const previous = this.footballStatistics.get(pair);
+    const next = footballStatisticsExpires(sample) > now ? sample : undefined;
+    if (next) this.footballStatistics.set(pair, next);
+    else this.forgetFootballStatistics(pair);
+    const previousAt = previous
+      ? Math.min(now, footballStatisticsExpires(previous) - 1)
+      : now;
+    this.markChangedStatistics(pair, previous, previousAt, next, now);
+  }
+
+  footballChecks(pair: AggregationPair, now: number): FootballMarketChecks {
+    const checks: FootballMarketChecks = {};
+    const sample = this.footballStatistics.get(pair);
+    for (const line of pair.links) {
+      const code = lineCode(this.superbet.book.lineKey[line]!);
+      checks[code] ??= footballStatisticStatus(code, pair, sample, now);
+    }
+    return checks;
+  }
+
+  private markChangedStatistics(
+    pair: AggregationPair,
+    previous: FootballStatisticsSample | undefined,
+    previousAt: number,
+    next: FootballStatisticsSample | undefined,
+    now: number,
+  ): void {
+    const changes = new Map<number, boolean>();
+    for (const line of pair.links) {
+      const code = lineCode(this.superbet.book.lineKey[line]!);
+      if (!needsFootballStatistics(code)) continue;
+      let changed = changes.get(code);
+      if (changed === undefined) {
+        const before = supplementaryFootballStatus(code, previous, previousAt);
+        const after = supplementaryFootballStatus(code, next, now);
+        changed = (before === "different") !== (after === "different");
+        changes.set(code, changed);
+      }
+      if (changed) this.mark(line);
+    }
+  }
+
   flush(now: number): void {
     for (let index = 0; index < this.pendingCount; index++) {
       const line = this.pendingList[index]!;
@@ -103,10 +182,11 @@ export class Detector {
     if (!superbet.live || !betano.live) return "not-live";
     if (superbet.suspended || betano.suspended) return "suspended";
     if (
-      !superbet.scoreKnown ||
-      !betano.scoreKnown ||
-      superbet.homeScore !== betano.homeScore ||
-      superbet.awayScore !== betano.awayScore
+      this.sport === "tennis" &&
+      (!superbet.scoreKnown ||
+        !betano.scoreKnown ||
+        superbet.homeScore !== betano.homeScore ||
+        superbet.awayScore !== betano.awayScore)
     )
       return "score";
     if (
@@ -114,7 +194,7 @@ export class Detector {
       !tennisContextAgrees(superbet.tennis, betano.tennis)
     )
       return "tennis-context";
-    if (now < pair.settleUntil) return "settling";
+    if (this.sport === "tennis" && now < pair.settleUntil) return "settling";
     if (
       this.lag.superbet > this.options.maxLagMs ||
       this.lag.betano > this.options.maxLagMs
@@ -130,12 +210,37 @@ export class Detector {
       const peer = this.superbet.book.peer[line]!;
       if (
         peer >= 0 &&
-        !this.completedSet(pair, line) &&
+        this.lineGate(pair, line, now) === null &&
         this.usableOrientations(line, peer) !== 0
       )
         return true;
     }
     return false;
+  }
+
+  private lineGate(
+    pair: AggregationPair,
+    line: number,
+    now: number,
+  ): AggregationGate | null {
+    if (this.sport === "tennis")
+      return this.completedSet(pair, line) ? "tennis-context" : null;
+    const code = lineCode(this.superbet.book.lineKey[line]!);
+    const goals = checksGoals(code);
+    const comparison = footballStatisticStatus(
+      code,
+      pair,
+      this.footballStatistics.get(pair),
+      now,
+    );
+    if (comparison === "different")
+      return goals &&
+        footballStatisticStatus(code, pair, undefined, now) === "different"
+        ? "score"
+        : "statistics";
+    if (goals && comparison === "equal" && now < pair.settleUntil)
+      return "settling";
+    return null;
   }
 
   private completedSet(pair: AggregationPair, line: number): boolean {
@@ -155,6 +260,12 @@ export class Detector {
 
   // Open opportunities are re-checked on every sweep, so time-based gates close them without new prices.
   sweep(now: number): void {
+    for (const [pair, sample] of this.footballStatistics) {
+      const expires = footballStatisticsExpires(sample);
+      if (now < expires) continue;
+      this.forgetFootballStatistics(pair);
+      this.markChangedStatistics(pair, sample, expires - 1, undefined, now);
+    }
     for (const line of this.open.keys()) this.mark(line);
     this.flush(now);
   }
@@ -253,6 +364,9 @@ export class Detector {
     const percent = (bps: number): string => `${(bps / 100).toFixed(2)}%`;
     let detail: string;
     switch (reason) {
+      case "statistics":
+        detail = `statistici diferite pentru ${state.last.concept}`;
+        break;
       case "stale":
         detail = `${events
           .filter((event) => !event.synchronized)
@@ -361,20 +475,29 @@ export class Detector {
     const event = this.superbet.registry.get(superbet.lineEvent[line]!);
     const pair = event?.pair ?? null;
     let blocked = this.gate(pair, now);
-    if (blocked === null && this.completedSet(pair!, line))
-      blocked = "tennis-context";
-    if (blocked === "stale") {
+    if (blocked === null) blocked = this.lineGate(pair!, line, now);
+    const marketPaused =
+      this.sport === "football" &&
+      (blocked === "statistics" ||
+        blocked === "score" ||
+        blocked === "settling");
+    if (marketPaused && this.usableOrientations(line, peer) === 0) {
+      this.close(line, now, "margin");
+      return;
+    }
+    if (blocked !== null && (blocked === "stale" || marketPaused)) {
       const state = this.open.get(line);
-      if (state !== undefined && state.pausedAt === null) {
-        state.pausedAt = now;
+      if (state !== undefined && state.pauseReason !== blocked) {
+        state.pausedAt ??= now;
+        state.pauseReason = blocked;
         this.handlers.onReport({
           ...state.last,
           kind: "pause",
           at: now,
           durationMs: now - state.openedAt,
           unconfirmedMs: state.unconfirmedMs,
-          reason: "stale",
-          reasonDetail: this.describeClose(state, "stale", state.marginBps),
+          reason: blocked,
+          reasonDetail: this.describeClose(state, blocked, state.marginBps),
         });
       }
       return;
@@ -469,9 +592,7 @@ export class Detector {
         provider === "superbet" ? this.superbet.book : this.betano.book;
       const target = provider === "superbet" ? line : peer;
       const id =
-        outcome === "A"
-          ? book.selectionA[target]!
-          : book.selectionB[target]!;
+        outcome === "A" ? book.selectionA[target]! : book.selectionB[target]!;
       return id;
     };
     const providerMarket = (provider: AggregationProvider): number => {
@@ -560,6 +681,7 @@ export class Detector {
       if (suspicious) this.counters.suspicious++;
     } else {
       state.pausedAt = null;
+      delete state.pauseReason;
       state.unconfirmedMs = report.unconfirmedMs;
       state.orientation = orientation;
       state.priceA = priceA;

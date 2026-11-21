@@ -323,15 +323,22 @@ test("UI process serves read-only assets, bounded history, and rejects stale or 
     await ui.stop();
   });
   const commands = [];
-  ui.attach({
-    betano: {
-      watchUi(command) {
-        commands.push(command);
+  const statisticsWatches = [];
+  ui.attach(
+    {
+      betano: {
+        watchUi(command) {
+          commands.push(command);
+        },
       },
     },
-  });
+    (watch) => statisticsWatches.push(watch),
+  );
   ui.events("betano", [
     { provider: "betano", sport: "football", id: 101, name: "Home - Away" },
+  ]);
+  ui.events("superbet", [
+    { provider: "superbet", sport: "football", id: 201, name: "Home - Away" },
   ]);
   for (let i = 1; i <= 5; i++) ui.opportunity(uiReport("update", i));
   const url = await ui.start();
@@ -389,6 +396,21 @@ test("UI process serves read-only assets, bounded history, and rejects stale or 
     (data) => data.quotes?.betano?.rows?.length === 1,
   );
   assert.equal(data.quotes.betano.rows[0].selections[0].price, 2.1);
+  assert.equal(
+    (await watch({ sport: "football", superbet: 201, betano: 101 })).status,
+    204,
+  );
+  await until(() => statisticsWatches.at(-1)?.superbetId === 201);
+  const pairedWatch = statisticsWatches.at(-1);
+  ui.footballStatistics({
+    generation: pairedWatch.generation,
+    checks: { 1: "different", 4: "unknown" },
+  });
+  ui.footballStatistics({ generation, checks: { 1: "equal" } });
+  const checked = await stream.next(
+    (data) => data.footballChecks !== undefined,
+  );
+  assert.deepEqual(checked.footballChecks, { 1: "different", 4: "unknown" });
   assert.equal((await watch(null)).status, 204);
   await until(() => commands.at(-1).eventId === null);
   ui.quote({
@@ -406,6 +428,7 @@ test("UI process serves read-only assets, bounded history, and rejects stale or 
   );
   assert.deepEqual(cleared.quotes, {});
   assert.equal(ui.quotes.size, 0);
+  assert.equal(statisticsWatches.at(-1), null);
   ui.remove("betano", 101);
   const removed = await stream.next(
     (data) => data.summary?.counts.betano.football === 0,

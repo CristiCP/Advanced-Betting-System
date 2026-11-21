@@ -28,6 +28,7 @@ let summary: UiSummary | null = null;
 let selected: UiSelection | null = null;
 let selectedName = "";
 let quoteData: NonNullable<UiBrowserUpdate["quotes"]> = {};
+let footballChecks: NonNullable<UiBrowserUpdate["footballChecks"]> = {};
 let history: UiOpportunity[] = [];
 let tab = "matches";
 let page = 0;
@@ -39,6 +40,16 @@ let desiredWatch: UiSelection | null = null;
 let watchPending = false;
 let latestSelectionJson = "null";
 const rowsByKey = new Map<string, HTMLTableRowElement>();
+const statisticsLabel = {
+  equal: "Statistici egale",
+  different: "Statistici diferite",
+  unknown: "Statistică indisponibilă",
+} as const;
+
+function resetQuotes(): void {
+  quoteData = {};
+  footballChecks = {};
+}
 let matchActions: (UiSelection | null)[] = [];
 
 // Serialize selection commands, so rapid clicks cannot restore an older subscription.
@@ -78,7 +89,7 @@ function switchTab(next: string): void {
     "[data-tab]",
   ))
     button.setAttribute("aria-selected", String(button.dataset.tab === next));
-  quoteData = {};
+  resetQuotes();
   void sendWatch(next === "quotes" ? selected : null);
   render();
 }
@@ -221,6 +232,8 @@ function renderMatches(): void {
 }
 
 function renderQuotes(): void {
+  const football = selected?.sport === "football";
+  element("quote-statistics-heading").hidden = !football;
   text("quote-title", selectedName || "Selectează un meci");
   const sources = selected
     ? (["superbet", "betano"] as const).filter(
@@ -271,7 +284,7 @@ function renderQuotes(): void {
     let row = rowsByKey.get(item.key);
     if (!row) {
       row = document.createElement("tr");
-      for (let i = 0; i < 6; i++) row.append(document.createElement("td"));
+      for (let i = 0; i < 7; i++) row.append(document.createElement("td"));
       rowsByKey.set(item.key, row);
     }
     const selections = [...item.superbet.selections, ...item.betano.selections];
@@ -291,6 +304,16 @@ function renderQuotes(): void {
           ? "available"
           : "unavailable";
     });
+    // The canonical line key encodes the market code in its top twelve bits.
+    const status = footballChecks[Number(item.key) >>> 20] ?? "unknown";
+    const statisticCell = row.children[6] as HTMLTableCellElement;
+    statisticCell.hidden = !football;
+    if (football) {
+      const label = statisticsLabel[status];
+      if (statisticCell.textContent !== label)
+        statisticCell.textContent = label;
+      statisticCell.className = status === "different" ? "unavailable" : "";
+    }
     if (body.children[index] !== row)
       body.insertBefore(row, body.children[index] ?? null);
   });
@@ -367,7 +390,7 @@ function connect(): void {
     source?.close();
     source = null;
     clientId = "";
-    quoteData = {};
+    resetQuotes();
     element("connection").className = "badge muted";
     text("connection", "Observare mutată în altă fereastră");
     if (tab === "quotes") renderQuotes();
@@ -383,8 +406,9 @@ function connect(): void {
     if (update.opportunities?.length)
       history = history.concat(update.opportunities).slice(-500);
     if (JSON.stringify(update.selection) === latestSelectionJson) {
-      if (update.resetQuotes || update.type === "snapshot") quoteData = {};
+      if (update.resetQuotes || update.type === "snapshot") resetQuotes();
       if (update.quotes) Object.assign(quoteData, update.quotes);
+      if (update.footballChecks) footballChecks = update.footballChecks;
     }
     element("connection").className = "badge";
     text("connection", "● Conectat");
@@ -394,7 +418,10 @@ function connect(): void {
     );
     if (update.summary) overview();
     if (tab === "matches" && update.summary) renderMatches();
-    if (tab === "quotes" && (update.quotes || update.resetQuotes))
+    if (
+      tab === "quotes" &&
+      (update.quotes || update.resetQuotes || update.footballChecks)
+    )
       renderQuotes();
     if (
       tab === "opportunities" &&
@@ -404,7 +431,7 @@ function connect(): void {
   };
   source.onerror = () => {
     clientId = "";
-    quoteData = {};
+    resetQuotes();
     element("connection").className = "badge error";
     text("connection", "Reconectare…");
     if (tab === "quotes") renderQuotes();
@@ -433,7 +460,7 @@ element("close-match").addEventListener("click", () => {
   selected = null;
   selectedName = "";
   latestSelectionJson = "null";
-  quoteData = {};
+  resetQuotes();
   void sendWatch(null);
   renderQuotes();
 });
@@ -493,7 +520,7 @@ document.addEventListener("visibilitychange", () => {
     source?.close();
     source = null;
     clientId = "";
-    quoteData = {};
+    resetQuotes();
     text("connection", "Observare în pauză");
   } else connect();
 });

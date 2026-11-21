@@ -10,6 +10,7 @@ import type {
   AggregationMatchedEvent,
   AggregationMatchingSummary,
   AggregationObservedPair,
+  AggregationPair,
 } from "../model/matching.interfaces.js";
 import type {
   AggregationOpportunityStats,
@@ -34,6 +35,12 @@ import { Detector } from "./detector.js";
 import type { MarketInfo } from "./detector.js";
 import { EventRegistry } from "./events.js";
 import { QuoteBook } from "./quotes.js";
+import type {
+  FootballMarketChecks,
+  FootballStatisticsSample,
+  FootballStatisticsTarget,
+  FootballStatisticsWatch,
+} from "../model/football-statistics.interfaces.js";
 
 /**
  * @file Connects validated provider state to matching, line linking, detection, and reporting.
@@ -89,6 +96,7 @@ export class AggregationEngine {
   private readonly matcher: EventMatcher;
   private readonly linker: LineLinker;
   private readonly detector: Detector;
+  private readonly confirmed = new Map<number, AggregationPair>();
   private observed = new Map<string, AggregationObservedPair>();
   private reports: AggregationReport[] = [];
   private droppedReports = 0;
@@ -133,10 +141,13 @@ export class AggregationEngine {
       {
         onConfirmed: (pair) => {
           this.matchesChanged = true;
+          this.confirmed.set(pair.id, pair);
           this.linker.link(pair);
         },
         onUnconfirmed: (pair) => {
           this.matchesChanged = true;
+          this.confirmed.delete(pair.id);
+          this.detector.forgetFootballStatistics(pair);
           this.linker.unlink(pair);
         },
         onReport: (report) => this.report(report),
@@ -154,8 +165,10 @@ export class AggregationEngine {
     this.matcher.sweep(now);
     // Pairs whose settling period ended since the last sweep get compared again without new prices.
     for (const pair of this.matcher.pairs)
-      if (pair.settleUntil > this.lastSweep && pair.settleUntil <= now)
-        this.detector.markPair(pair);
+      if (pair.settleUntil > this.lastSweep && pair.settleUntil <= now) {
+        if (this.sport === "football") this.detector.markGoalLines(pair);
+        else this.detector.markPair(pair);
+      }
     this.lastSweep = now;
     this.detector.sweep(now);
   }
@@ -276,6 +289,60 @@ export class AggregationEngine {
     };
   }
 
+  footballStatisticsTargets(): FootballStatisticsTarget[] {
+    const targets: FootballStatisticsTarget[] = [];
+    for (const pair of this.confirmed.values()) {
+      if (
+        !pair.superbet.live ||
+        !pair.betano.live ||
+        !pair.superbet.synchronized ||
+        !pair.betano.synchronized ||
+        pair.superbet.suspended ||
+        pair.betano.suspended ||
+        !this.detector.needsFootballStatistics(pair)
+      )
+        continue;
+      targets.push({
+        pairId: pair.id,
+        superbetId: pair.superbet.identity.eventId,
+        betanoId: pair.betano.identity.eventId,
+      });
+    }
+    return targets;
+  }
+
+  applyFootballStatistics(sample: FootballStatisticsSample, now: number): void {
+    const pair = this.confirmed.get(sample.target.pairId);
+    if (
+      !pair ||
+      !pair.superbet.synchronized ||
+      !pair.betano.synchronized ||
+      pair.superbet.identity.eventId !== sample.target.superbetId ||
+      pair.betano.identity.eventId !== sample.target.betanoId
+    )
+      return;
+    this.now = now;
+    this.detector.setFootballStatistics(pair, sample, now);
+    this.detector.flush(now);
+  }
+
+  footballChecks(
+    watch: FootballStatisticsWatch,
+    now: number,
+  ): FootballMarketChecks {
+    for (const pair of this.confirmed.values()) {
+      if (
+        pair.superbet.identity.eventId === watch.superbetId &&
+        pair.betano.identity.eventId === watch.betanoId
+      ) {
+        return pair.superbet.synchronized && pair.betano.synchronized
+          ? this.detector.footballChecks(pair, now)
+          : {};
+      }
+    }
+    return {};
+  }
+
   begin(now: number): void {
     this.now = now;
   }
@@ -301,6 +368,9 @@ export class AggregationEngine {
     clockSeconds: number,
   ): void {
     const event = this.registries[provider].get(handle)!;
+    const synchronized = event.synchronized;
+    const live = event.live;
+    const suspended = event.suspended;
     const scoreChanged = this.registries[provider].live(
       event,
       flags,
@@ -313,7 +383,18 @@ export class AggregationEngine {
     if (pair && scoreChanged)
       pair.settleUntil = this.now + this.options.scoreSettleMs;
     this.matcher.liveChanged(event, this.now);
-    if (event.pair) this.detector.markPair(event.pair);
+    if (event.pair) {
+      if (
+        this.sport === "tennis" ||
+        synchronized !== event.synchronized ||
+        live !== event.live ||
+        suspended !== event.suspended
+      ) {
+        this.detector.markPair(event.pair);
+        if (!event.synchronized || !event.live)
+          this.detector.forgetFootballStatistics(event.pair);
+      } else if (scoreChanged) this.detector.markGoalLines(event.pair);
+    }
   }
 
   release(provider: AggregationProvider, handle: number): void {
@@ -368,12 +449,7 @@ export class AggregationEngine {
     selectionA: string | null,
     selectionB: string | null,
   ): void {
-    this.books[provider].selections(
-      line,
-      marketId,
-      selectionA,
-      selectionB,
-    );
+    this.books[provider].selections(line, marketId, selectionA, selectionB);
   }
 
   value(

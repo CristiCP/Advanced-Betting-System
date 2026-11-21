@@ -7,7 +7,7 @@ export const betanoBettingConfig: BetanoBettingOptions = {
   origin: "https://ro.betano.com",
   cookie: "",
   stake: 2,
-  maxAttempts: 3,
+  maxAttempts: 0,
 };
 
 export const superbetBettingConfig: SuperbetBettingOptions = {
@@ -16,5 +16,5 @@ export const superbetBettingConfig: SuperbetBettingOptions = {
   offerOrigin: "https://production-superbet-offer-ro.freetls.fastly.net",
   cookie: "",
   stake: 2,
-  maxAttempts: 3,
+  maxAttempts: 0,
 };

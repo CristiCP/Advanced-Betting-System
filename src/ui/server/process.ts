@@ -3,6 +3,7 @@ import type { ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { quoteView } from "./quotes.js";
+import type { FootballMarketChecks } from "../../aggregation/model/football-statistics.interfaces.js";
 import type {
   UiFrame,
   UiOptions,
@@ -28,6 +29,7 @@ let summary: UiSummary | null = null;
 let generation = 0;
 let sequence = 0;
 let dropped = 0;
+let footballChecks: FootballMarketChecks = {};
 const quotes: Partial<Record<UiProvider, ReturnType<typeof quoteView>>> = {};
 let history: UiOpportunity[] = [];
 
@@ -109,6 +111,7 @@ const server = createServer(async (request, response) => {
         summary,
         selection,
         quotes,
+        footballChecks,
         history,
         dropped,
         sequence,
@@ -119,6 +122,7 @@ const server = createServer(async (request, response) => {
         client = null;
         clientId = "";
         selection = null;
+        footballChecks = {};
         delete quotes.superbet;
         delete quotes.betano;
         post({ type: "viewers", connected: false });
@@ -148,6 +152,7 @@ const server = createServer(async (request, response) => {
         return;
       }
       selection = value;
+      footballChecks = {};
       delete quotes.superbet;
       delete quotes.betano;
       post({ type: "watch", selection });
@@ -183,6 +188,7 @@ process.on("message", (frame: UiFrame) => {
     const resetQuotes = generation !== frame.generation;
     if (resetQuotes) {
       generation = frame.generation;
+      footballChecks = {};
       delete quotes.superbet;
       delete quotes.betano;
     }
@@ -191,6 +197,8 @@ process.on("message", (frame: UiFrame) => {
       JSON.stringify(frame.selection) === JSON.stringify(selection);
     const changedQuotes: typeof quotes = {};
     if (sameSelection) {
+      if (frame.footballChecks !== undefined)
+        footballChecks = frame.footballChecks;
       for (const quote of frame.quotes ?? []) {
         if (
           quote.generation === generation &&
@@ -210,6 +218,9 @@ process.on("message", (frame: UiFrame) => {
       selection,
       ...(resetQuotes || Object.keys(changedQuotes).length
         ? { resetQuotes, quotes: changedQuotes }
+        : {}),
+      ...(sameSelection && frame.footballChecks !== undefined
+        ? { footballChecks }
         : {}),
       opportunities: frame.opportunities,
     });

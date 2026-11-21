@@ -27,9 +27,12 @@ const aggregation = new AggregationController(
           onStatus(status) {
             ui.stats(status.stats);
           },
+          onFootballStatistics(view) {
+            ui.footballStatistics(view);
+          },
         } satisfies Pick<
           import("./aggregation/model/controller.interfaces.js").AggregationHandlers,
-          "onMatches" | "onStatus"
+          "onMatches" | "onStatus" | "onFootballStatistics"
         >)
       : {}),
     onOpportunity(report) {
@@ -37,6 +40,7 @@ const aggregation = new AggregationController(
       betting.onOpportunity(report);
     },
   },
+  true,
 );
 
 // Give each provider independent network and processing workers.
@@ -85,7 +89,9 @@ const providers = [
     aggregation.createPort("superbet", "tennis"),
   ),
 ];
-ui.attach({ betano: providers[0]!, superbet: providers[1]! });
+ui.attach({ betano: providers[0]!, superbet: providers[1]! }, (watch) =>
+  aggregation.watchFootballStatistics(watch),
+);
 
 // Stop providers first so their outboxes close before the aggregator exits.
 async function stop(): Promise<void> {

@@ -5,9 +5,14 @@ import type {
 } from "./matching.interfaces.js";
 import type { AggregationOpportunityReport } from "./opportunity.interfaces.js";
 import type { AggregationProvider } from "./wire.interfaces.js";
-import type { AggregationStats, AggregationStatus } from "./worker.interfaces.js";
+import type {
+  AggregationStats,
+  AggregationStatus,
+} from "./worker.interfaces.js";
+import type { FootballStatisticsView } from "./football-statistics.interfaces.js";
 
 export interface AggregationHandlers {
+  onFootballStatistics?(view: FootballStatisticsView): void;
   onMatches?(matches: AggregationMatchedEvent[]): void;
   onOpportunity?(report: AggregationOpportunityReport): void;
   onPair?(report: AggregationPairReport): void;

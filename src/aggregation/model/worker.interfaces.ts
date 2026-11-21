@@ -11,6 +11,10 @@ import type {
 } from "./opportunity.interfaces.js";
 import type { AggregationSessionStats } from "./session.interfaces.js";
 import type { AggregationProvider } from "./wire.interfaces.js";
+import type {
+  FootballStatisticsView,
+  FootballStatisticsWatch,
+} from "./football-statistics.interfaces.js";
 
 export interface AggregationWorkerPort {
   sport?: AggregationSport;
@@ -22,6 +26,7 @@ export interface AggregationWorkerData {
   options: AggregationOptions;
   ports: AggregationWorkerPort[];
   publishMatches?: boolean;
+  pollFootballStatistics?: boolean;
 }
 
 export interface AggregationStats {
@@ -56,12 +61,16 @@ export interface AggregationQueryCommand {
 }
 
 export type AggregationWorkerCommand =
-  AggregationQueryCommand | "start" | "stop";
+  | AggregationQueryCommand
+  | { type: "watch-football-statistics"; watch: FootballStatisticsWatch | null }
+  | "start"
+  | "stop";
 
 export type AggregationWorkerMessage =
   | { type: "ready" }
   | { type: "matches"; matches: AggregationMatchedEvent[] }
   | { type: "status"; status: AggregationStatus }
+  | ({ type: "football-statistics" } & FootballStatisticsView)
   | { type: "reports"; reports: AggregationReport[] }
   | { type: "error"; error: string; provider?: AggregationProvider }
   | { type: "fatal"; error: string }

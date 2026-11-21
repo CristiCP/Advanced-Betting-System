@@ -1,4 +1,14 @@
-import { isMainThread, parentPort, workerData } from "node:worker_threads";
+import {
+  isMainThread,
+  parentPort,
+  Worker,
+  workerData,
+} from "node:worker_threads";
+import type {
+  FootballStatisticsSample,
+  FootballStatisticsWatch,
+} from "../model/football-statistics.interfaces.js";
+import { footballStatisticsConfig } from "../football-statistics.config.js";
 import { LearnedTables } from "../matching/learning.js";
 import { AggregationEngine } from "../processing/engine.js";
 import { JsonlRecorder } from "../processing/recorder.js";
@@ -67,6 +77,66 @@ let started = false;
 let stopping: Promise<void> | null = null;
 let matchesStarted = false;
 const lastMatches = new Map<AggregationSport, AggregationMatchedEvent[]>();
+let statisticsWorker: Worker | null = null;
+let targetsPending = false;
+let footballWatch: FootballStatisticsWatch | null = null;
+let lastFootballChecks = "";
+
+function startFootballStatistics(): void {
+  if (!data.pollFootballStatistics || !footballStatisticsConfig.enabled) return;
+  try {
+    const worker = new Worker(
+      new URL("./football-statistics.js", import.meta.url),
+    );
+    statisticsWorker = worker;
+    worker.on(
+      "message",
+      (message: FootballStatisticsSample | "targets-received") => {
+        if (stopping !== null || statisticsWorker !== worker) return;
+        if (message === "targets-received") targetsPending = false;
+        else engine.applyFootballStatistics(message, Date.now());
+      },
+    );
+    worker.once("error", (error) =>
+      reportError(`Football statistics: ${error.message}`),
+    );
+    worker.once("exit", (code) => {
+      if (statisticsWorker === worker) statisticsWorker = null;
+      if (stopping === null && code === 0)
+        reportError("Football statistics stopped.");
+    });
+  } catch (error) {
+    reportError(`Football statistics: ${String(error)}`);
+  }
+}
+
+function flushFootballChecks(): void {
+  if (footballWatch === null || stopping !== null) return;
+  const checks = engine.footballChecks(footballWatch, Date.now());
+  const signature = JSON.stringify(checks);
+  if (signature === lastFootballChecks) return;
+  lastFootballChecks = signature;
+  post({
+    type: "football-statistics",
+    generation: footballWatch.generation,
+    checks,
+  });
+}
+
+async function stopFootballStatistics(): Promise<void> {
+  const worker = statisticsWorker;
+  if (worker === null) return;
+  await new Promise<void>((resolve) => {
+    const timeout = setTimeout(() => {
+      void worker.terminate();
+    }, 5_000);
+    worker.once("exit", () => {
+      clearTimeout(timeout);
+      resolve();
+    });
+    worker.postMessage("stop");
+  });
+}
 
 function stats(resetWindow = false): AggregationStats {
   const sports: Partial<Record<AggregationSport, AggregationSportStats>> = {};
@@ -91,6 +161,7 @@ function flushReports(): void {
   );
   if (reports.length) post({ type: "reports", reports });
   flushMatches();
+  flushFootballChecks();
 }
 
 // Let initial snapshots arrive before the first table; later updates share the existing report timer.
@@ -116,6 +187,7 @@ async function start(): Promise<void> {
   await tables.load();
   if (stopping !== null) return;
   for (const session of sessions) session.start();
+  startFootballStatistics();
   timers.push(
     setInterval(() => {
       const now = Date.now();
@@ -126,6 +198,10 @@ async function start(): Promise<void> {
       for (const target of engines.values()) target.scan(Date.now());
       matchesStarted = true;
       flushMatches();
+      if (statisticsWorker !== null && !targetsPending) {
+        targetsPending = true;
+        statisticsWorker.postMessage(engine.footballStatisticsTargets());
+      }
       void tables.save();
       post({ type: "status", status: { kind: "stats", stats: stats(true) } });
     }, options.statsIntervalMs),
@@ -137,10 +213,11 @@ async function start(): Promise<void> {
 function stop(): Promise<void> {
   stopping ??= (async () => {
     for (const timer of timers) clearInterval(timer);
+    const stopStatistics = stopFootballStatistics();
     for (const target of engines.values()) target.stop(Date.now());
     for (const session of sessions) session.close();
     flushReports();
-    await Promise.allSettled([recorder.close(), tables.save()]);
+    await Promise.allSettled([recorder.close(), tables.save(), stopStatistics]);
     port.close();
   })();
   return stopping;
@@ -151,6 +228,12 @@ async function handle(command: AggregationWorkerCommand): Promise<void> {
   if (command === "start") return start();
   if (!started || stopping !== null)
     throw new Error("Aggregation worker is not ready.");
+  if (command.type === "watch-football-statistics") {
+    footballWatch = command.watch;
+    lastFootballChecks = "";
+    flushFootballChecks();
+    return;
+  }
   post({ type: "result", commandId: command.commandId, value: stats() });
 }
 

@@ -364,7 +364,7 @@ stateDiagram-v2
 
 | Stare       | Folosită de detector | Semnificație                                                       |
 | ----------- | -------------------- | ------------------------------------------------------------------ |
-| `confirmat` | Da                   | ID Betradar identic **și** nicio verificare nu eșuează.            |
+| `confirmat` | Da                   | ID Betradar identic și verificările de identitate trecute.         |
 | `suspect`   | Nu                   | Cel puțin un motiv, raportat la fiecare schimbare.                 |
 
 Verificările se refac la fiecare `event-identity`, `event-live` și sweep, deci o pereche confirmată poate fi retrogradată oricând și revine singură când contradicția dispare.
@@ -375,7 +375,7 @@ Verificările se refac la fiecare `event-identity`, `event-live` și sweep, deci
 | `markers`     | Marcajele de lot (U21, feminin, II, LDD...) diferă la gazde sau la oaspeți.                                  |
 | `orientation` | Numele se potrivesc mult mai bine inversat: similaritatea inversată ≥ 0,5 și cu cel puțin 0,25 peste cea directă. |
 | `clock`       | Ambele ceasuri sunt cunoscute și proaspete și diferă cu mai mult de `clockToleranceSeconds`.                 |
-| `score`       | Scorurile diferă de cel puțin `scoreMismatchMs`.                                                             |
+| `score`       | Scorurile diferă de cel puțin `scoreMismatchMs`. La fotbal apare ca diagnostic și oprește perioada de învățare, fără să retrogradeze perechea. |
 | `unverified`  | Numele nu ajung la 0,5 și nici startul și ceasul nu confirmă împreună ID-ul.                                  |
 
 ### Numele
@@ -450,9 +450,9 @@ Scorul este semnalul cel mai puternic: prinde și perechea greșită, și casa r
 
 | #   | Scenariu                                                     | Protecție                                                                                                  |
 | --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| D1  | Scoruri diferite                                             | Poarta `score` blochează imediat; după `scoreMismatchMs`, perechea devine `suspect`.                       |
+| D1  | Scoruri diferite                                             | La fotbal se blochează piețele de goluri afectate. Diferența persistentă este raportată fără schimbarea asocierii. |
 | D2  | O casă arată meciul suspendat, cealaltă activ                | Poarta `suspended`.                                                                                        |
-| D3  | Imediat după o schimbare de scor                             | Poarta `settling` pentru `scoreSettleMs`; sweep-ul reevaluează liniile când liniștea expiră.               |
+| D3  | Imediat după o schimbare de scor                             | Piețele de goluri cu context cunoscut așteaptă `scoreSettleMs`. Sweep-ul le reevaluează la expirare. |
 | D4  | Cotă de dinaintea golului sosită după scorul nou             | Închiderea segmentului în outbox.                                                                          |
 | D5  | Meci temporar nesincronizat                                  | Identitatea și linkurile rămân; comparațiile sunt blocate, oportunitățile sunt `pause`.                    |
 | D6  | Meci eliminat efectiv                                        | Liniile și linkurile sunt retrase; oportunitățile sunt închise.                                             |
@@ -485,7 +485,23 @@ dacă marjă < minMarginBps → închide („margin”)
 
 Cu două rezultate există doar două combinații încrucișate; combinația în aceeași casă poartă mereu marja casei. Calculul este O(1).
 
-La fotbal, porțile sunt `pair`, `stale`, `not-live`, `suspended`, `score`, `settling`, `lag`. La tenis se adaugă `tennis-context` după scor și verificarea setului liniei. `stale` pune în pauză o oportunitate urmărită și nu deschide una nouă; celelalte porți închid oportunitatea cu motivul respectiv. `lag` privește întârzierea ultimului batch, nu vârsta cotei.
+La fotbal, `pair`, `stale`, `not-live`, `suspended` și `lag` se aplică întregii perechi. `score`, `statistics` și `settling` se verifică pentru linia evaluată. La tenis, scorul, stabilizarea și `tennis-context` rămân condiții pe pereche, iar seturile încheiate se exclud pe linie. `lag` măsoară întârzierea ultimului batch.
+
+#### Statistici de fotbal pe piață
+
+Codul canonic indică tipul de statistică, perioada și echipa din catalog. Pentru o piață de echipă se verifică doar acea echipă. Totalurile și handicapurile folosesc ambele echipe. Piețele care depind explicit de ambele reprize verifică și contoarele separate pe reprize, când sunt disponibile. Piețele pe interval exact rămân fără această verificare.
+
+| Starea datelor | Efect |
+| --- | --- |
+| O valoare explicită diferă între siteuri pentru aceeași echipă și perioadă | Piața intră în pauză sau rămâne în afara comparației. |
+| Valorile necesare sunt cunoscute și egale | Comparația poate continua, inclusiv după expirarea pauzei de stabilizare, unde se aplică. |
+| Un contor lipsește sau a expirat | Contorul respectiv este necunoscut. Comparația continuă dacă celelalte verificări trec. Un zero explicit este o valoare validă. |
+
+Scorul pe meci vine din canalele de cote existente. O schimbare de scor aplică pauza configurată de 5 s piețelor de goluri cu context cunoscut. Pentru reprize, golurile vin din scorurile explicite de perioadă. Contoarele suplimentare acoperă cornere, galbene, roșii, șuturi, șuturi pe poartă, faulturi, ofsaiduri și aruncări de la margine. Piețele de total cartonașe verifică separat galbenele și roșiile, fără să deducă puncte de decontare. Câmpurile numerice neconfirmate pentru lovituri de poartă nu sunt interpretate.
+
+Workerul de agregare furnizează la fiecare raport lista perechilor live, confirmate și sincronizate care au linii comune cu statistici suplimentare. Workerul separat de statistici interoghează Scorealarm și StatsStream cu maximum patru perechi în curs, la cel mult două cereri pe secundă per sursă și cel puțin 10 s între cererile aceleiași perechi. Un răspuns `429` sau `503` amână cererile conform `Retry-After`. Într-un lot mare, turele pot depăși intervalul țintă. Rezultatele sunt legate de identitatea perechii. La schimbare sau expirare sunt reevaluate numai liniile relevante.
+
+Valorile suplimentare expiră după 15 s, calculate de la începutul cererii cu ajustare după metadatele HTTP `Age` și `Date`, unde există. Aceasta limitează vârsta locală a datelor folosite. Întârzierea dintre faza de joc și publicarea ei în sursă poate fi diferită de întârzierea cotelor. Limitarea, timeoutul sau lipsa datelor produc starea necunoscută. Setările sunt în `src/aggregation/football-statistics.config.ts`. `FOOTBALL_STATS_ENABLED=0` oprește colectarea suplimentară.
 
 **Vârsta unui preț nu blochează comparația.** Un preț neschimbat este valid cât timp meciul este sincronizat; providerii invalidează meciul la deconectare, gap sau inactivitate. Vârsta fiecărui preț este însă raportată (`ageMs`), pentru decizia manuală: un preț vechi față de unul proaspăt indică de obicei o casă rămasă în urmă.
 
@@ -502,8 +518,8 @@ Fiecare picior raportează casa, rolul (`A`/`B` și eticheta: over, under, yes..
 ```mermaid
 stateDiagram-v2
     [*] --> active: marjă eligibilă, date sincronizate
-    active --> paused: flux întrerupt sau versiune lipsă
-    paused --> active: snapshot valid și oportunitate reconfirmată
+    active --> paused: flux întrerupt sau statistică diferită
+    paused --> active: date eligibile și marjă reconfirmată
     active --> closed: marjă sub prag, suspendare sau retragere
     paused --> closed: recuperare neeligibilă, retragere sau oprire
     closed --> [*]
@@ -572,8 +588,8 @@ Valorile sunt în [config.ts](../../src/aggregation/config.ts). Numerele trebuie
 | `statsIntervalMs`       | 5 s       | Statistici, scanarea fallback, salvarea tabelelor învățate.         |
 | `startToleranceMs`      | 30 min    | Diferența maximă de start.                                          |
 | `clockToleranceSeconds` | 300 s     | Diferența maximă de ceas de joc.                                    |
-| `scoreSettleMs`         | 5 s       | Liniștea după o schimbare de scor.                                  |
-| `scoreMismatchMs`       | 60 s      | Diferența de scor după care perechea devine `suspect`.              |
+| `scoreSettleMs`         | 5 s       | Pauză după schimbarea scorului pentru piețele de goluri la fotbal și pentru contextul relevant la tenis. |
+| `scoreMismatchMs`       | 60 s      | Diferență persistentă raportată la fotbal, respectiv pereche `suspect` la tenis. |
 | `maxLagMs`              | 2 s       | Întârzierea maximă a ultimului batch al unui provider.              |
 | `minMarginBps`          | 200       | Marja minimă raportată: 2%; același prag pentru ambele sporturi.       |
 | `suspiciousMarginBps`   | 1 000     | Peste 10%, oportunitatea este `suspicious`.                         |

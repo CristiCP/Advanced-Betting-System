@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { aggregationConfig } from "../dist/aggregation/config.js";
+import { footballStatisticsConfig } from "../dist/aggregation/football-statistics.config.js";
+import { footballMarketMapping } from "../dist/aggregation/mapping.config.js";
 import { LearnedTables } from "../dist/aggregation/matching/learning.js";
 import { AggregationEngine } from "../dist/aggregation/processing/engine.js";
 import { lineKey, liveFlags, valueFlags } from "../dist/aggregation/protocol/wire.js";
+import { scorealarmStatistics, statsStreamStatistics } from "../dist/aggregation/protocol/football-statistics.js";
 import { identity } from "./helpers/aggregation.mjs";
 
 const goals = lineKey(1, 10);
@@ -173,7 +176,7 @@ test("matched-event tables change only when confirmed membership changes", () =>
   assert.equal(context.engine.takeMatchedEvents(), null);
 });
 
-test("a goal on one book blocks the pair until both agree and settle", () => {
+test("a goal on one book pauses goal lines until both agree and settle", () => {
   const context = setup();
   pairUp(context);
   context.advance(context.options.scoreSettleMs + 1);
@@ -181,25 +184,132 @@ test("a goal on one book blocks the pair until both agree and settle", () => {
   context.batch("superbet", (sink) => sink.eventLive(0, running, 2, 0, 1_300));
   assert.deepEqual(
     [context.opportunities().at(-1).kind, context.opportunities().at(-1).reason],
-    ["close", "score"],
+    ["pause", "score"],
   );
   assert.match(context.opportunities().at(-1).reasonDetail, /superbet 2-0, betano 1-0/);
   context.batch("betano", (sink) => sink.eventLive(0, running, 2, 0, 1_310));
   context.advance(1_000);
-  assert.equal(context.opportunities().at(-1).kind, "close");
+  assert.equal(context.opportunities().at(-1).kind, "pause");
   context.advance(context.options.scoreSettleMs);
-  assert.equal(context.opportunities().at(-1).kind, "open");
+  assert.equal(context.opportunities().at(-1).kind, "resume");
 });
 
-test("a score disagreement that persists marks the pair suspect and unlinks it", () => {
+test("a persistent football score difference is reported without blocking corner markets", () => {
   const context = setup();
   pairUp(context, { betanoLive: [running, 0, 0, 1_230] });
   context.advance(context.options.scoreMismatchMs + 1);
   const report = context.pairs().at(-1);
-  assert.equal(report.state, "suspect");
+  assert.equal(report.state, "confirmed");
   assert.deepEqual(report.reasons, ["score"]);
+  addMarkets(context, [34, 14]);
+  const [target] = context.engine.footballStatisticsTargets();
+  const now = context.clock.now;
+  const half = { observedAt: now, counts: { "first-half": { goals: [0, 0] } } };
+  context.engine.applyFootballStatistics({ target, superbet: half, betano: half }, now);
+  assert.equal(context.engine.footballChecks({ generation: 1, superbetId: 11, betanoId: 22 }, now)[2], "different");
+  assert.equal(context.engine.getStats().activeMatches, 1);
+  assert.equal(context.opportunities().at(-1).concept, "Total cornere");
   context.batch("betano", (sink) => sink.eventLive(0, running, 1, 0, 1_300));
   assert.equal(context.pairs().at(-1).state, "confirmed");
+});
+
+function addMarkets(context, types) {
+  for (const provider of ["superbet", "betano"])
+    context.batch(provider, (sink) => {
+      types.forEach((type, index) => {
+        const market = footballMarketMapping.find((row) => row.betano === type);
+        sink.lineDefine(index + 1, 0, lineKey(market.code, 10));
+        sink.value(index + 1, 2.15, 2.15, usable);
+      });
+    });
+}
+
+test("statistics adapters preserve periods, explicit zeros and missing sides", () => {
+  const scorealarm = scorealarmStatistics({
+    scores: [{ type: 2, team1: 1, team2: 0 }],
+    match_stats: [
+      { period: 0, team1: "12", team2: "9", text: { args: ["stats.football.match.throw_ins"] } },
+      { period: 1, team1: "7", team2: "5", text: { args: ["stats.football.match.throw_ins"] } },
+      { period: 2, team1: "0", text: { args: ["stats.football.match.offsides"] } },
+      { period: 0, team1: "5", team2: "2", text: { args: ["stats.football.match.goal_kicks"] } },
+    ],
+  });
+  assert.deepEqual(scorealarm, {
+    match: { "throw-ins": [12, 9] },
+    "first-half": { "throw-ins": [7, 5] },
+    "second-half": { offsides: [0, null], goals: [1, 0] },
+  });
+  assert.deepEqual(statsStreamStatistics({ data: {
+    home: { regular_time: { total_shots: 12, shots_on_target: 3 }, first_half: { total_shots: 0 } },
+    away: { regular_time: { total_shots: 6 }, first_half: null, total: { goal_kicks: 1 } },
+  } }), { match: { shots: [12, 6], "shots-on-target": [3, null] }, "first-half": { shots: [0, null] } });
+});
+
+test("a statistics mismatch pauses only its team and period and expiry resumes it without new odds", () => {
+  const context = setup();
+  pairUp(context);
+  context.advance(context.options.scoreSettleMs + 1);
+  addMarkets(context, [34, 39, 40, 37, 343]);
+  const [target] = context.engine.footballStatisticsTargets();
+  const now = context.clock.now;
+  const counts = (corners, firstHalf) => ({
+    observedAt: now,
+    counts: { match: { corners }, "first-half": { corners: firstHalf } },
+  });
+  context.engine.applyFootballStatistics({
+    target,
+    superbet: counts([1, 3], [1, 1]),
+    betano: counts([1, 2], [1, 1]),
+  }, now);
+  const blocked = context.opportunities().filter((report) => report.kind === "pause");
+  const codes = (types) => types.map((type) => footballMarketMapping.find((row) => row.betano === type).code);
+  assert.deepEqual(blocked.map((report) => report.marketCode).sort(), codes([34, 40]).sort());
+  assert.ok(blocked.every((report) => report.reason === "statistics"));
+  const watch = { generation: 1, superbetId: 11, betanoId: 22 };
+  const checks = context.engine.footballChecks(watch, now);
+  for (const code of codes([39, 37])) assert.equal(checks[code], "equal");
+  assert.equal(checks[codes([343])[0]], "unknown");
+  assert.equal(context.engine.getStats().activeMatches, 1);
+  context.advance(footballStatisticsConfig.maxAgeMs);
+  assert.deepEqual(context.opportunities().filter((report) => report.kind === "resume")
+    .map((report) => report.marketCode).sort(), codes([34, 40]).sort());
+  assert.equal(context.engine.footballChecks(watch, context.clock.now)[codes([34])[0]], "unknown");
+});
+
+test("unavailable lines still close during a stats pause and late samples cannot affect a replacement pair", () => {
+  const context = setup();
+  pairUp(context);
+  context.advance(context.options.scoreSettleMs + 1);
+  addMarkets(context, [34]);
+  const [target] = context.engine.footballStatisticsTargets();
+  const now = context.clock.now;
+  const sample = {
+    target,
+    superbet: { observedAt: now, counts: { match: { corners: [1, 3] } } },
+    betano: { observedAt: now, counts: { match: { corners: [1, 2] } } },
+  };
+  context.engine.applyFootballStatistics(sample, now);
+  assert.equal(context.opportunities().at(-1).reason, "statistics");
+  context.batch("betano", (sink) => sink.lineRelease(1));
+  assert.equal(context.opportunities().at(-1).reason, "unlinked");
+  context.batch("betano", (sink) => sink.eventRelease(0));
+  context.batch("betano", (sink) => {
+    sink.eventIdentity(0, betanoMatch());
+    sink.eventLive(0, running, 1, 0, 1_230);
+  });
+  context.batch("betano", (sink) => {
+    sink.lineDefine(1, 0, lineKey(4, 10));
+    sink.value(1, 2.15, 2.15, usable);
+  });
+  context.engine.applyFootballStatistics(sample, now);
+  assert.equal(context.engine.footballChecks({ generation: 1, superbetId: 11, betanoId: 22 }, now)[4], "unknown");
+});
+
+test("an unknown score does not block a football market", () => {
+  const context = setup();
+  pairUp(context, { betanoLive: [liveFlags.live, 0, 0, 0] });
+  assert.equal(context.engine.getStats().activeMatches, 1);
+  assert.equal(context.engine.footballChecks({ generation: 1, superbetId: 11, betanoId: 22 }, context.clock.now)[1], "unknown");
 });
 
 test("youth, women, and reserve squads never pair with the senior team", () => {
@@ -525,11 +635,11 @@ test("scores received during a gap cannot unmatch the stale identity; fresh disa
   context.batch("superbet", (sink) => sink.eventLive(0, running, 1, 0, 1_260));
   assert.deepEqual(
     [context.opportunities().at(-1).kind, context.opportunities().at(-1).reason],
-    ["close", "score"],
+    ["pause", "score"],
   );
   context.advance(context.options.scoreMismatchMs);
-  assert.equal(context.engine.getStats().matching.suspect, 1);
-  assert.deepEqual(context.engine.takeMatchedEvents(), []);
+  assert.equal(context.engine.getStats().matching.confirmed, 1);
+  assert.equal(context.engine.takeMatchedEvents(), null);
 });
 
 test("a new pair with unconfirmed data never opens an opportunity before synchronization", () => {

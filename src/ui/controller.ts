@@ -1,6 +1,11 @@
 import { fork } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import type { AggregationMatchedEvent } from "../aggregation/model/matching.interfaces.js";
+import type {
+  FootballMarketChecks,
+  FootballStatisticsView,
+  FootballStatisticsWatch,
+} from "../aggregation/model/football-statistics.interfaces.js";
 import type { AggregationOpportunityReport } from "../aggregation/model/opportunity.interfaces.js";
 import type { AggregationStats } from "../aggregation/model/worker.interfaces.js";
 import { uiConfig } from "./config.js";
@@ -33,6 +38,10 @@ export class UiController {
   private summaryAt = 0;
   private reports: UiOpportunity[] = [];
   private quotes = new Map<UiProvider, UiQuoteMessage>();
+  private footballChecks: FootballMarketChecks | undefined;
+  private watchFootballStatistics:
+    | ((watch: FootballStatisticsWatch | null) => void)
+    | undefined;
   private dropped = 0;
   private stopping = false;
   private summary: UiSummary = {
@@ -49,8 +58,21 @@ export class UiController {
 
   constructor(private readonly options: UiOptions = uiConfig) {}
 
-  attach(providers: Partial<Record<UiProvider, UiProviderApi>>): void {
+  attach(
+    providers: Partial<Record<UiProvider, UiProviderApi>>,
+    watchFootballStatistics?: (watch: FootballStatisticsWatch | null) => void,
+  ): void {
     this.providers = providers;
+    this.watchFootballStatistics = watchFootballStatistics;
+  }
+
+  footballStatistics(view: FootballStatisticsView): void {
+    if (
+      this.viewers &&
+      this.selection?.sport === "football" &&
+      view.generation === this.generation
+    )
+      this.footballChecks = view.checks;
   }
 
   events(provider: UiProvider, events: UiEvent[]): void {
@@ -200,6 +222,23 @@ export class UiController {
     this.generation++;
     this.selectionDirty = true;
     this.quotes.clear();
+    this.footballChecks = undefined;
+    const { superbet, betano } = selection ?? {};
+    try {
+      this.watchFootballStatistics?.(
+        selection?.sport === "football" &&
+          superbet !== undefined &&
+          betano !== undefined
+          ? {
+              generation: this.generation,
+              superbetId: superbet,
+              betanoId: betano,
+            }
+          : null,
+      );
+    } catch (error) {
+      console.error("UI statistics observation failed:", error);
+    }
     for (const provider of ["superbet", "betano"] as const) {
       try {
         this.providers[provider]?.watchUi({
@@ -229,6 +268,7 @@ export class UiController {
       !includeSummary &&
       !this.selectionDirty &&
       this.quotes.size === 0 &&
+      this.footballChecks === undefined &&
       this.reports.length === 0
     )
       return;
@@ -241,9 +281,13 @@ export class UiController {
       dropped: this.dropped,
       ...(includeSummary ? { summary: { ...this.summary, at: now } } : {}),
       ...(this.quotes.size ? { quotes: [...this.quotes.values()] } : {}),
+      ...(this.footballChecks !== undefined
+        ? { footballChecks: this.footballChecks }
+        : {}),
     };
     this.reports = [];
     this.quotes.clear();
+    this.footballChecks = undefined;
     this.selectionDirty = false;
     if (includeSummary) {
       this.dirty = false;

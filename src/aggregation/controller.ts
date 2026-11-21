@@ -23,6 +23,7 @@ import { superbetFootballMarkets } from "../providers/superbet/football-markets.
 import { betanoFootballMarkets } from "../providers/betano/football-markets.config.js";
 import { validateTennisMapping } from "./tennis-mapping.js";
 import type { AggregationSport } from "./model/tennis.interfaces.js";
+import type { FootballStatisticsWatch } from "./model/football-statistics.interfaces.js";
 
 /**
  * @file Owns the aggregation worker and the direct ports handed to provider processing workers.
@@ -42,6 +43,7 @@ export class AggregationController implements AggregationApi {
   constructor(
     options: Partial<AggregationOptions> = {},
     private readonly handlers: AggregationHandlers = {},
+    private readonly pollFootballStatistics = false,
   ) {
     this.options = { ...aggregationConfig, ...options };
     const {
@@ -125,6 +127,7 @@ export class AggregationController implements AggregationApi {
     const worker = new Worker(new URL("./workers/worker.js", import.meta.url), {
       workerData: {
         options: this.options,
+        pollFootballStatistics: this.pollFootballStatistics,
         ports: this.ports,
         publishMatches: this.handlers.onMatches !== undefined,
       } satisfies AggregationWorkerData,
@@ -191,6 +194,9 @@ export class AggregationController implements AggregationApi {
 
   private handle(message: AggregationWorkerMessage): void {
     switch (message.type) {
+      case "football-statistics":
+        this.handlers.onFootballStatistics?.(message);
+        break;
       case "matches":
         this.handlers.onMatches?.(message.matches);
         break;
@@ -244,6 +250,14 @@ export class AggregationController implements AggregationApi {
         reject(error);
       }
     });
+  }
+
+  watchFootballStatistics(watch: FootballStatisticsWatch | null): void {
+    if (this.ready && this.stopping === null)
+      this.worker?.postMessage({
+        type: "watch-football-statistics",
+        watch,
+      } satisfies AggregationWorkerCommand);
   }
 
   stop(): Promise<void> {
